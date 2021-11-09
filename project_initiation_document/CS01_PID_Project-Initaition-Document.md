@@ -8,8 +8,6 @@ This game aims to make students aware of the many pitfalls and difficulties that
 
 However, as the pandemic has caused a lockdown to happen and classes to go remote, it has become harder for students to have interactions with their peers aside from during classes, and so are left in isolation. As such, this project aims to produce the digital version of this game to expand the reach and impact through online accessibility without the need of any online medium to play the game as a group (e.g. the Tabletop Simulator). Through becoming more accessible to students, they will be able to facilitate communication and build bridges with their peers through this product.
 
-<hr/>
-
 ## Objectives and Goals
 
 
@@ -40,8 +38,6 @@ However, as the pandemic has caused a lockdown to happen and classes to go remot
 
 
 For a detailed breakdown of the tasks required to complete the project, see section *Project Structure and Timeline*.
-
-<hr/>
 
 ## Scoping
 
@@ -79,8 +75,6 @@ While not included in the development of the product, related aspects of how the
 
 The product will not, however, include a way of communication between players during the game. They can communicate through other methods, such as Zoom or Discord. The development of a mobile interface will also not be considered, due to the mobile screen being too small for players to have a sense of  playing the game with others in person as the physical version is played on a large table with the players surrounding it.
 
-<hr/>
-
 ## Assumptions and Constraints
 
 ### Parameters
@@ -109,8 +103,6 @@ The product will not, however, include a way of communication between players du
     - This can be overcome through sufficient planning during the single-player development to be able to easily expand the functionality into multiplayer.
 - The game must be playable on both a computer and a tablet. The smaller screen size of tablets, as well as the tablets being touch operated must be carefully planned for.
     - Layouts should be planned with smaller screens in mind, or separate screens can be made depending on the screen size of the device.
-
-<hr/>
 
 ## Project Plan
 
@@ -153,8 +145,6 @@ The functionality and ease of use of the minimum viable product could be further
 - Interesting for both players and facilitator can be a game tutorial, separate for each role, explaining how to play the game and work with the interface for players and facilitators respectively.
 - The complexity and difficulty of the gameplay for different experience and skill levels of players can be adjusted by allowing the facilitator to enable options such as highlighting all possible legal moves for a tile during the activity phase.
 - To allow for gameplay without a facilitator, all basic actions that a facilitator can take can be automated in order for players to just play for themselves, perhaps in a casual setting.
-
-<hr/>
 
 ## Structure & Timeline
 
@@ -230,8 +220,6 @@ Following is our project backlog for the implementation of features. We have est
 19. Tutorial
 20. Easy mode, with additional highlighting
     - For example, only showing players the valid places they can put cards
-
-<hr/>
 
 ## Stakeholders
 
