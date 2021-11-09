@@ -46,7 +46,7 @@ However, as the pandemic has caused a lockdown to happen and classes to go remot
 3. If we still have time remaining before the deadline, we will add the extra features.
 
 
-For a detailed breakdown of the tasks required to complete the project, see section *Project Structure and Timeline*.
+For a detailed breakdown of the tasks required to complete the project, see section [*Structure and Timeline*](#structure-timeline).
 
 ## Scoping
 
@@ -116,20 +116,31 @@ The product will not, however, include a way of communication between players du
 ## Project Plan
 
 The objectives can be divided into two different stages: the singleplayer development stage and the multiplayer development stage.
-The singleplayer development encompasses the creation of a fully playable version of ‘How to Fail your Research Degree’ that can be played on a single local machine without implementing any network functionality. The main purpose for this stage is to implement a working game without the added complexity of networking and communication to a remote server which could lead to unwanted behaviour or bugs becoming more likely if this was implemented concurrently. Potential applications could include helping an unexperienced facilitator to walk through the gameplay by themselves to be better prepared for an upcoming multiplayer session. Another potential application could be in a classroom or seminar room with insufficient table space where the game can be projected onto a screen and the different teams and facilitator play by passing a wireless mouse between them.
+
+The singleplayer development encompasses the creation of a fully playable version of ‘How to Fail your Research Degree’ that can be played on a single local machine without implementing any network functionality. The main purpose for this stage is to implement a working game without the added complexity of networking and communication to a remote server which could lead to unwanted behaviour or bugs becoming more likely if this was implemented concurrently.
+
+Potential applications could include helping an unexperienced facilitator to walk through the gameplay by themselves to be better prepared for an upcoming multiplayer session. Another potential application could be in a classroom or seminar room with insufficient table space where the game can be projected onto a screen and the different teams and facilitator play by passing a wireless mouse between them.
+
 The multiplayer development stage will then expand on the functionality of the singleplayer game to equip it with client-server communication in order to enable players and the facilitator to play with each other remotely. After this stage, the developed game should fulfil all minimum requirements and possibly expand upon them with additional features.
 
-The game will be created in JavaScript and HTML5 using the PhaserJS framework. PhaserJS is a framework developed specifically for cross-platform browser games. The cross-platform capability will prove useful when adding features to the MVP such as the possibility to play the game on mobile devices with large screens like tablets. During development, all code will be kept centralised on a GitLab repository as a version control system to allow for streamlined development and minimise conflicts between different developers when coding parallelly. After development is completed, the code can then be distributed to other code sharing platforms like GitHub. On the back end, the game will make use of an SQLite database to keep track of game states and resources. As an example, event cards will be stored in the database with a link to the image, card details such as title, card description, and cards that will be affected by the event.
+The game will be created in JavaScript and HTML5 using the PhaserJS framework. PhaserJS is a framework developed specifically for cross-platform browser games. The cross-platform capability will prove useful when adding features to the MVP such as the possibility to play the game on mobile devices with large screens like tablets.
+
+During development, all code will be kept centralised on a GitLab repository as a version control system to allow for streamlined development and minimise conflicts between different developers when coding parallelly. After development is completed, the code can then be distributed to other code sharing platforms like GitHub. On the back end, the game will make use of an SQLite database to keep track of game states and resources. As an example, event cards will be stored in the database with a link to the image, card details such as title, card description, and cards that will be affected by the event.
 
 ### Minimum Viable Product (MVP)
 
 #### Singleplayer Stage
 
 After the singleplayer stage, the game will essentially function as a stand-in for the tabletop game as a digitized version without offering any remote playing functionality. The game rules will be replicated one-to one by implementing each rule as static game logic using for example generalised JavaScript functions that can act on different categories of events like removing cards from the board unless specific cards are present.
+
 For the singleplayer stage, each player view will be indifferent within the team. Since all players and the facilitator are playing on the same device, there is no need for separate views for each player, instead the views can be handled for each team and the facilitator.
+
 As a change to the rules, since playing on a single device forces this behaviour, each team will play each phase in turn. This means that instead of the activity phase being concurrent, each team will move through the phase individually.
+
 Players will have a single main view with minimal elements to prevent the interface from becoming to overloaded. The majority of the view will be taken up by a top-down display on the activity tiles that the players of the team have played. During the activity phase there will be a timer shown that counts down the time that the players have left to lay down tiles, and an opaque stack from which players can pull new cards to lay down. There will be a constant indicator of the current round and phase of the game along with clear indicators when the round or phase of the game changes. There will be a small space where events cards are held that the players can play out later and a menu to to view the boards of other teams.
+
 An important functionality that will be added will be an option to un-do the placement of the current tile. The purpose of this functionality is to mitigate any imprecise control input which can be common for touch-operated devices like tablets. To still give finality to the placement of tiles, the undo option will only be available for a specific amount of time after the tile has been played and while the team has not pulled the next tile from the stack.
+
 The facilitator view will extend upon the player view. There won’t be a need for an event card holding area, whereas this could be replaced with an info box for when a team could take additional actions, like playing a held event card to mitigate a current event card. Furthermore, the facilitator can use a ‘laser pointer’ to highlight specific cards or tiles to all players along with a functionality to view the boards of the teams individually or to view all game boards as a whole.
 The facilitator has control over when to move to the next phase in order to allow for discussion of tiles or backgrounds on the current phase without the game already progressing automatically.
 
@@ -137,11 +148,17 @@ The facilitator has control over when to move to the next phase in order to allo
 #### Multiplayer Stage
 
 The aim is that the online game will be hosted over the already existing how to fail your research degree website since the deployment is financially restricted.
+
 The client-server communication will be implemented using JavaScript Socket IO, which supports sending and receiving of text strings, most commonly string representations of JavaScript objects (JSON).
+
 The facilitator creates a game session through the server which will allow players to join the session through a link and an optional password. The facilitator specifies the number of teams for the game and can also voluntarily agree to share game analytics like the number of players and the institution name where the session is played. The players will be informed of this decision when joining the session.
+
 Upon joining the session, the players will enter a waiting room where each player can give themselves a name and assign themselves to a team. Since the game is intended to be played with a voice call in parallel, players will be able to resolve any conflicts of joining teams between themselves.
+
 Extending from the functionality from the singleplayer stage, the facilitator can change the view of all players to a specific board or to an overview of all board in order to give explanations or comparisons. The player views will be locked, meaning the players cannot switch to a different view, until the facilitator releases them again. When using the ‘laser pointer’ all players can see in their view what the facilitator is pointing to.
+
 As opposed to the singleplayer stage, the activity and peer-review phases take place concurrently for the multiplayer stage version instead of the teams taking turns. This is possible since each player can have an individual view on their own device. The events phase will still take place in turn for each team as specified in the original game rules to allow players to learn from all events and take part in general discussions through the facilitator.
+
 During the events phase, the event card drawn by a team will be visible to all players with the option to minimize or maximize it. This way, each player will feel more included in the gameplay with them knowing what is currently going on as opposed to only the team that drew the event card being able to see it.
 
 
