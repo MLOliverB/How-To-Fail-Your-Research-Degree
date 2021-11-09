@@ -1,12 +1,12 @@
 # Projection Initiaion Document - How to Fail your Research Degree - CS01
 ## Contents
-[Rationale](https://stgit.dcs.gla.ac.uk/team-project-h/2021/cs01/cs01-main/-/blob/master/project_initiation_document/CS01_PID_Project-Initaition-Document.md#rationale)  
-[Objectives and Goals](https://stgit.dcs.gla.ac.uk/team-project-h/2021/cs01/cs01-main/-/blob/master/project_initiation_document/CS01_PID_Project-Initaition-Document.md#objectives-and-goals)  
-[Scoping](https://stgit.dcs.gla.ac.uk/team-project-h/2021/cs01/cs01-main/-/blob/master/project_initiation_document/CS01_PID_Project-Initaition-Document.md#scoping)  
-[Assumptions and Constraints](https://stgit.dcs.gla.ac.uk/team-project-h/2021/cs01/cs01-main/-/blob/master/project_initiation_document/CS01_PID_Project-Initaition-Document.md#assumptions-and-constraints)  
-[Project Plan](https://stgit.dcs.gla.ac.uk/team-project-h/2021/cs01/cs01-main/-/blob/master/project_initiation_document/CS01_PID_Project-Initaition-Document.md#project-plan)  
-[Structure and Timeline](https://stgit.dcs.gla.ac.uk/team-project-h/2021/cs01/cs01-main/-/blob/master/project_initiation_document/CS01_PID_Project-Initaition-Document.md#structure-timeline)  
-[Stakeholders](https://stgit.dcs.gla.ac.uk/team-project-h/2021/cs01/cs01-main/-/blob/master/project_initiation_document/CS01_PID_Project-Initaition-Document.md#stakeholders)  
+[Rationale](#rationale)  
+[Objectives and Goals](#objectives-and-goals)  
+[Scoping](#scoping)  
+[Assumptions and Constraints](#assumptions-and-constraints)  
+[Project Plan](#project-plan)  
+[Structure and Timeline](#structure-timeline)  
+[Stakeholders](#stakeholders)  
 
 
 ## Rationale 
