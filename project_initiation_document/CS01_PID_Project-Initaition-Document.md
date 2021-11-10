@@ -1,5 +1,7 @@
 # Projection Initiaion Document - How to Fail your Research Degree - CS01
+
 ## Contents
+
 [Rationale](#rationale)  
 [Objectives and Goals](#objectives-and-goals)  
 [Scoping](#scoping)  
