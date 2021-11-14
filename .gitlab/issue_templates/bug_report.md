@@ -19,4 +19,6 @@
 ## Possible fixes
 (If you can, link to the line of code that might be responsible for the problem)
 
-/label ~type: bug ~bug: needs-investigation
+
+**DELETE BELOW AFTER COMPLETING**  
+- Select tags `type: bug` and `bug: needs-investigation`
