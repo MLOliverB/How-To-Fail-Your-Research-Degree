@@ -4,10 +4,10 @@ conn = sqlite3.connect("../data/Cards.db")
 c =  conn.cursor()
 
 ### Creating Tables
-conn.execute("CREATE TABLE IF NOT EXISTS Activities(id INTEGER PRIMARY KEY AUTOINCREMENT, stage INT, number INT, name TEXT, description TEXT, placement TEXT)")
+conn.execute("CREATE TABLE IF NOT EXISTS Activities(id INTEGER PRIMARY KEY AUTOINCREMENT, stage INT, number INT, image TEXT, title TEXT, description TEXT, placement TEXT)")
 conn.execute("CREATE TABLE IF NOT EXISTS Events(id INTEGER PRIMARY KEY AUTOINCREMENT, stage INT, number INT, name TEXT, description TEXT, requirement TEXT, effect TEXT)")
 
-
+ 
 
 ### Inserting Data
 # TODO: add commands to insert data into databases
