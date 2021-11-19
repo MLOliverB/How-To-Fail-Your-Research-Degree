@@ -1,18 +1,24 @@
 import sqlite3
+import csv
 
 conn = sqlite3.connect("../data/Cards.db")
 c =  conn.cursor()
 
 ### Creating Tables
 conn.execute("CREATE TABLE IF NOT EXISTS Activities(id INTEGER PRIMARY KEY AUTOINCREMENT, stage INT, number INT, image TEXT, title TEXT, description TEXT, placement TEXT)")
-conn.execute("CREATE TABLE IF NOT EXISTS Events(id INTEGER PRIMARY KEY AUTOINCREMENT, stage INT, number INT, name TEXT, description TEXT, requirement TEXT, effect TEXT)")
+conn.execute("CREATE TABLE IF NOT EXISTS Events(id INTEGER PRIMARY KEY AUTOINCREMENT, stage INT, number INT, title TEXT, description TEXT, requirement TEXT, effect TEXT)")
 
  
 
 ### Inserting Data
-# TODO: add commands to insert data into databases
-# maybe read in data from a csv into an array?
-# example copied from one of my other projects for reference on how to do it with an array:
+add_activity = "INSERT INTO Activities(id,stage,number,image,title,description,placement) VALUES (?,?,?,?,?,?,?)"
+#add_event = "INSERT INTO Events(id,stage,number,image,title,description,requirement,effect) VALUES (?,?,?,?,?,?,?,?)"
+
+with open("../data/Activities.csv") as file:
+	reader = csv.reader(file)
+	for row in reader:
+		c.execute(add_activity,row)
+
 
 """
 #Connecting to database and creating a cursor to navigate the database
