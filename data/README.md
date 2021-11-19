@@ -31,4 +31,4 @@ This folder contains the data for the game
 | title | Text | The text displayed on the card |
 | description | Text | A description of what the card means |
 | requirement | Text | The requirements for the card to take effect. `14:2&!2` means that card 14 must appear twice, and card 2 cannot appear |
-| effect | Text | The effect of the card. `n-1:3:2` means that three of the cards in stage 2 must be removed (`n/p/s/o/i` = remove a card, add a card, stand in for a card, block out spaces, ignore effects of another event card; `a:b:c` a=id of a specific card (-1=not a card), b=number of cards to change, c=stage of card if not a specific card) |
+| effect | Text | The effect of the card. `n-1:3:2` means that three of the cards in stage 2 must be removed (`n/p/s/o/i` = remove a card, add a card, stand in for a card, block out spaces, ignore effects of another event card; `a:b:c` a=id of a specific card (0=not a specific card), b=number of cards to change, c=stage of card if not a specific card) |
