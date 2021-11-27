@@ -46,7 +46,27 @@ function EventCard(id, stage, image, title, description, save_condition, require
  * Returns an array of card objects representing a card stack.
  */
 function loadActivityCardStack(stage, dbPath) {
-    //TODO
+    let config = {
+        locateFile: () => "/scripts/sql-js/sql-wasm.wasm",
+    };
+
+    initSqlJs(config).then(function(SQL) {
+
+        // Open the database file with a file buffer
+        let filebuffer = fs.readFileSync("/data/Cards.db");
+
+        // Open the database
+        const db = new SQL.Database(filebuffer);
+
+        // Prepare the statement
+        const stmt = db.prepare("SELECT * FROM Activities WHERE stage='$stage'");
+
+        stmt.bind({$stage: stage});
+        while (stmt.step()) {
+            const row = stmt.getAsObject();
+            console.log('Here is a row: ' + JSON.stringify(row));
+        }
+    });
 }
 
 
@@ -58,7 +78,27 @@ function loadActivityCardStack(stage, dbPath) {
  * Returns a list of card objects representing a card stack.
  */
 function loadEventCardStack(stage, dbPath) {
-    //TODO
+    let config = {
+        locateFile: () => "/scripts/sql-js/sql-wasm.wasm",
+    };
+
+    initSqlJs(config).then(function(SQL) {
+
+        // Open the database file with a file buffer
+        let filebuffer = fs.readFileSync("/data/Cards.db");
+
+        // Open the database
+        const db = new SQL.Database(filebuffer);
+
+        // Prepare the statement
+        const stmt = db.prepare("SELECT * FROM Events WHERE stage='$stage'");
+
+        stmt.bind({$stage: stage});
+        while (stmt.step()) {
+            const row = stmt.getAsObject();
+            console.log('Here is a row: ' + JSON.stringify(row));
+        }
+    });
 }
 
 
