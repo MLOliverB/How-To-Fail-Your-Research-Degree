@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <title>How To Fail Your Research Degree</title>
-    <script src="//cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
-    <script src="/scripts/sql-js/sql-wasm.js"></script>
-    <script src="/scripts/FileSystem/fs.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+    <script src="scripts/sql-js/sql-wasm.js"></script>
+    <script src="scripts/cards-management.js"></script>
+    <!-- <script src="scripts/FileSystem/fs.js"></script> -->
     <style type="text/css">
         body {
             margin: 0;
@@ -30,6 +31,7 @@
     var game = new Phaser.Game(config);
 
     function preload () {
+        loadEventCardStack(1, "");
     }
 
     function create () {
