@@ -41,9 +41,7 @@ function EventCard(id, stage, image, title, description, save_condition, require
 /*
  * loadCardStack retrieves all activity cards from a given stage and loads them into an array symbolizing a stack.
  * - stage: The game stage for which the cards will be retrieved - 1=Plan, 2=Context, 3=Implementation, 4=Write Up
- * - dbPath: The path to the database file from which the stack will be loaded
- * 
- * Returns an array of card objects representing a card stack.
+ * - onLoad: Callback function that takes the card stack as an argument to support the asynchronous behaviour of xml http requests
  */
 function loadActivityCardStack(stage, onLoad) {
     var cardStack = [];
@@ -80,9 +78,7 @@ function loadActivityCardStack(stage, onLoad) {
 /*
  * loadCardStack retrieves all event cards from a given stage and loads them into an array symbolizing a stack.
  * - stage: The game stage for which the cards will be retrieved - 1=Plan, 2=Context, 3=Implementation, 4=Write Up
- * - dbPath: The path to the database file from which the stack will be loaded
- * 
- * Returns a list of card objects representing a card stack.
+ * - onLoad: Callback function that takes the card stack as an argument to support the asynchronous behaviour of xml http requests
  */
 function loadEventCardStack(stage, onLoad) {
     var cardStack = [];
