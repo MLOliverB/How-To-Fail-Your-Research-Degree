@@ -6,7 +6,7 @@
  * - description: A description of what the card means
  * - placement: 4 numbers separated by commas representing if a card can be placed in the direction. left,right,up,down (e.g. 1,0,0,1 means a card can be placed on the left and down directions)
  */
-function ActivitCard(id, stage, image, title, description, placement) {
+function ActivityCard(id, stage, image, title, description, placement) {
     this.id = id;
     this.stage = stage;
     this.image = image;
@@ -45,30 +45,34 @@ function EventCard(id, stage, image, title, description, save_condition, require
  * 
  * Returns an array of card objects representing a card stack.
  */
-function loadActivityCardStack(stage, dbPath) {
+function loadActivityCardStack(stage, onLoad) {
+    var cardStack = [];
+
     let config = {
-        locateFile: () => "/scripts/sql-js/sql-wasm.wasm",
+        locateFile: () => "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.1/sql-wasm.wasm",
     };
 
     initSqlJs(config).then(function(SQL) {
+        let xhr = new XMLHttpRequest();
 
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/data/Cards.db', true);
+        xhr.open('GET', 'http://localhost:8000/data/Cards.db', true);
         xhr.responseType = 'arraybuffer';
 
         xhr.onload = function(e) {
-            // Open the database
+            var uInt8Array = new Uint8Array(this.response);
             const db = new SQL.Database(uInt8Array);
 
-            // Prepare the statement
-            const stmt = db.prepare("SELECT * FROM Activities WHERE stage='$stage'");
+            var res = db.exec("SELECT * FROM Activities WHERE stage=:stage", {":stage": stage, });
 
-            stmt.bind({$stage: stage});
-            while (stmt.step()) {
-                const row = stmt.getAsObject();
-                console.log('Here is a row: ' + JSON.stringify(row));
+            if (res.length > 0) {
+                let vals = res[0]["values"];
+                for (let i = 0; i < vals.length; i++) {
+                    cardStack.push(new ActivityCard(vals[i][0], vals[i][1], vals[i][2], vals[i][3], vals[i][4], vals[i][5], vals[i][6]));
+                }
             }
+            onLoad(cardStack);
         };
+        xhr.send();
     });
 }
 
@@ -80,53 +84,34 @@ function loadActivityCardStack(stage, dbPath) {
  * 
  * Returns a list of card objects representing a card stack.
  */
-function loadEventCardStack(stage, dbPath) {
-    console.log("0");
+function loadEventCardStack(stage, onLoad) {
+    var cardStack = [];
 
     let config = {
-        locateFile: () => "./scripts/sql-js/sql-wasm.wasm",
+        locateFile: () => "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.1/sql-wasm.wasm",
     };
 
     initSqlJs(config).then(function(SQL) {
+        let xhr = new XMLHttpRequest();
 
-        console.log("1");
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/data/Cards.db', true);
+        xhr.open('GET', 'http://localhost:8000/data/Cards.db', true);
         xhr.responseType = 'arraybuffer';
 
         xhr.onload = function(e) {
-            console.log("2");
-            // Open the database
+            var uInt8Array = new Uint8Array(this.response);
             const db = new SQL.Database(uInt8Array);
 
-            console.log("3");
+            var res = db.exec("SELECT * FROM Events WHERE stage=:stage", {":stage": stage, });
 
-            // Prepare the statement
-            const stmt = db.prepare("SELECT * FROM Events WHERE stage='$stage'");
-
-            stmt.bind({$stage: stage});
-            while (stmt.step()) {
-                const row = stmt.getAsObject();
-                console.log('Here is a row: ' + JSON.stringify(row));
+            if (res.length > 0) {
+                let vals = res[0]["values"];
+                for (let i = 0; i < vals.length; i++) {
+                    cardStack.push(new EventCard(vals[i][0], vals[i][1], vals[i][2], vals[i][3], vals[i][4], vals[i][5], vals[i][6], vals[i][7]));
+                }
             }
+            onLoad(cardStack);
         };
-        //xhr.send();
-
-        // Open the database file with a file buffer
-        //let filebuffer = fs.readFileSync("/data/Cards.db");
-
-        // Open the database
-        //const db = new SQL.Database(filebuffer);
-
-        // Prepare the statement
-        //const stmt = db.prepare("SELECT * FROM Events WHERE stage='$stage'");
-
-        //stmt.bind({$stage: stage});
-        //while (stmt.step()) {
-        //    const row = stmt.getAsObject();
-        //    console.log('Here is a row: ' + JSON.stringify(row));
-        //}
+        xhr.send();
     });
 }
 
