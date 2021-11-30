@@ -30,19 +30,6 @@
     var game = new Phaser.Game(config);
 
     function preload () {
-        for (let i = 1; i < 5; i++) {
-            loadActivityCardStack(i, function(cardStack) {
-                console.log("Activity, stage " + i);
-                console.log(cardStack);
-                ;
-            });
-            loadEventCardStack(i, function(cardStack) {
-                console.log("Event, stage " + i);
-                console.log(cardStack);
-                ;
-            });
-        }
-        
     }
 
     function create () {

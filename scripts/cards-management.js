@@ -25,7 +25,7 @@ function ActivityCard(id, stage, image, title, description, placement) {
  * - requirement: The requirements for the card to take effect. 14:2&!2 means that card 14 must appear twice, and card 2 cannot appear
  * - effect: The effect of the card. n-1:3:2 means that three of the cards in stage 2 must be removed (n/p/s/o/i = remove a card, add a card, stand in for a card, block out spaces, ignore effects of another event card; a:b:c a=id of a specific card (0=not a specific card), b=number of cards to change, c=stage of card if not a specific card)
  */
-function EventCard(id, stage, image, title, description, save_condition, requirement, effect) {
+function EventCard(id, stage, image, title, description, save_condition, requirement, effect, else_condition) {
     this.id = id;
     this.stage = stage;
     this.image = image;
@@ -34,6 +34,7 @@ function EventCard(id, stage, image, title, description, save_condition, require
     this.save_conditon = save_condition;
     this.requirement = requirement;
     this.effect = effect;
+    this.else_condition = else_condition;
 }
 
 
@@ -60,12 +61,17 @@ function loadActivityCardStack(stage, onLoad) {
             var uInt8Array = new Uint8Array(this.response);
             const db = new SQL.Database(uInt8Array);
 
-            var res = db.exec("SELECT * FROM Activities WHERE stage=:stage", {":stage": stage, });
+            // id INT PRIMARY KEY, stage INT, number INT, image TEXT, title TEXT, description TEXT, placement TEXT
+            var res = db.exec("SELECT id, stage, number, image, title, description, placement FROM Activities WHERE stage=:stage", {":stage": stage, });
 
             if (res.length > 0) {
                 let vals = res[0]["values"];
                 for (let i = 0; i < vals.length; i++) {
-                    cardStack.push(new ActivityCard(vals[i][0], vals[i][1], vals[i][2], vals[i][3], vals[i][4], vals[i][5], vals[i][6]));
+                    let numberCopies = vals[i][2];
+                    for (let j = 0; j < numberCopies; j++) {
+                        // id, stage, (!number), image, title, description, placement
+                        cardStack.push(new ActivityCard(vals[i][0], vals[i][1], vals[i][3], vals[i][4], vals[i][5], vals[i][6]));
+                    }
                 }
             }
             onLoad(cardStack);
@@ -97,12 +103,14 @@ function loadEventCardStack(stage, onLoad) {
             var uInt8Array = new Uint8Array(this.response);
             const db = new SQL.Database(uInt8Array);
 
-            var res = db.exec("SELECT * FROM Events WHERE stage=:stage", {":stage": stage, });
+            // id INT PRIMARY KEY, stage INT, image TEXT, title TEXT, description TEXT, save_condition TEXT, requirement TEXT, effect TEXT, else_condition TEXT
+            var res = db.exec("SELECT id, stage, image, title, description, save_condition, requirement, effect, else_condition FROM Events WHERE stage=:stage", {":stage": stage, });
 
             if (res.length > 0) {
                 let vals = res[0]["values"];
                 for (let i = 0; i < vals.length; i++) {
-                    cardStack.push(new EventCard(vals[i][0], vals[i][1], vals[i][2], vals[i][3], vals[i][4], vals[i][5], vals[i][6], vals[i][7]));
+                    // id, stage, image, title, description, save_condition, requirement, effect
+                    cardStack.push(new EventCard(vals[i][0], vals[i][1], vals[i][2], vals[i][3], vals[i][4], vals[i][5], vals[i][6], vals[i][7], vals[i][8]));
                 }
             }
             onLoad(cardStack);
