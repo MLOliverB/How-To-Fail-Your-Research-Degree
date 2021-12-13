@@ -47,11 +47,15 @@
         // Small card components
         var place_card_button = this.add.rectangle(x,y*1.2,width*0.19,height*0.18,0xb1cfe0);
         place_card_button.setInteractive();
-        place_card_button.on("pointerover", () => {this.fillColor=0x6c95b7;});
-        place_card_button.on("pointerout", () => {console.log("Change colour back to normal");});
+        place_card_button.on("pointerover", () => {place_card_button.setFillStyle(0x6c95b7);});
+        place_card_button.on("pointerout", () => {place_card_button.setFillStyle(0xb1cfe0);});
         place_card_button.on("pointerup", () => {console.log("Place card");});
         
         var add_place_card_button = this.add.rectangle(x+x*0.25,y*1.2,width*0.04,height*0.18,0xb1cfe0);
+        add_place_card_button.setInteractive();
+        add_place_card_button.on("pointerover", () => {add_place_card_button.setFillStyle(0x6c95b7);});
+        add_place_card_button.on("pointerout", () => {add_place_card_button.setFillStyle(0xb1cfe0);});
+        add_place_card_button.on("pointerup", () => {console.log("Add a card button");});
     }
 
     function update () {
