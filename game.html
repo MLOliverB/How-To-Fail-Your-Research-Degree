@@ -44,7 +44,14 @@
         this.add.rectangle(x,y*1.95,width,height*0.2,0x023047); //toolbar
         this.add.rectangle(x,y*1.76,width*0.22,height*0.2,0xe76f51); //card
     
+        // Small card components
+        var place_card_button = this.add.rectangle(x,y*1.2,width*0.19,height*0.18,0xb1cfe0);
+        place_card_button.setInteractive();
+        place_card_button.on("pointerover", () => {this.fillColor=0x6c95b7;});
+        place_card_button.on("pointerout", () => {console.log("Change colour back to normal");});
+        place_card_button.on("pointerup", () => {console.log("Place card");});
         
+        var add_place_card_button = this.add.rectangle(x+x*0.25,y*1.2,width*0.04,height*0.18,0xb1cfe0);
     }
 
     function update () {
