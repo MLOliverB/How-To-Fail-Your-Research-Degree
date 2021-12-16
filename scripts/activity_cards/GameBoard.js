@@ -1,25 +1,38 @@
 //// Code for game board
 
 // Class for the rectangle which can be clicked to place a card on the rectangle
-class PlaceCard() {
+class CardPlacementBox() {
 	constructor() {
-		var place_card = this.add.rectangle(x,y*1.2,width*0.19,height*0.18,0xb1cfe0);
-		place_card.setInteractive();
-		place_card.on("pointerover", () => {place_card.setFillStyle(0x6c95b7);});
-		place_card.on("pointerout", () => {place_card.setFillStyle(0xb1cfe0);});
-		place_card.on("pointerup", () => {console.log("Place card");});
+		this.has_card = false;
+		this.placementBox = this.add.rectangle(x,y*1.2,width*0.19,height*0.18,0xb1cfe0);
+		this.placementBox.setInteractive();
+		this.placementBox.on("pointerover", () => {this.placementBox.setFillStyle(0x6c95b7);});
+		this.placementBox.on("pointerout", () => {this.placementBox.setFillStyle(0xb1cfe0);});
+		this.placementBox.on("pointerup", () => this.placeCard());
+	}
+	
+	placeCard() {
+		console.log("Place card");
+		this.placementBox.setFillStyle(0xed5e5e);
+		this.has_card = true;
 	}
 }
 
 
 // Class for the button which can be pressed to add a new location where a card can be placed
-class AddPlaceCard() {
+class AddCardPlacementBox() {
 	constructor() {
-		var add_place_card = this.add.rectangle(x+x*0.25,y*1.2,width*0.04,height*0.18,0xb1cfe0);
-		add_place_card.setInteractive();
-		add_place_card.on("pointerover", () => {add_place_card.setFillStyle(0x6c95b7);});
-		add_place_card.on("pointerout", () => {add_place_card.setFillStyle(0xb1cfe0);});
-		add_place_card.on("pointerup", () => {console.log("Add a card button");});
+		var buttonBox = this.add.rectangle(x+x*0.25,y*1.2,width*0.04,height*0.18,0xb1cfe0);
+		buttonBox.setInteractive();
+		buttonBox.on("pointerover", () => {buttonBox.setFillStyle(0x6c95b7);});
+		buttonBox.on("pointerout", () => {buttonBox.setFillStyle(0xb1cfe0);});
+		buttonBox.on("pointerup", () => this.addBox());
+	}
+	
+	addBox() {
+		console.log("Add a card button");
+		//TODO: make a new CardPlacementBox object and update the cards array with a new "empty" (0) value
+			//this may require for the index position of this button to be stored
 	}
 }
 

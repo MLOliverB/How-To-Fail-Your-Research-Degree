@@ -19,7 +19,10 @@ For implementing activity cards, aka all issues linked to [issue 28](https://stg
 - Also need a way to be able to remove an added card location (maybe right click?)
 
 **Moving cards between valid positions**
-- I don't think cards can be moved after they've been placed? Check the rules
+- This can only be done on the first stage
+- Click a card to pick it up (removes the place location from array)
+- Place it in the same way as with cards picked up from the deck
 
-**Discord stack**
-- What does this mean?
+**Discard stack**
+- Discard a card that can't be played
+- Bring up an error message if a player tries to discard a card that could be played
