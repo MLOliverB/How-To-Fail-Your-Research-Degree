@@ -27,7 +27,8 @@
 
             create: function () {
                 this.add.text(10, 10, 'How to Fail Your Research Degree', { font: '36px Courier', fill: '#29379b' });
-                this.add.text(10, 50, "Start Game", { font: "30px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('numberOfTeams'));
+                this.add.text(10, 70, "Start Game", { font: "30px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('numberOfTeams'));
+                this.add.text(10, 110, "Options", { font: "30px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('options'));
                 this.events.on('shutdown', this.shutdown, this); //what does this do?
             },
 
@@ -37,21 +38,37 @@
             }
         });
 
-        var numberOfTeams = new Phaser.Class({
-
+        var options = new Phaser.Class({
             Extends: Phaser.Scene,
 
             initialize:
+                function options() {
+                    Phaser.Scene.call(this, 'options');
+                },
 
+            create: function () {
+                this.add.text(10, 50, 'Options', { font: '30px Courier', fill: '#29379b' });
+                this.add.text(10, 100, "Example Option A", { font: "20px Courier", fill: "#3260b5" });
+                this.add.text(10, 145, "Example Option B", { font: "20px Courier", fill: "#3260b5" });
+                this.add.text(10, 550, "Back to menu", { font: "30px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('mainMenu'));
+            }
+
+        });
+
+        var numberOfTeams = new Phaser.Class({
+            Extends: Phaser.Scene,
+
+            initialize:
                 function numberOfTeams() {
                     Phaser.Scene.call(this, 'numberOfTeams');
                 },
 
             create: function () {
                 this.add.text(10, 50, 'How many teams are playing?', { font: '30px Courier', fill: '#29379b' });
-                this.add.text(10, 100, "Two teams", {font: "20px Courier", fill: "#3260b5"}).setInteractive().on("pointerdown", () => this.scene.start('playerView'));
-                this.add.text(10, 145, "Three teams", {font: "20px Courier", fill: "#3260b5"}).setInteractive().on("pointerdown", () => this.scene.start('playerView'));
-                this.add.text(10, 190, "Four teams", {font: "20px Courier", fill: "#3260b5"}).setInteractive().on("pointerdown", () => this.scene.start('playerView'));
+                this.add.text(10, 100, "Two teams", { font: "20px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('playerView', {playerNo: 2}));
+                this.add.text(10, 145, "Three teams", { font: "20px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('playerView', {playerNo: 3}));
+                this.add.text(10, 190, "Four teams", { font: "20px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('playerView', {playerNo: 4}));
+                this.add.text(10, 550, "Back to menu", { font: "30px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('mainMenu'));
             }
 
         });
@@ -65,16 +82,17 @@
                 },
 
             create: function () {
-                    const x = this.cameras.main.centerX;
-                    const y = this.cameras.main.centerY;
-                    const displayWidth = this.cameras.main.displayWidth;
-                    const displayHeight = this.cameras.main.displayHeight;
+                var x = this.cameras.main.centerX;
+                var y = this.cameras.main.centerY;
+                var width = this.cameras.main.width;
+                var height = this.cameras.main.height;
 
-                    // Game board components
-                    this.add.rectangle(x, y, displayWidth, displayHeight, 0xa9e3ff);    //background
-                    this.add.rectangle(x, y * 0.83, displayWidth * 0.98, displayHeight * 0.8, 0x3260b5);  //playing board
-                    this.add.rectangle(x, y * 1.95, displayWidth, displayHeight * 0.2, 0x29379b); //toolbar
-                    this.add.rectangle(x, y * 1.76, displayWidth * 0.22, displayHeight * 0.2, 0x36d8a2); //card
+                // Game board components
+                this.add.rectangle(x, y, width, height, 0xede0d4);    //background
+                this.add.rectangle(x, y * 0.77, width * 0.98, height * 0.75, 0xf4a261);  //playing board
+                this.add.rectangle(x, y * 1.95, width, height * 0.2, 0x023047); //toolbar
+                this.add.rectangle(x, y * 1.76, width * 0.22, height * 0.2, 0xe76f51); //card
+
             }
         });
 
@@ -83,7 +101,7 @@
             width: 800,
             height: 600,
             backgroundColor: '0xa9e3ff',
-            scene: [mainMenu, numberOfTeams, playerView]
+            scene: [mainMenu, options, numberOfTeams, playerView]
         };
 
         var game = new Phaser.Game(config);
