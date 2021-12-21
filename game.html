@@ -1,56 +1,113 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8" />
-    <title>How To Fail Your Research Degree</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.1/sql-wasm.js"></script>
-    <script src="scripts/cards-management.js"></script>
-    <style type="text/css">
-        body {
-            margin: 0;
-        }
-    </style>
+    <!--<script src="/func/game.js" type="javascript"></script>
+    <script src="/func/scenes/mainMenu.js" type="javascript"></script>
+    <script src="/func/scenes/numberOfTeams.js" type="javascript"></script>
+    <script src="/func/scenes/playerView.js" type="javascript"></script>-->
 </head>
+
 <body>
+    <script type="text/javascript">
 
-<script type="text/javascript">
+        var mainMenu = new Phaser.Class({
 
-    var config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        scene: {
-            preload: preload,
-            create: create,
-            update: update
-        }
-    };
+            Extends: Phaser.Scene,
 
-    var game = new Phaser.Game(config);
+            initialize:
 
-    function preload () {
-    }
+                function mainMenu() {
+                    Phaser.Scene.call(this, 'mainMenu');
+                },
 
-    function create () {
-        var x = this.cameras.main.centerX;
-        var y = this.cameras.main.centerY;
-        var width = this.cameras.main.displayWidth;
-        var height = this.cameras.main.displayHeight;
-        
-        // Game board components
-        this.add.rectangle(x,y,width,height,0xede0d4);    //background
-        this.add.rectangle(x,y*0.77,width*0.98,height*0.75,0xf4a261);  //playing board
-        this.add.rectangle(x,y*1.95,width,height*0.2,0x023047); //toolbar
-        this.add.rectangle(x,y*1.76,width*0.22,height*0.2,0xe76f51); //card
-    
-        
-    }
+            create: function () {
+                this.add.text(10, 10, 'How to Fail Your Research Degree', { font: '36px Courier', fill: '#29379b' });
+                this.add.text(10, 70, "Start Game", { font: "30px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('numberOfTeams'));
+                this.add.text(10, 110, "Options", { font: "30px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('options'));
+                this.events.on('shutdown', this.shutdown, this); //what does this do?
+            },
 
-    function update () {
-    }
+            shutdown: function () {
+                //  We need to clear keyboard events, or they'll stack up when the mainMenu is re-run
+                this.input.keyboard.shutdown();
+            }
+        });
 
-</script>
+        var options = new Phaser.Class({
+            Extends: Phaser.Scene,
+
+            initialize:
+                function options() {
+                    Phaser.Scene.call(this, 'options');
+                },
+
+            create: function () {
+                this.add.text(10, 50, 'Options', { font: '30px Courier', fill: '#29379b' });
+                this.add.text(10, 100, "Example Option A", { font: "20px Courier", fill: "#3260b5" });
+                this.add.text(10, 145, "Example Option B", { font: "20px Courier", fill: "#3260b5" });
+                this.add.text(10, 550, "Back to menu", { font: "30px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('mainMenu'));
+            }
+
+        });
+
+        var numberOfTeams = new Phaser.Class({
+            Extends: Phaser.Scene,
+
+            initialize:
+                function numberOfTeams() {
+                    Phaser.Scene.call(this, 'numberOfTeams');
+                },
+
+            create: function () {
+                this.add.text(10, 50, 'How many teams are playing?', { font: '30px Courier', fill: '#29379b' });
+                this.add.text(10, 100, "Two teams", { font: "20px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('playerView', {playerNo: 2}));
+                this.add.text(10, 145, "Three teams", { font: "20px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('playerView', {playerNo: 3}));
+                this.add.text(10, 190, "Four teams", { font: "20px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('playerView', {playerNo: 4}));
+                this.add.text(10, 550, "Back to menu", { font: "30px Courier", fill: "#3260b5" }).setInteractive().on("pointerdown", () => this.scene.start('mainMenu'));
+            }
+
+        });
+
+        var playerView = new Phaser.Class({
+            Extends: Phaser.Scene,
+
+            initialize:
+                function playerView() {
+                    Phaser.Scene.call(this, 'playerView');
+                },
+
+            create: function () {
+                var x = this.cameras.main.centerX;
+                var y = this.cameras.main.centerY;
+                var width = this.cameras.main.width;
+                var height = this.cameras.main.height;
+
+                // Game board components
+                this.add.rectangle(x, y, width, height, 0xede0d4);    //background
+                this.add.rectangle(x, y * 0.77, width * 0.98, height * 0.75, 0xf4a261);  //playing board
+                this.add.rectangle(x, y * 1.95, width, height * 0.2, 0x023047); //toolbar
+                this.add.rectangle(x, y * 1.76, width * 0.22, height * 0.2, 0xe76f51); //card
+
+            }
+        });
+
+        var config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            backgroundColor: '0xa9e3ff',
+            scene: [mainMenu, options, numberOfTeams, playerView]
+        };
+
+        var game = new Phaser.Game(config);
+
+    </script>
 
 </body>
+
 </html>
