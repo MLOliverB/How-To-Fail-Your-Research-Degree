@@ -1,79 +1,43 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>How To Fail Your Research Degree</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.1/sql-wasm.js"></script>
-    <script src="scripts/cards-management.js"></script>
-    <script src="scripts/activity-cards/GameBoard.js"></script>
-    <style type="text/css">
-        body {
-            margin: 0;
-        }
-    </style>
-</head>
-<body>
-
-<script type="text/javascript">
-
-    var config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        scene: {
-            preload: preload,
-            create: create,
-            update: update
-        }
-    };
-
-    var game = new Phaser.Game(config);
-
-    function preload () {
-    }
-
-    function create () {
-        var x = this.cameras.main.centerX;
-        var y = this.cameras.main.centerY;
-        var width = this.cameras.main.displayWidth;
-        var height = this.cameras.main.displayHeight;
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
-        // Game board components
-        this.add.rectangle(x,y,width,height,0xede0d4);    //background
-        this.add.rectangle(x,y*0.77,width*0.98,height*0.75,0xf4a261);  //playing board
-        this.add.rectangle(x,y*1.95,width,height*0.2,0x023047); //toolbar
-        this.add.rectangle(x,y*1.76,width*0.22,height*0.2,0xe76f51); //card
-    
-        // Small card components
-        function placeCard() {
-            console.log("Place card");
-    		placeCardButton.setFillStyle(0xed5e5e);
-    		this.has_card = true;
-        }
-        var placeCardButton = this.add.rectangle(x,y*1.2,width*0.19,height*0.18,0xb1cfe0);
-        this.add.text(x, y*1.2, 'Place Card', {color: "0x000000"}).setOrigin(0.5);
-        placeCardButton.setInteractive();
-        placeCardButton.on("pointerover", () => {placeCardButton.setFillStyle(0x6c95b7);});
-        placeCardButton.on("pointerout", () => {placeCardButton.setFillStyle(0xb1cfe0);});
-        placeCardButton.on("pointerup", () => placeCard());
+        <title>How To Fail Your Research Degree</title>
+        <!-- this is just a placeholder tab icon -->
+        <link rel="icon" type="image/png" href="https://storage.googleapis.com/discordstreet/emojis/cunning.png">
         
-        function addBox() {
-            console.log("Add a card box");
-            addPlaceCardButton.setFillStyle(0xed5e5e);
-        }
-        var addPlaceCardButton = this.add.rectangle(x+x*0.25,y*1.2,width*0.04,height*0.18,0xb1cfe0);
-        this.add.text(x+x*0.25, y*1.2, '+', {color: "0x000000"}).setOrigin(0.5);
-        addPlaceCardButton.setInteractive();
-        addPlaceCardButton.on("pointerover", () => {addPlaceCardButton.setFillStyle(0x6c95b7);});
-        addPlaceCardButton.on("pointerout", () => {addPlaceCardButton.setFillStyle(0xb1cfe0);});
-        addPlaceCardButton.on("pointerup", () => addBox());
-    }
+        <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+        <!--<script src="scripts/game.js" type="javascript"></script>
+        <script src="scripts/scenes/mainMenu.js" type="javascript"></script>
+        <script src="scripts/cards-management.js"></script>
+        <script src="scripts/activity-cards/GameBoard.js"></script>-->
+        <script src="scripts/scenes/main_menu/mainMenu.js"></script>
+        <script src="scripts/scenes/main_menu/numberOfTeams.js"></script>
+        <script src="scripts/scenes/main_menu/playerView.js"></script>
+        
+        <style type="text/css">
+            body {
+                margin: 0;
+            }
+        </style>
+    </head>
 
-    function update () {
-    }
+    <body>
+        <script type="text/javascript">
+            const config = {
+                type: Phaser.AUTO,
+                width: 800,
+                height: 600,
+                backgroundColor: '#a9e3ff',
+                //while testing, only include the scene(s) you're currently working on in the [] below to instantly skip to that scene
+                scene: [mainMenu, numberOfTeams, playerView]
+            };
 
-</script>
+            const game = new Phaser.Game(config);
 
-</body>
+        </script>
+    </body>
 </html>
