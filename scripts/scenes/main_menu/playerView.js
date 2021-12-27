@@ -40,6 +40,48 @@ var playerView = new Phaser.Class({
         addPlaceCardButton.on("pointerover", () => {addPlaceCardButton.setFillStyle(0x6c95b7);});
         addPlaceCardButton.on("pointerout", () => {addPlaceCardButton.setFillStyle(0xb1cfe0);});
         addPlaceCardButton.on("pointerup", () => addBox());
+
+
+        // Allows players to discard activity cards that are not playable
+        function discardCard() {
+            if (!discardStackButton.cardCanBePlayed) {
+                discardStackButton.cardCanBePlayed = true
+                console.log("Discarding current card")
+                discardStackButton.alpha = 1
+                    discardStackButtonText.alpha = 1
+                    discardStackButtonText.text = "Discarded"
+                discardStackButton.setFillStyle(0xf82f2f)
+            }
+        }
+        var discardStackButton = this.add.rectangle(x*0.175, y*0.125, width*0.15, height*0.1, 0xb1cfe0)
+        discardStackButton.cardCanBePlayed = false
+        var discardStackButtonText = this.add.text(x*0.17, y*0.12, "Discard", {color: "0x000000"}).setOrigin(0.5);
+        discardStackButton.setInteractive();
+        discardStackButton.on("pointerover", () => {
+            //Check whether the card can be discarded
+            console.log("Checking if current card can be played...")
+            // TODO: Check if the card can be played on the game board
+
+            if (discardStackButton.cardCanBePlayed) {
+                console.log("Card can be played")
+                discardStackButton.alpha = 0.5
+                discardStackButtonText.alpha = 1
+                discardStackButtonText.text = " Can't\nDiscard"
+                discardStackButton.setFillStyle(0x9cacb8);
+            } else {
+                console.log("Card can't be played")
+                discardStackButton.alpha = 1
+                discardStackButtonText.alpha = 1
+                discardStackButtonText.text = "  Can\nDiscard"
+                discardStackButton.setFillStyle(0x6c95b7);
+            }
+        });
+        discardStackButton.on("pointerout", () => {
+            discardStackButton.alpha = 1
+            discardStackButtonText.alpha = 1
+            discardStackButtonText.text = "Discard"
+            discardStackButton.setFillStyle(0xb1cfe0);});
+        discardStackButton.on("pointerup", () => discardCard());
     }
 
 });
