@@ -122,10 +122,10 @@ function loadEventCardStack(stage, onLoad) {
 
 
 // Reference: Function code based on 'Fisher-Yates shuffle' taken from https://www.w3docs.com/snippets/javascript/how-to-randomize-shuffle-a-javascript-array.html
-/* 
+/*
  * Shuffles the given cardstack (i.e. array) of either activity cards or event cards
  * - stack: The card stack, as an array, to be shuffled
- * 
+ *
  * Returns a randomly shuffled version of the array that was passed to the object
  */
 function shuffleCardStack(stack) {
