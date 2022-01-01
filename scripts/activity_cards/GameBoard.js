@@ -97,20 +97,20 @@ class AddCardPlacementBox {
 class CardDiscardBox {
 	constructor(scene, relativeX, relativeY, relativeWidth, relativeHeight) {
 		this.scene = scene;
+		this.canBeDiscarded = false;
 		this.colorIdle = 0xb1cfe0
 		this.colorNoAction = 0x9cacb8;
 		this.colorAction = 0x6c95b7;
 		this.colorDiscarded = 0xf82f2f;
 
+		// Draw the Button and button text on the scene
 		this.buttonBox = this.scene.add.rectangle(this.scene.x * relativeX, this.scene.y * relativeY, this.scene.width * relativeWidth, this.scene.height * relativeHeight, this.colorIdle)
 		this.buttonBox.setInteractive();
 		this.buttonText = this.scene.add.text(this.scene.x * relativeX, this.scene.y * relativeY, "Discard", {color: "0x000000"});
 		this.buttonText.setOrigin(0.5);
 
+		// On hovering, we check whether the currently held card is playable
 		this.buttonBox.on("pointerover", () => {
-			loadActivityCard(5, (card) => {
-				console.log(card);
-			})
 			console.log("Checking if current card can be discarded...");
 
 			function discardable(cardDiscardBox) {
@@ -119,6 +119,7 @@ class CardDiscardBox {
 				cardDiscardBox.buttonText.alpha = 1;
 				cardDiscardBox.buttonText.text = "  Can\nDiscard";
 				cardDiscardBox.buttonBox.setFillStyle(cardDiscardBox.colorAction);
+				cardDiscardBox.canBeDiscarded = true;
 			}
 			function undiscardable (cardDiscardBox) {
 				console.log("Card can be played");
@@ -126,6 +127,7 @@ class CardDiscardBox {
 				cardDiscardBox.buttonText.alpha = 1;
 				cardDiscardBox.buttonText.text = "  Can't\nDiscard";
 				cardDiscardBox.buttonBox.setFillStyle(cardDiscardBox.colorNoAction);
+				cardDiscardBox.canBeDiscarded = false;
 			}
 			
 			// TODO: Check if the card can be played on the game board
@@ -201,13 +203,16 @@ class CardDiscardBox {
 			}
 		});
 
+		// Reset the appearance of the button when the mouse stops hovering over it
 		this.buttonBox.on("pointerout", () => {
+			this.canBeDiscarded = false;
 			this.buttonBox.alpha = 1;
 			this.buttonText.alpha = 1;
 			this.buttonText.text = "Discard";
 			this.buttonBox.setFillStyle(this.colorIdle);
 		});
 
+		// When attempting to press the button, only discard if the card is impossible to play (computed while hovering)
 		this.buttonBox.on("pointerup", () => {
 			if (this.canBeDiscarded) {
 				this.canBeDiscarded = false;

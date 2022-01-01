@@ -21,10 +21,10 @@ export default class playerView extends Phaser.Scene {
         this.cards = [];	//a 2D array of stages of cards, e.g. cards[0] will return the array of card IDs used in the first stage
         this.stage = 0;	//Stages: 0=Plan, 1=Context, 2=Implementation, 3=Write Up
         this.cards.push([0]);	//start with 1 empty card placement box
-        this.playerHoldingCard = 1;  //id of the card the player is olding - set to 0 if player is not holding a card
+        this.playerHoldingCard = 1;  //id of the card the player is holding - set to 0 if player is not holding a card
 
         new CardPlacementBox(this, 0, 0);
-        new CardDiscardBox(this, 0.175, 0.125, 0.15, 0.1)
+        new CardDiscardBox(this, 0.175, 0.125, 0.15, 0.1) // Button for discarding the currently held card (Only possible to discard cards that are impossible to play)
         
         
         
