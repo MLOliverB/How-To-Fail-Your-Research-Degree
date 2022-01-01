@@ -1,4 +1,4 @@
-import { CardPlacementBox, AddCardPlacementBox, goToNextStage } from "../activity_cards/GameBoard.js";
+import { CardPlacementBox, AddCardPlacementBox, CardDiscardBox, goToNextStage } from "../activity_cards/GameBoard.js";
 
 export default class playerView extends Phaser.Scene {
     constructor() {
@@ -24,6 +24,7 @@ export default class playerView extends Phaser.Scene {
         this.playerHoldingCard = 1;  //id of the card the player is olding - set to 0 if player is not holding a card
 
         new CardPlacementBox(this, 0, 0);
+        new CardDiscardBox(this, 0.175, 0.125, 0.15, 0.1)
         
         
         
