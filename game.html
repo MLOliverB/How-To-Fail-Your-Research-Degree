@@ -11,12 +11,9 @@
         
         <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
         <!--<script src="scripts/game.js" type="javascript"></script>
-        <script src="scripts/scenes/mainMenu.js" type="javascript"></script>
         <script src="scripts/cards-management.js"></script>
-        <script src="scripts/activity-cards/GameBoard.js"></script>-->
-        <script src="scripts/scenes/main_menu/mainMenu.js"></script>
-        <script src="scripts/scenes/main_menu/numberOfTeams.js"></script>
-        <script src="scripts/scenes/main_menu/playerView.js"></script>
+        -->
+
         
         <style type="text/css">
             body {
@@ -26,14 +23,20 @@
     </head>
 
     <body>
-        <script type="text/javascript">
+        <script type="module">
+            import mainMenu from "./scripts/scenes/mainMenu.js";
+            import options from "./scripts/scenes/options.js";
+            import numberOfTeams from "./scripts/scenes/numberOfTeams.js";
+            import playerView from "./scripts/scenes/playerView.js";
+            
             const config = {
                 type: Phaser.AUTO,
-                width: 800,
-                height: 600,
+                width: 960,
+                height: 540,
                 backgroundColor: '#a9e3ff',
                 //while testing, only include the scene(s) you're currently working on in the [] below to instantly skip to that scene
-                scene: [mainMenu, numberOfTeams, playerView]
+                //scene: [mainMenu, options, numberOfTeams, playerView]
+                scene: [playerView]
             };
 
             const game = new Phaser.Game(config);

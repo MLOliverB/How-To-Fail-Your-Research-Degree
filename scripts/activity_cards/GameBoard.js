@@ -1,36 +1,89 @@
-//// Code for game board
-
 // Class for the rectangle which can be clicked to place a card on the rectangle
-class CardPlacementBox() {
-	constructor() {
-		this.has_card = false;
-		this.placementBox = this.add.rectangle(x,y*1.2,width*0.19,height*0.18,0xb1cfe0);
-		this.placementBox.setInteractive();
+class CardPlacementBox {
+	constructor(scene, position, distanceFromMiddle) {
+		this.scene = scene;
+		this.position = position;
+		this.distanceFromMiddle = distanceFromMiddle;
+		this.hasCard = false;
+		
+		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.42*this.distanceFromMiddle), this.scene.y*(1.2-(0.38*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.162, 0.204).setInteractive();
 		this.placementBox.on("pointerover", () => {this.placementBox.setFillStyle(0x6c95b7);});
 		this.placementBox.on("pointerout", () => {this.placementBox.setFillStyle(0xb1cfe0);});
-		this.placementBox.on("pointerup", () => this.placeCard());
+		this.placementBox.on("pointerup", () => this.moveCard());
+		this.cardName = this.scene.add.text(this.scene.x*(1+0.42*this.distanceFromMiddle), this.scene.y*(1.2-(0.38*(this.scene.stage))), 'Place Card', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
-	placeCard() {
-		console.log("Place card");
+	moveCard() {
+		var isPlayerHoldingCard = true;
+		if (this.scene.playerHoldingCard == 0) {
+			isPlayerHoldingCard = false;
+		}
+		
+		if (this.hasCard && !isPlayerHoldingCard) {
+			console.log("Pick up card "+this.position);
+			this.hasCard = false;
+			this.cardName.setText(0);
+			//this.scene.playerHoldingCard = this.scene.cards[scene.stage][this.position];
+			this.scene.playerHoldingCard = 1;	//TODO: replace "1" with the card that is being picked up
+			return;
+		}
+		if (!isPlayerHoldingCard || this.scene.cards[this.scene.stage][this.position] != 0) {
+			return;
+		}
+		
+		console.log("Place card "+this.position);
+		this.hasCard = true;
+		this.scene.playerHoldingCard = 0;
+		
+		let id = this.scene.playerHoldingCard;
+		this.scene.cards[this.scene.stage][this.position] = id;	//inserts card id into the array of cards
+		
+		// if current card is at start of list, add new card to left
+		var isLeftAdded = 0;
+		if (this.position == 0) {
+			isLeftAdded = 1;
+			this.scene.cards[this.scene.stage].unshift(0);
+			new CardPlacementBox(this.scene, 0, this.distanceFromMiddle-1);
+			new AddCardPlacementBox(this.scene, 0, this.distanceFromMiddle-1);
+		}
+		// if current card is at end of list, add new card to the right
+		if (this.position == this.scene.cards[this.scene.stage].length-1-isLeftAdded) {
+			this.scene.cards[this.scene.stage].push(0);
+			new CardPlacementBox(this.scene, this.scene.cards[this.scene.stage].length-1, this.distanceFromMiddle+1);
+			new AddCardPlacementBox(this.scene, this.scene.cards[this.scene.stage].length-1, this.distanceFromMiddle+1);
+		}
+		
+		//TODO - replace the next two lines with adding the card image
 		this.placementBox.setFillStyle(0xed5e5e);
-		this.has_card = true;
+		this.cardName.setText(id);
+		
+		console.log(this.scene.cards[this.scene.stage]);
 	}
 }
 
 
+
 // Class for the button which can be pressed to add a new location where a card can be placed
-class AddCardPlacementBox() {
-	constructor() {
-		var buttonBox = this.add.rectangle(x+x*0.25,y*1.2,width*0.04,height*0.18,0xb1cfe0);
-		buttonBox.setInteractive();
-		buttonBox.on("pointerover", () => {buttonBox.setFillStyle(0x6c95b7);});
-		buttonBox.on("pointerout", () => {buttonBox.setFillStyle(0xb1cfe0);});
-		buttonBox.on("pointerup", () => this.addBox());
+class AddCardPlacementBox {
+	constructor(scene, position, distanceFromMiddle) {
+		this.scene = scene;
+		this.position = position;
+		this.distanceFromMiddle = distanceFromMiddle;
+		var distanceMultiplier = this.distanceFromMiddle;
+		if (this.distanceFromMiddle > 0) {
+			distanceMultiplier--;
+		}
+		
+		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.21+0.42*distanceMultiplier), this.scene.y*(1.2-(0.38*(this.scene.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.035, 0.204).setInteractive();
+		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(0x6c95b7);});
+		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(0xb1cfe0);});
+		this.buttonBox.on("pointerup", () => this.addBox());
+		this.scene.add.text(this.scene.x+this.scene.x*(0.21+0.42*distanceMultiplier), this.scene.y*(1.2-(0.38*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
 	addBox() {
 		console.log("Add a card button");
+
 		//TODO: make a new CardPlacementBox object and update the cards array with a new "empty" (0) value
 			//this may require for the index position of this button to be stored
 	}
@@ -40,27 +93,11 @@ class AddCardPlacementBox() {
 
 
 
-var cards = [];
-var stage = 1;	//Stages: 1=Plan, 2=Context, 3=Implementation, 4=Write Up
-cards.push([]);
-
-
 
 // Call this function when the button to move to the next stage is pressed
 function goToNextStage() {
-	cards.push(new Array(cards[stage-1].length).fill(0));	//add array the length of the previous array
-	stage += 1;
+	this.scene.cards.push(new Array(this.scene.cards[this.scene.stage-1].length).fill(0));	//add array the length of the previous array
+	this.scene.stage += 1;
 }
 
-
-
-//store cards in 2D array of arrays of cards (each array of cards is one stage)
-//on first stage:
-//begin with one location in the middle
-//once a card is added, display two empty locations on the outside edges
-//once another card is added, display button to add location between the cards
-
-//when the card is added, update the value at the position with the id of the card being added
-//locations need to store their index in the array
-//empty locations are represented by "0" in the array since indexing for cards starts at 1
-//
+export { CardPlacementBox, AddCardPlacementBox , goToNextStage };
