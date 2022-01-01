@@ -6,13 +6,15 @@
  * - description: A description of what the card means
  * - placement: 4 numbers separated by commas representing if a card can be placed in the direction. left,right,up,down (e.g. 1,0,0,1 means a card can be placed on the left and down directions)
  */
-function ActivityCard(id, stage, image, title, description, placement) {
-    this.id = id;
-    this.stage = stage;
-    this.image = image;
-    this.title = title;
-    this.description = description;
-    this.placement = placement;
+class ActivityCard {
+    constructor(id, stage, image, title, description, placement) {
+        this.id = id;
+        this.stage = stage;
+        this.image = image;
+        this.title = title;
+        this.description = description;
+        this.placement = placement;
+    }
 }
 
 /* EventCard Object (new EventCard())
@@ -26,22 +28,96 @@ function ActivityCard(id, stage, image, title, description, placement) {
  * - effect: The effect of the card. n0:3:2 means that three of the cards in stage 2 must be removed (n/p/s/o/i = remove a card, add a card, stand in for a card, block out spaces, ignore effects of another event card; a:b:c a=id of a specific card (0=not a specific card, -(...)=non-adjacent cards), b=number of cards to change, c=stage of card if not a specific card)
  * - else_condition: Condition to do the secondary effect instead
  */
-function EventCard(id, stage, image, title, description, save_condition, requirement, effect, else_condition) {
-    this.id = id;
-    this.stage = stage;
-    this.image = image;
-    this.title = title;
-    this.description = description;
-    this.save_conditon = save_condition;
-    this.requirement = requirement;
-    this.effect = effect;
-    this.else_condition = else_condition;
+class EventCard {
+    constructor(id, stage, image, title, description, save_condition, requirement, effect, else_condition) {
+        this.id = id;
+        this.stage = stage;
+        this.image = image;
+        this.title = title;
+        this.description = description;
+        this.save_conditon = save_condition;
+        this.requirement = requirement;
+        this.effect = effect;
+        this.else_condition = else_condition;
+    }
 }
 
 
 
 /*
- * loadCardStack retrieves all activity cards from a given stage and loads them into an array symbolizing a stack.
+ * loadActivityCard retrieves the activity card given its id.
+ * - id: The id of the card to be retrieved
+ * - onLoad: Callback function that takes the card as an argument to support the asynchronous behaviour of xml http requests
+ */
+function loadActivityCard(id, onLoad) {
+    let config = {
+        locateFile: () => "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.1/sql-wasm.wasm",
+    };
+
+    initSqlJs(config).then(function(SQL) {
+        let xhr = new XMLHttpRequest();
+
+        xhr.open('GET', './data/Cards.db', true);
+        xhr.responseType = 'arraybuffer';
+
+        xhr.onload = function(e) {
+            var uInt8Array = new Uint8Array(this.response);
+            const db = new SQL.Database(uInt8Array);
+
+            // id INT PRIMARY KEY, stage INT, number INT, image TEXT, title TEXT, description TEXT, placement TEXT
+            var res = db.exec("SELECT id, stage, number, image, title, description, placement FROM Activities WHERE id=:id", {":id": id, });
+
+            if (res.length > 0) {
+                let vals = res[0]["values"];
+                onLoad(new ActivityCard(vals[0][0], vals[0][1], vals[0][3], vals[0][4], vals[0][5], vals[0][6]));
+            } else {
+                onLoad(null);
+            }
+        };
+        xhr.send();
+    });
+}
+
+
+
+/*
+ * loadEventCard retrieves the event card given its id.
+ * - id: The id of the card to be retrieved
+ * - onLoad: Callback function that takes the card as an argument to support the asynchronous behaviour of xml http requests
+ */
+function loadEventCard(id, onLoad) {
+    let config = {
+        locateFile: () => "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.1/sql-wasm.wasm",
+    };
+
+    initSqlJs(config).then(function(SQL) {
+        let xhr = new XMLHttpRequest();
+
+        xhr.open('GET', './data/Cards.db', true);
+        xhr.responseType = 'arraybuffer';
+
+        xhr.onload = function(e) {
+            var uInt8Array = new Uint8Array(this.response);
+            const db = new SQL.Database(uInt8Array);
+
+            // id INT PRIMARY KEY, stage INT, number INT, image TEXT, title TEXT, description TEXT, placement TEXT
+            var res = db.exec("SELECT id, stage, image, title, description, save_condition, requirement, effect, else_condition FROM Events WHERE id=:id", {":id": id, });
+
+            if (res.length > 0) {
+                let vals = res[0]["values"];
+                onLoad(new EventCard(vals[0][0], vals[0][1], vals[0][2], vals[0][3], vals[0][4], vals[0][5], vals[0][6], vals[0][7], vals[0][8]));
+            } else {
+                onLoad(null);
+            }
+        };
+        xhr.send();
+    });
+}
+
+
+
+/*
+ * loadActivityCardStack retrieves all activity cards from a given stage and loads them into an array symbolizing a stack.
  * - stage: The game stage for which the cards will be retrieved - 1=Plan, 2=Context, 3=Implementation, 4=Write Up
  * - onLoad: Callback function that takes the card stack as an argument to support the asynchronous behaviour of xml http requests
  */
@@ -55,7 +131,7 @@ function loadActivityCardStack(stage, onLoad) {
     initSqlJs(config).then(function(SQL) {
         let xhr = new XMLHttpRequest();
 
-        xhr.open('GET', 'http://localhost:8000/data/Cards.db', true);
+        xhr.open('GET', './data/Cards.db', true);
         xhr.responseType = 'arraybuffer';
 
         xhr.onload = function(e) {
@@ -83,7 +159,7 @@ function loadActivityCardStack(stage, onLoad) {
 
 
 /*
- * loadCardStack retrieves all event cards from a given stage and loads them into an array symbolizing a stack.
+ * loadEventCardStack retrieves all event cards from a given stage and loads them into an array symbolizing a stack.
  * - stage: The game stage for which the cards will be retrieved - 1=Plan, 2=Context, 3=Implementation, 4=Write Up
  * - onLoad: Callback function that takes the card stack as an argument to support the asynchronous behaviour of xml http requests
  */
@@ -97,7 +173,7 @@ function loadEventCardStack(stage, onLoad) {
     initSqlJs(config).then(function(SQL) {
         let xhr = new XMLHttpRequest();
 
-        xhr.open('GET', 'http://localhost:8000/data/Cards.db', true);
+        xhr.open('GET', './data/Cards.db', true);
         xhr.responseType = 'arraybuffer';
 
         xhr.onload = function(e) {
@@ -144,3 +220,5 @@ function shuffleCardStack(stack) {
 
     return stack;
 }
+
+export {ActivityCard, EventCard, loadActivityCard, loadActivityCardStack, loadEventCard, loadEventCardStack, shuffleCardStack};
