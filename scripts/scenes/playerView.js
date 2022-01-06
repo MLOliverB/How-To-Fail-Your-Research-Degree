@@ -21,11 +21,14 @@ export default class playerView extends Phaser.Scene {
         this.add.rectangle(this.x, this.y*0.77, this.width, this.height, 0xf4a261).setScale(0.98, 0.75);  // playing board
         this.add.rectangle(this.x, this.y*1.95, this.width, this.height, 0x023047).setScale(1, 0.2); // toolbar
         this.add.rectangle(this.x, this.y*1.76, this.width, this.height, 0xe76f51).setScale(0.162, 0.204); // card the player is holding
+        //TODO remove the line below once the card image rendering works
         this.currentCardBox = this.add.text(this.x, this.y*1.76, '0', {color: "0x000000"}).setOrigin(0.5);
 
         // Activity Cards
         this.currentCard = 0;       // id of the card the player is holding - set to 0 if player is not holding a card
         this.middlePosition = 0;    // the position of the card that is rendered in the middle - only updated during stage 1
+        this.leftEdge = 0;          // the position of the card furthest to the left
+        this.rightEdge = 0;         // the position of the card furthest to the right
         this.cards = [];            // a 2D array of stages of card boxes, e.g. cards[0] will return the array of card boxes used in the first stage
         this.stage = 0;             // Stages: 0=Plan, 1=Context, 2=Implementation, 3=Write Up, 4=Finished
         
@@ -34,6 +37,7 @@ export default class playerView extends Phaser.Scene {
         new AddCardBox(this, -1);
         new AddCardBox(this, 1);
         
+        //TODO remove this line once picking up cards from the stack has been implemented
         pickUpCard(this);
     }
     

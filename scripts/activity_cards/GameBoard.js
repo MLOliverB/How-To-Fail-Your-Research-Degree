@@ -11,11 +11,11 @@ class CardBox {
 		this.distanceFromMiddle = distanceFromMiddle;
 		this.cardId = 0;
 		
-		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.42*this.distanceFromMiddle), this.scene.y*(1.2-(0.38*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.162, 0.204).setInteractive();
+		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
 		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
 		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
-		this.cardName = this.scene.add.text(this.scene.x*(1+0.42*this.distanceFromMiddle), this.scene.y*(1.2-(0.38*(this.scene.stage))), '0', {color: "0x000000"}).setOrigin(0.5);
+		this.cardName = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), '0', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
 	/**
@@ -69,11 +69,11 @@ class AddCardBox {
 			distanceMultiplier--;
 		}
 		
-		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.21+0.42*distanceMultiplier), this.scene.y*(1.2-(0.38*(this.scene.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.035, 0.204).setInteractive();
+		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
 		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(0x6c95b7);});
 		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(0xb1cfe0);});
 		this.buttonBox.on("pointerup", () => this.addBox());
-		this.scene.add.text(this.scene.x+this.scene.x*(0.21+0.42*distanceMultiplier), this.scene.y*(1.2-(0.38*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
+		this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
 	/**
@@ -82,8 +82,36 @@ class AddCardBox {
 	addBox() {
 		console.log("Add a card box");
 
-		//TODO: make a new CardPlacementBox object and update the cards array with a new "empty" (0) value
-			//this may require for the index position of this button to be stored
+		if (this.distanceFromMiddle < 0) {
+			// adds a new boxes at the furthest left edge and updates previous card boxes
+			let newBox = new CardBox(this.scene, this.scene.leftEdge-1);
+			new AddCardBox(this.scene, this.scene.leftEdge-2);
+			this.scene.leftEdge--;
+			
+			// updating cards array and related variables
+			let position = this.scene.middlePosition+this.distanceFromMiddle+1;
+			this.scene.cards[this.scene.stage].unshift(newBox);		//adding empty box to start of the array, the card ids will be shifted later
+			this.scene.middlePosition++;
+			
+			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the start of the array
+			if (position != 0) {
+				let previousCardId = 0;
+				for (let i = position; i >= 0; i--) {
+					let currentCardId = this.scene.cards[this.scene.stage][i].cardId;
+					this.scene.cards[this.scene.stage][i].cardId = previousCardId
+					this.scene.cards[this.scene.stage][i].cardName.text = previousCardId;	//TODO replace this with moving the image instead
+					previousCardId = currentCardId;
+				}
+			}
+		} else {
+			return;
+		}
+		
+		var out = "";
+		for (let i = 0; i < this.scene.cards[this.scene.stage].length; i++) {
+			out += this.scene.cards[this.scene.stage][i].cardId+", ";
+		}
+		console.log(out);
 	}
 }
 
@@ -106,7 +134,7 @@ function goToNextStage(scene) {
 function pickUpCard(scene) {
 	console.log("Pick up a card");
 	if (scene.currentCard == 0) {
-		//TODO update this.currentCard so that it actually picks up a card, and remove the card that is picked up from the stack (issue #31)
+		//TODO update scene.currentCard so that it actually picks up a card, and remove the card that is picked up from the stack (issue #31)
 		scene.currentCard = 1;
 		
 		scene.currentCardBox.setText(scene.currentCard);
