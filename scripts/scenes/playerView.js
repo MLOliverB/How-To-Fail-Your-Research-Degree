@@ -1,5 +1,10 @@
-import { CardPlacementBox, AddCardPlacementBox, goToNextStage } from "../activity_cards/GameBoard.js";
+import { CardBox, AddCardBox, goToNextStage } from "../activity_cards/GameBoard.js";
 
+/**
+* The scene where the player plays the game
+* Entry points: numberOfTeams, facilitatorDiscussion
+* Exit points: facilitatorDiscussion
+*/
 export default class playerView extends Phaser.Scene {
     constructor() {
         super({key: "playerView"});
@@ -18,13 +23,10 @@ export default class playerView extends Phaser.Scene {
         this.add.rectangle(this.x, this.y*1.76, this.width, this.height, 0xe76f51).setScale(0.162, 0.204); //card
 
         // Activity Cards
-        this.cards = [];	//a 2D array of stages of cards, e.g. cards[0] will return the array of card IDs used in the first stage
-        this.stage = 0;	//Stages: 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-        this.cards.push([0]);	//start with 1 empty card placement box
-        this.playerHoldingCard = 1;  //id of the card the player is olding - set to 0 if player is not holding a card
-
-        new CardPlacementBox(this, 0, 0);
-        
+        this.currentCard = 0;  //id of the card the player is holding - set to 0 if player is not holding a card
+        this.cards = [];	//a 2D array of stages of card boxes, e.g. cards[0] will return the array of card boxes used in the first stage
+        this.stage = 0;	    //Stages: 0=Plan, 1=Context, 2=Implementation, 3=Write Up, 4=Finished
+        this.cards.push([new CardBox(this, 0, 0)]);	//start with 1 empty card object
         
         
         //store cards in 2D array of arrays of cards (each array of cards is one stage)
@@ -37,6 +39,17 @@ export default class playerView extends Phaser.Scene {
         //locations need to store their index in the array
         //empty locations are represented by "0" in the array since indexing for cards starts at 1
         //
+    }
+    
+    
+    /**
+    * Removes the top card from the stack and sets the id to the card the player is currently holding
+    */
+    pickUpCard() {
+        if (this.currentCard == 0) {
+            //TODO update this.currentCard so that it actually picks up a card, and remove the card that is picked up from the stack (issue #31)
+            this.currentCard = 1;
+        }
     }
     
     update() {

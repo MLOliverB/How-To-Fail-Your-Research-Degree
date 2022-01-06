@@ -1,5 +1,5 @@
 // Class for the rectangle which can be clicked to place a card on the rectangle
-class CardPlacementBox {
+class CardBox {
 	constructor(scene, position, distanceFromMiddle) {
 		this.scene = scene;
 		this.position = position;
@@ -32,11 +32,11 @@ class CardPlacementBox {
 		}
 		
 		console.log("Place card "+this.position);
-		this.hasCard = true;
-		this.scene.playerHoldingCard = 0;
 		
 		let id = this.scene.playerHoldingCard;
 		this.scene.cards[this.scene.stage][this.position] = id;	//inserts card id into the array of cards
+		this.hasCard = true;
+		this.scene.playerHoldingCard = 0;
 		
 		// if current card is at start of list, add new card to left
 		var isLeftAdded = 0;
@@ -64,7 +64,7 @@ class CardPlacementBox {
 
 
 // Class for the button which can be pressed to add a new location where a card can be placed
-class AddCardPlacementBox {
+class AddCardBox {
 	constructor(scene, position, distanceFromMiddle) {
 		this.scene = scene;
 		this.position = position;
@@ -100,4 +100,4 @@ function goToNextStage() {
 	this.scene.stage += 1;
 }
 
-export { CardPlacementBox, AddCardPlacementBox , goToNextStage };
+export { CardBox, AddCardBox , goToNextStage };
