@@ -1,74 +1,69 @@
-// Class for the rectangle which can be clicked to place a card on the rectangle
+/**
+ * Class for the rectangle which can be clicked to place a card on the rectangle
+*/
 class CardBox {
-	constructor(scene, position, distanceFromMiddle) {
+	/**
+	 * @param {Phaser.Scene} scene The scene which this box should be displayed on
+	 * @param {number} distanceFromMiddle The distance from the middle of the array that this card is (0 = middle, <0 = left, >0 = right)
+	*/
+	constructor(scene, distanceFromMiddle) {
 		this.scene = scene;
-		this.position = position;
 		this.distanceFromMiddle = distanceFromMiddle;
-		this.hasCard = false;
+		this.cardId = 0;
 		
 		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.42*this.distanceFromMiddle), this.scene.y*(1.2-(0.38*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.162, 0.204).setInteractive();
-		this.placementBox.on("pointerover", () => {this.placementBox.setFillStyle(0x6c95b7);});
-		this.placementBox.on("pointerout", () => {this.placementBox.setFillStyle(0xb1cfe0);});
-		this.placementBox.on("pointerup", () => this.moveCard());
-		this.cardName = this.scene.add.text(this.scene.x*(1+0.42*this.distanceFromMiddle), this.scene.y*(1.2-(0.38*(this.scene.stage))), 'Place Card', {color: "0x000000"}).setOrigin(0.5);
+		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
+		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
+		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
+		this.cardName = this.scene.add.text(this.scene.x*(1+0.42*this.distanceFromMiddle), this.scene.y*(1.2-(0.38*(this.scene.stage))), '0', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
-	moveCard() {
+	/**
+	 * Either places a card or moves a card when a card box is clicked
+	*/
+	updateCardBox() {
 		var isPlayerHoldingCard = true;
-		if (this.scene.playerHoldingCard == 0) {
+		if (this.scene.currentCard == 0) {
 			isPlayerHoldingCard = false;
 		}
 		
-		if (this.hasCard && !isPlayerHoldingCard) {
-			console.log("Pick up card "+this.position);
-			this.hasCard = false;
+		// a card can only be placed if the player is holding a card and the card box is empty
+		if (isPlayerHoldingCard && this.cardId == 0) {
+			console.log("Place a card");
+			this.cardId = this.scene.currentCard;
+			this.scene.currentCard = 0;
+			//TODO - replace the next 2 lines with adding the card images
+			this.cardName.setText(this.cardId);
+			this.scene.currentCardBox.setText(0);
+		}
+		
+		// a card can only be picked up if the player is not holding a card and the card box has a card
+		else if (!isPlayerHoldingCard && this.cardId != 0) {
+			console.log("Pick up the card");
+			this.scene.currentCard = this.cardId;
+			this.cardId = 0;
+			//TODO - replace the next 2 lines with removing the card images
 			this.cardName.setText(0);
-			//this.scene.playerHoldingCard = this.scene.cards[scene.stage][this.position];
-			this.scene.playerHoldingCard = 1;	//TODO: replace "1" with the card that is being picked up
-			return;
+			this.scene.currentCardBox.setText(this.scene.currentCard);
 		}
-		if (!isPlayerHoldingCard || this.scene.cards[this.scene.stage][this.position] != 0) {
-			return;
-		}
-		
-		console.log("Place card "+this.position);
-		
-		let id = this.scene.playerHoldingCard;
-		this.scene.cards[this.scene.stage][this.position] = id;	//inserts card id into the array of cards
-		this.hasCard = true;
-		this.scene.playerHoldingCard = 0;
-		
-		// if current card is at start of list, add new card to left
-		var isLeftAdded = 0;
-		if (this.position == 0) {
-			isLeftAdded = 1;
-			this.scene.cards[this.scene.stage].unshift(0);
-			new CardPlacementBox(this.scene, 0, this.distanceFromMiddle-1);
-			new AddCardPlacementBox(this.scene, 0, this.distanceFromMiddle-1);
-		}
-		// if current card is at end of list, add new card to the right
-		if (this.position == this.scene.cards[this.scene.stage].length-1-isLeftAdded) {
-			this.scene.cards[this.scene.stage].push(0);
-			new CardPlacementBox(this.scene, this.scene.cards[this.scene.stage].length-1, this.distanceFromMiddle+1);
-			new AddCardPlacementBox(this.scene, this.scene.cards[this.scene.stage].length-1, this.distanceFromMiddle+1);
-		}
-		
-		//TODO - replace the next two lines with adding the card image
-		this.placementBox.setFillStyle(0xed5e5e);
-		this.cardName.setText(id);
-		
-		console.log(this.scene.cards[this.scene.stage]);
 	}
 }
 
 
 
-// Class for the button which can be pressed to add a new location where a card can be placed
+/**
+ * Class for the button which can be pressed to add a new location where a card can be placed
+*/
 class AddCardBox {
-	constructor(scene, position, distanceFromMiddle) {
+	/**
+	 * @param {Phaser.Scene} scene The scene which this box should be displayed on
+	 * @param {number} distanceFromMiddle The distance from the middle of the array that this add button is (<0 = left, >0 = right)
+	*/
+	constructor(scene, distanceFromMiddle) {
 		this.scene = scene;
-		this.position = position;
 		this.distanceFromMiddle = distanceFromMiddle;
+		
+		// the first box on the "right" does not need a multiplier
 		var distanceMultiplier = this.distanceFromMiddle;
 		if (this.distanceFromMiddle > 0) {
 			distanceMultiplier--;
@@ -81,8 +76,11 @@ class AddCardBox {
 		this.scene.add.text(this.scene.x+this.scene.x*(0.21+0.42*distanceMultiplier), this.scene.y*(1.2-(0.38*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
+	/**
+	 * Adds a new card box in the correct positions
+	*/
 	addBox() {
-		console.log("Add a card button");
+		console.log("Add a card box");
 
 		//TODO: make a new CardPlacementBox object and update the cards array with a new "empty" (0) value
 			//this may require for the index position of this button to be stored
@@ -91,34 +89,36 @@ class AddCardBox {
 
 
 
-
-
 /**
 * Updates variables to move to the next scene
 */
 function goToNextStage(scene) {
-	this.scene.cards.push(new Array(this.scene.cards[this.scene.stage-1].length).fill(0));	//add array the length of the previous array
-	this.scene.stage += 1;
+	console.log("Go to next stage");
+	scene.cards.push(new Array(this.scene.cards[this.scene.stage-1].length).fill(0));	//add array the length of the previous array
+	scene.stage += 1;
 }
+
 
 
 /**
 * Removes the top card from the stack and sets the id to the card the player is currently holding
 */
 function pickUpCard(scene) {
-	if (this.currentCard == 0) {
+	console.log("Pick up a card");
+	if (scene.currentCard == 0) {
 		//TODO update this.currentCard so that it actually picks up a card, and remove the card that is picked up from the stack (issue #31)
-		this.currentCard = 1;
+		scene.currentCard = 1;
+		
+		scene.currentCardBox.setText(scene.currentCard);
 		
 		
-		
-		var stackIsEmpty = false;	//TODO add something to actually check if the stack is empty (issue #34)
+		//TODO add something to actually check if the stack is empty (issue #34)
+		var stackIsEmpty = false;
 		if (stackIsEmpty) {
 			goToNextStage(scene);
 		}
 	}
 }
-
 
 
 
