@@ -41,17 +41,6 @@ export default class playerView extends Phaser.Scene {
         //
     }
     
-    
-    /**
-    * Removes the top card from the stack and sets the id to the card the player is currently holding
-    */
-    pickUpCard() {
-        if (this.currentCard == 0) {
-            //TODO update this.currentCard so that it actually picks up a card, and remove the card that is picked up from the stack (issue #31)
-            this.currentCard = 1;
-        }
-    }
-    
     update() {
         
     }

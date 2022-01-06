@@ -93,11 +93,33 @@ class AddCardBox {
 
 
 
-
-// Call this function when the button to move to the next stage is pressed
-function goToNextStage() {
+/**
+* Updates variables to move to the next scene
+*/
+function goToNextStage(scene) {
 	this.scene.cards.push(new Array(this.scene.cards[this.scene.stage-1].length).fill(0));	//add array the length of the previous array
 	this.scene.stage += 1;
 }
 
-export { CardBox, AddCardBox , goToNextStage };
+
+/**
+* Removes the top card from the stack and sets the id to the card the player is currently holding
+*/
+function pickUpCard(scene) {
+	if (this.currentCard == 0) {
+		//TODO update this.currentCard so that it actually picks up a card, and remove the card that is picked up from the stack (issue #31)
+		this.currentCard = 1;
+		
+		
+		
+		var stackIsEmpty = false;	//TODO add something to actually check if the stack is empty (issue #34)
+		if (stackIsEmpty) {
+			goToNextStage(scene);
+		}
+	}
+}
+
+
+
+
+export { CardBox, AddCardBox, goToNextStage, pickUpCard };
