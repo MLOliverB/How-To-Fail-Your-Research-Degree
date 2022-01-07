@@ -81,9 +81,10 @@ class AddCardBox {
 	*/
 	addBox() {
 		console.log("Add a card box");
-
+		
+		// different code is needed depending on if the card is being added to the left or right of the centre card due how the rendering positions are calculated
 		if (this.distanceFromMiddle < 0) {
-			// adds a new boxes at the furthest left edge and updates previous card boxes
+			// adds new boxes at the furthest left edge
 			let newBox = new CardBox(this.scene, this.scene.leftEdge-1);
 			new AddCardBox(this.scene, this.scene.leftEdge-2);
 			this.scene.leftEdge--;
@@ -104,7 +105,25 @@ class AddCardBox {
 				}
 			}
 		} else {
-			return;
+			// adds new boxes at the furthest right edge
+			let newBox = new CardBox(this.scene, this.scene.rightEdge+1);
+			new AddCardBox(this.scene, this.scene.rightEdge+2);
+			this.scene.rightEdge++;
+			
+			// updating cards array and related variables
+			let position = this.scene.middlePosition+this.distanceFromMiddle;
+			this.scene.cards[this.scene.stage].push(newBox);		//adding empty box to end of the array, the card ids will be shifted later
+			
+			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the end of the array
+			if (position != this.scene.cards[this.scene.stage].length-1) {
+				let previousCardId = 0;
+				for (let i = position; i < this.scene.cards[this.scene.stage].length; i++) {
+					let currentCardId = this.scene.cards[this.scene.stage][i].cardId;
+					this.scene.cards[this.scene.stage][i].cardId = previousCardId
+					this.scene.cards[this.scene.stage][i].cardName.text = previousCardId;	//TODO replace this with moving the image instead
+					previousCardId = currentCardId;
+				}
+			}
 		}
 		
 		var out = "";
