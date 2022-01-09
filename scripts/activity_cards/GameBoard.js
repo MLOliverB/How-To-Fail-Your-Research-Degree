@@ -1,98 +1,142 @@
 import { loadActivityCard } from "../cards-management.js";
 
-// Class for the rectangle which can be clicked to place a card on the rectangle
-class CardPlacementBox {
-	constructor(scene, position, distanceFromMiddle) {
+/**
+ * Class for the rectangle which can be clicked to place a card on the rectangle
+*/
+class CardBox {
+	/**
+	 * @param {Phaser.Scene} scene The scene which this box should be displayed on
+	 * @param {number} distanceFromMiddle The distance from the middle of the array that this card is (0 = middle, <0 = left, >0 = right)
+	*/
+	constructor(scene, distanceFromMiddle) {
 		this.scene = scene;
-		this.position = position;
 		this.distanceFromMiddle = distanceFromMiddle;
-		this.hasCard = false;
+		this.cardId = 0;
 		
-		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.42*this.distanceFromMiddle), this.scene.y*(1.2-(0.38*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.162, 0.204).setInteractive();
-		this.placementBox.on("pointerover", () => {this.placementBox.setFillStyle(0x6c95b7);});
-		this.placementBox.on("pointerout", () => {this.placementBox.setFillStyle(0xb1cfe0);});
-		this.placementBox.on("pointerup", () => this.moveCard());
-		this.cardName = this.scene.add.text(this.scene.x*(1+0.42*this.distanceFromMiddle), this.scene.y*(1.2-(0.38*(this.scene.stage))), 'Place Card', {color: "0x000000"}).setOrigin(0.5);
+		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
+		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
+		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
+		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
+		this.cardName = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), '0', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
-	moveCard() {
+	/**
+	 * Either places a card or moves a card when a card box is clicked
+	*/
+	updateCardBox() {
 		var isPlayerHoldingCard = true;
-		if (this.scene.playerHoldingCard == 0) {
+		if (this.scene.currentCard == 0) {
 			isPlayerHoldingCard = false;
 		}
 		
-		if (this.hasCard && !isPlayerHoldingCard) {
-			console.log("Pick up card "+this.position);
-			this.hasCard = false;
+		// a card can only be placed if the player is holding a card and the card box is empty
+		if (isPlayerHoldingCard && this.cardId == 0) {
+			console.log("Place a card");
+			this.cardId = this.scene.currentCard;
+			this.scene.currentCard = 0;
+			//TODO - replace the next 2 lines with adding the card images
+			this.cardName.setText(this.cardId);
+			this.scene.currentCardBox.setText(0);
+		}
+		
+		// a card can only be picked up if the player is not holding a card and the card box has a card
+		else if (!isPlayerHoldingCard && this.cardId != 0) {
+			console.log("Pick up the card");
+			this.scene.currentCard = this.cardId;
+			this.cardId = 0;
+			//TODO - replace the next 2 lines with removing the card images
 			this.cardName.setText(0);
-			//this.scene.playerHoldingCard = this.scene.cards[scene.stage][this.position];
-			this.scene.playerHoldingCard = 1;	//TODO: replace "1" with the card that is being picked up
-			return;
+			this.scene.currentCardBox.setText(this.scene.currentCard);
 		}
-		if (!isPlayerHoldingCard || this.scene.cards[this.scene.stage][this.position] != 0) {
-			return;
-		}
-		
-		console.log("Place card "+this.position);
-		this.hasCard = true;
-		this.scene.playerHoldingCard = 0;
-		
-		let id = this.scene.playerHoldingCard;
-		this.scene.cards[this.scene.stage][this.position] = id;	//inserts card id into the array of cards
-		
-		// if current card is at start of list, add new card to left
-		var isLeftAdded = 0;
-		if (this.position == 0) {
-			isLeftAdded = 1;
-			this.scene.cards[this.scene.stage].unshift(0);
-			new CardPlacementBox(this.scene, 0, this.distanceFromMiddle-1);
-			new AddCardPlacementBox(this.scene, 0, this.distanceFromMiddle-1);
-		}
-		// if current card is at end of list, add new card to the right
-		if (this.position == this.scene.cards[this.scene.stage].length-1-isLeftAdded) {
-			this.scene.cards[this.scene.stage].push(0);
-			new CardPlacementBox(this.scene, this.scene.cards[this.scene.stage].length-1, this.distanceFromMiddle+1);
-			new AddCardPlacementBox(this.scene, this.scene.cards[this.scene.stage].length-1, this.distanceFromMiddle+1);
-		}
-		
-		//TODO - replace the next two lines with adding the card image
-		this.placementBox.setFillStyle(0xed5e5e);
-		this.cardName.setText(id);
-		
-		console.log(this.scene.cards[this.scene.stage]);
 	}
 }
 
 
 
-// Class for the button which can be pressed to add a new location where a card can be placed
-class AddCardPlacementBox {
-	constructor(scene, position, distanceFromMiddle) {
+/**
+ * Class for the button which can be pressed to add a new location where a card can be placed
+*/
+class AddCardBox {
+	/**
+	 * @param {Phaser.Scene} scene The scene which this box should be displayed on
+	 * @param {number} distanceFromMiddle The distance from the middle of the array that this add button is (<0 = left, >0 = right)
+	*/
+	constructor(scene, distanceFromMiddle) {
 		this.scene = scene;
-		this.position = position;
 		this.distanceFromMiddle = distanceFromMiddle;
+		
+		// the first box on the "right" does not need a multiplier
 		var distanceMultiplier = this.distanceFromMiddle;
 		if (this.distanceFromMiddle > 0) {
 			distanceMultiplier--;
 		}
 		
-		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.21+0.42*distanceMultiplier), this.scene.y*(1.2-(0.38*(this.scene.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.035, 0.204).setInteractive();
+		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
 		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(0x6c95b7);});
 		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(0xb1cfe0);});
 		this.buttonBox.on("pointerup", () => this.addBox());
-		this.scene.add.text(this.scene.x+this.scene.x*(0.21+0.42*distanceMultiplier), this.scene.y*(1.2-(0.38*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
+		this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
+	/**
+	 * Adds a new card box in the correct positions
+	*/
 	addBox() {
-		console.log("Add a card button");
-
-		//TODO: make a new CardPlacementBox object and update the cards array with a new "empty" (0) value
-			//this may require for the index position of this button to be stored
+		console.log("Add a card box");
+		
+		// different code is needed depending on if the card is being added to the left or right of the centre card due how the rendering positions are calculated
+		if (this.distanceFromMiddle < 0) {
+			// adds new boxes at the furthest left edge
+			let newBox = new CardBox(this.scene, this.scene.leftEdge-1);
+			new AddCardBox(this.scene, this.scene.leftEdge-2);
+			this.scene.leftEdge--;
+			
+			// updating cards array and related variables
+			let position = this.scene.middlePosition+this.distanceFromMiddle+1;
+			this.scene.cards[this.scene.stage].unshift(newBox);		//adding empty box to start of the array, the card ids will be shifted later
+			this.scene.middlePosition++;
+			
+			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the start of the array
+			if (position != 0) {
+				let previousCardId = 0;
+				for (let i = position; i >= 0; i--) {
+					let currentCardId = this.scene.cards[this.scene.stage][i].cardId;
+					this.scene.cards[this.scene.stage][i].cardId = previousCardId
+					this.scene.cards[this.scene.stage][i].cardName.text = previousCardId;	//TODO replace this with moving the image instead
+					previousCardId = currentCardId;
+				}
+			}
+		} else {
+			// adds new boxes at the furthest right edge
+			let newBox = new CardBox(this.scene, this.scene.rightEdge+1);
+			new AddCardBox(this.scene, this.scene.rightEdge+2);
+			this.scene.rightEdge++;
+			
+			// updating cards array and related variables
+			let position = this.scene.middlePosition+this.distanceFromMiddle;
+			this.scene.cards[this.scene.stage].push(newBox);		//adding empty box to end of the array, the card ids will be shifted later
+			
+			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the end of the array
+			if (position != this.scene.cards[this.scene.stage].length-1) {
+				let previousCardId = 0;
+				for (let i = position; i < this.scene.cards[this.scene.stage].length; i++) {
+					let currentCardId = this.scene.cards[this.scene.stage][i].cardId;
+					this.scene.cards[this.scene.stage][i].cardId = previousCardId
+					this.scene.cards[this.scene.stage][i].cardName.text = previousCardId;	//TODO replace this with moving the image instead
+					previousCardId = currentCardId;
+				}
+			}
+		}
+		
+		var out = "";
+		for (let i = 0; i < this.scene.cards[this.scene.stage].length; i++) {
+			out += this.scene.cards[this.scene.stage][i].cardId+", ";
+		}
+		console.log(out);
 	}
 }
 
 
-// TODO Implement the actual discard action - i.e. discarding the currently held card and drawing a new one from the card stack
 // Class for the button which can be pressed to discard the current card (there is a check whether it can be played beforehand)
 class CardDiscardBox {
 	constructor(scene, relativeX, relativeY, relativeWidth, relativeHeight) {
@@ -130,7 +174,6 @@ class CardDiscardBox {
 				cardDiscardBox.canBeDiscarded = false;
 			}
 			
-			// TODO: Check if the card can be played on the game board
 			if (this.scene.stage != 0) { // All planning stage cards are connected to each other, so no worries there :)
 				freePositions = []
 				for (let i = 0; i < this.scene.cards[this.scene.stage].length; i++) {
@@ -146,46 +189,44 @@ class CardDiscardBox {
 						ix = freePositions.pop();
 						console.log(ix);
 						loadActivityCard((ix == 0) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix-1], (leftCard) => {
-							loadActivityCard((ix == cardDiscardBox.scene.cards[cardDiscardBox.scene.stage].length) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix+1], (rightCard) => {
+							loadActivityCard((ix == cardDiscardBox.scene.cards[cardDiscardBox.scene.stage].length-1) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix+1], (rightCard) => {
 								loadActivityCard(cardDiscardBox.scene.cards[cardDiscardBox.scene.stage-1][ix], (bottomCard) => {
-									loadActivityCard(cardDiscardBox.scene.cards[cardDiscardBox.scene.stage-1][ix], (bottomCard) => {
-										let leftAligned = false;
-										let leftConnected = false;
-										let rightAligned = false;
-										let rightConnected = false;
-										let bottomAligned = false;
-										let bottomConnected = false;
-										let currentCardPlacements = currentCard.placement.split(",");
-										let leftCardPlacements = leftCard.placement.split(",");
-										let rightCardPlacements = rightCard.placement.split(",");
-										let bottomCardPlacements = bottomCard.placement.split(",");
-										if (leftCard != null) {
-											leftAligned = (leftCardPlacements[1] == currentCardPlacements[0]);
-											leftConnected = (leftCardPlacements[1] == '1');
-										} else {
-											leftAligned = true;
-											leftConnected = false;
-										}
-										if (rightCard != null) {
-											rightAligned = (rightCardPlacements[0] == currentCardPlacements[1]);
-											rightConnected = (rightCardPlacements[0] == '1');
-										} else {
-											rightAligned = true;
-											rightConnected = false;
-										}
-										if (bottomCard != null) {
-											bottomAligned = (bottomCardPlacements[2] == currentCardPlacements[3]);
-											bottomConnected = (bottomCardPlacements[2] == '1');
-										} else {
-											bottomAligned = true;
-											bottomConnected = false;
-										}
-										if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
-											undiscardable(cardDiscardBox);
-										} else {
-											checkPlacements(currentCard, freePositions, discardable, undiscardable, cardDiscardBox)
-										}
-									});
+									let leftAligned = false;
+									let leftConnected = false;
+									let rightAligned = false;
+									let rightConnected = false;
+									let bottomAligned = false;
+									let bottomConnected = false;
+									let currentCardPlacements = currentCard.placement.split(",");
+									let leftCardPlacements = leftCard.placement.split(",");
+									let rightCardPlacements = rightCard.placement.split(",");
+									let bottomCardPlacements = bottomCard.placement.split(",");
+									if (leftCard != null) {
+										leftAligned = (leftCardPlacements[1] == currentCardPlacements[0]);
+										leftConnected = (leftCardPlacements[1] == '1');
+									} else {
+										leftAligned = true;
+										leftConnected = false;
+									}
+									if (rightCard != null) {
+										rightAligned = (rightCardPlacements[0] == currentCardPlacements[1]);
+										rightConnected = (rightCardPlacements[0] == '1');
+									} else {
+										rightAligned = true;
+										rightConnected = false;
+									}
+									if (bottomCard != null) {
+										bottomAligned = (bottomCardPlacements[2] == currentCardPlacements[3]);
+										bottomConnected = (bottomCardPlacements[2] == '1');
+									} else {
+										bottomAligned = true;
+										bottomConnected = false;
+									}
+									if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
+										undiscardable(cardDiscardBox);
+									} else {
+										checkPlacements(currentCard, freePositions, discardable, undiscardable, cardDiscardBox)
+									}
 								});
 							});
 						});
@@ -228,13 +269,37 @@ class CardDiscardBox {
 
 
 
-
-
-
-// Call this function when the button to move to the next stage is pressed
-function goToNextStage() {
-	this.scene.cards.push(new Array(this.scene.cards[this.scene.stage-1].length).fill(0));	//add array the length of the previous array
-	this.scene.stage += 1;
+/**
+* Updates variables to move to the next scene
+*/
+function goToNextStage(scene) {
+	console.log("Go to next stage");
+	scene.cards.push(new Array(this.scene.cards[this.scene.stage-1].length).fill(0));	//add array the length of the previous array
+	scene.stage += 1;
 }
 
-export { CardPlacementBox, AddCardPlacementBox, CardDiscardBox, goToNextStage };
+
+
+/**
+* Removes the top card from the stack and sets the id to the card the player is currently holding
+*/
+function pickUpCard(scene) {
+	console.log("Pick up a card");
+	if (scene.currentCard == 0) {
+		//TODO update scene.currentCard so that it actually picks up a card, and remove the card that is picked up from the stack (issue #31)
+		scene.currentCard = 1;
+		
+		scene.currentCardBox.setText(scene.currentCard);
+		
+		
+		//TODO add something to actually check if the stack is empty (issue #34)
+		var stackIsEmpty = false;
+		if (stackIsEmpty) {
+			goToNextStage(scene);
+		}
+	}
+}
+
+
+
+export { CardBox, AddCardBox, CardDiscardBox, goToNextStage, pickUpCard };
