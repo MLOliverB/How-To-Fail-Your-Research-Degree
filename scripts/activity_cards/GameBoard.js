@@ -1,3 +1,5 @@
+import { loadActivityCard } from "../cards-management.js";
+
 /**
  * Class for the rectangle which can be clicked to place a card on the rectangle
 */
@@ -135,6 +137,154 @@ class AddCardBox {
 }
 
 
+/**
+ * Class for the discard button. The button only works for cards which cannot be played on the current game board.
+ */
+class CardDiscardBox {
+
+	/**
+	 * 
+	 * @param {Phaser.scene} scene The scene which this box should be displayed on 
+	 * @param {number} relativeX X position of the discard button relative to the scene in range [0, 1]
+	 * @param {number} relativeY Y position of the discard button relative to the scene in range [0, 1]
+	 * @param {number} relativeWidth Width of the discard button relative to the scene in range [0, 1]
+	 * @param {number} relativeHeight Height of the discard button relative to the scene in range [0, 1]
+	 */
+	constructor(scene, relativeX, relativeY, relativeWidth, relativeHeight) {
+		this.scene = scene;
+		this.canBeDiscarded = false;
+		this.colorIdle = 0xb1cfe0
+		this.colorNoAction = 0x9cacb8;
+		this.colorAction = 0x6c95b7;
+		this.colorDiscarded = 0xf82f2f;
+
+		// Draw the Button and button text on the scene
+		this.buttonBox = this.scene.add.rectangle(this.scene.x * relativeX, this.scene.y * relativeY, this.scene.width * relativeWidth, this.scene.height * relativeHeight, this.colorIdle)
+		this.buttonBox.setInteractive();
+		this.buttonText = this.scene.add.text(this.scene.x * relativeX, this.scene.y * relativeY, "Discard", {color: "0x000000"});
+		this.buttonText.setOrigin(0.5);
+
+		// On hovering, we check whether the currently held card is playable
+		this.buttonBox.on("pointerover", () => {
+			console.log("Checking if current card can be discarded...");
+
+			function discardable(cardDiscardBox) {
+				console.log("Card can't be played");
+				cardDiscardBox.buttonBox.alpha = 1;
+				cardDiscardBox.buttonText.alpha = 1;
+				cardDiscardBox.buttonText.text = "  Can\nDiscard";
+				cardDiscardBox.buttonBox.setFillStyle(cardDiscardBox.colorAction);
+				cardDiscardBox.canBeDiscarded = true;
+			}
+			function undiscardable (cardDiscardBox) {
+				console.log("Card can be played");
+				cardDiscardBox.buttonBox.alpha = 0.5;
+				cardDiscardBox.buttonText.alpha = 1;
+				cardDiscardBox.buttonText.text = "  Can't\nDiscard";
+				cardDiscardBox.buttonBox.setFillStyle(cardDiscardBox.colorNoAction);
+				cardDiscardBox.canBeDiscarded = false;
+			}
+			
+			if (this.scene.stage != 0) { // All planning stage cards are connected to each other, so we only need to worry about the other stages
+				// record all indexes in the grid where a card could be placed
+				freePositions = []
+				for (let i = 0; i < this.scene.cards[this.scene.stage].length; i++) {
+					if (this.scene.cards[this.scene.stage][i] == 0) {
+						freePositions.push(i);
+					}
+				}
+				// Recursive callback loop function to check whether the current card is legal to place at any of the free positions
+				function checkPlacements(currentCard, freePositions, discardable, undiscardable, cardDiscardBox) {
+					console.log(freePositions.length);
+					if (freePositions.length == 0) { // If there are no free positions, the current card can't be played
+						discardable(cardDiscardBox);
+					} else {
+						ix = freePositions.pop();
+						console.log(ix);
+						// Load the cards the left, the right, and the bottom of the current free position
+						loadActivityCard((ix == 0) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix-1], (leftCard) => {
+							loadActivityCard((ix == cardDiscardBox.scene.cards[cardDiscardBox.scene.stage].length-1) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix+1], (rightCard) => {
+								loadActivityCard(cardDiscardBox.scene.cards[cardDiscardBox.scene.stage-1][ix], (bottomCard) => {
+									// A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
+									let leftAligned = false;
+									let leftConnected = false;
+									let rightAligned = false;
+									let rightConnected = false;
+									let bottomAligned = false;
+									let bottomConnected = false;
+									let currentCardPlacements = currentCard.placement.split(",");
+									let leftCardPlacements = leftCard.placement.split(",");
+									let rightCardPlacements = rightCard.placement.split(",");
+									let bottomCardPlacements = bottomCard.placement.split(",");
+									if (leftCard != null) {
+										leftAligned = (leftCardPlacements[1] == currentCardPlacements[0]);
+										leftConnected = (leftCardPlacements[1] == '1');
+									} else {
+										leftAligned = true;
+										leftConnected = false;
+									}
+									if (rightCard != null) {
+										rightAligned = (rightCardPlacements[0] == currentCardPlacements[1]);
+										rightConnected = (rightCardPlacements[0] == '1');
+									} else {
+										rightAligned = true;
+										rightConnected = false;
+									}
+									if (bottomCard != null) {
+										bottomAligned = (bottomCardPlacements[2] == currentCardPlacements[3]);
+										bottomConnected = (bottomCardPlacements[2] == '1');
+									} else {
+										bottomAligned = true;
+										bottomConnected = false;
+									}
+									// If the card is placable in the current position, the user is not allowed to discard it
+									// Else we check the next placement
+									if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
+										undiscardable(cardDiscardBox);
+									} else {
+										checkPlacements(currentCard, freePositions, discardable, undiscardable, cardDiscardBox)
+									}
+								});
+							});
+						});
+					}
+				}
+				loadActivityCard(this.scene.playerHoldingCard, (currentCard) => {
+					if (currentCard != null) {
+						checkPlacements(currentCard, freePositions, discardable, undiscardable, this);
+					} else {
+						undiscardable(this);
+					}
+				});
+			} else {
+				undiscardable(this);
+			}
+		});
+
+		// Reset the appearance of the button when the mouse stops hovering over it
+		this.buttonBox.on("pointerout", () => {
+			this.canBeDiscarded = false;
+			this.buttonBox.alpha = 1;
+			this.buttonText.alpha = 1;
+			this.buttonText.text = "Discard";
+			this.buttonBox.setFillStyle(this.colorIdle);
+		});
+
+		// When attempting to press the button, only discard if the card is impossible to play (computed while hovering)
+		this.buttonBox.on("pointerup", () => {
+			if (this.canBeDiscarded) {
+				this.canBeDiscarded = false;
+				console.log("Discarding current card");
+				this.buttonBox.alpha = 1;
+				this.buttonText.alpha = 1;
+				this.buttonText.text = "Discarded";
+				this.buttonBox.setFillStyle(this.colorDiscarded);
+			}
+		});
+	}
+}
+
+
 
 /**
 * Updates variables to move to the next scene
@@ -169,4 +319,4 @@ function pickUpCard(scene) {
 
 
 
-export { CardBox, AddCardBox, goToNextStage, pickUpCard };
+export { CardBox, AddCardBox, CardDiscardBox, goToNextStage, pickUpCard };
