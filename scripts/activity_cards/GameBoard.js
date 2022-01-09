@@ -137,8 +137,19 @@ class AddCardBox {
 }
 
 
-// Class for the button which can be pressed to discard the current card (there is a check whether it can be played beforehand)
+/**
+ * Class for the discard button. The button only works for cards which cannot be played on the current game board.
+ */
 class CardDiscardBox {
+
+	/**
+	 * 
+	 * @param {Phaser.scene} scene The scene which this box should be displayed on 
+	 * @param {number} relativeX X position of the discard button relative to the scene in range [0, 1]
+	 * @param {number} relativeY Y position of the discard button relative to the scene in range [0, 1]
+	 * @param {number} relativeWidth Width of the discard button relative to the scene in range [0, 1]
+	 * @param {number} relativeHeight Height of the discard button relative to the scene in range [0, 1]
+	 */
 	constructor(scene, relativeX, relativeY, relativeWidth, relativeHeight) {
 		this.scene = scene;
 		this.canBeDiscarded = false;
@@ -174,23 +185,27 @@ class CardDiscardBox {
 				cardDiscardBox.canBeDiscarded = false;
 			}
 			
-			if (this.scene.stage != 0) { // All planning stage cards are connected to each other, so no worries there :)
+			if (this.scene.stage != 0) { // All planning stage cards are connected to each other, so we only need to worry about the other stages
+				// record all indexes in the grid where a card could be placed
 				freePositions = []
 				for (let i = 0; i < this.scene.cards[this.scene.stage].length; i++) {
 					if (this.scene.cards[this.scene.stage][i] == 0) {
 						freePositions.push(i);
 					}
 				}
+				// Recursive callback loop function to check whether the current card is legal to place at any of the free positions
 				function checkPlacements(currentCard, freePositions, discardable, undiscardable, cardDiscardBox) {
 					console.log(freePositions.length);
-					if (freePositions.length == 0) {
+					if (freePositions.length == 0) { // If there are no free positions, the current card can't be played
 						discardable(cardDiscardBox);
 					} else {
 						ix = freePositions.pop();
 						console.log(ix);
+						// Load the cards the left, the right, and the bottom of the current free position
 						loadActivityCard((ix == 0) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix-1], (leftCard) => {
 							loadActivityCard((ix == cardDiscardBox.scene.cards[cardDiscardBox.scene.stage].length-1) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix+1], (rightCard) => {
 								loadActivityCard(cardDiscardBox.scene.cards[cardDiscardBox.scene.stage-1][ix], (bottomCard) => {
+									// A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
 									let leftAligned = false;
 									let leftConnected = false;
 									let rightAligned = false;
@@ -222,6 +237,8 @@ class CardDiscardBox {
 										bottomAligned = true;
 										bottomConnected = false;
 									}
+									// If the card is placable in the current position, the user is not allowed to discard it
+									// Else we check the next placement
 									if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
 										undiscardable(cardDiscardBox);
 									} else {

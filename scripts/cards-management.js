@@ -1,4 +1,4 @@
-/* ActivityCard Object (new ActivityCard())
+/** ActivityCard Object (new ActivityCard())
  * - id: Unique reference number
  * - stage: The stage of the game this card is played in. 1=Plan, 2=Context, 3=Implementation, 4=Write Up
  * - image: The name of the image file (something.png)
@@ -17,7 +17,7 @@ class ActivityCard {
     }
 }
 
-/* EventCard Object (new EventCard())
+/** EventCard Object (new EventCard())
  * - id: Unique reference number
  * - stage: The stage of the game this card is played in. 1=Plan, 2=Context, 3=Implementation, 4=Write Up
  * - image: The name of the image file (something.png)
