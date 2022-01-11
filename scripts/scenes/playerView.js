@@ -16,7 +16,7 @@ export default class playerView extends Phaser.Scene {
         this.width = this.cameras.main.displayWidth;
         this.height = this.cameras.main.displayHeight;
         
-        // Game board components
+        // rendering the game board
         this.add.rectangle(this.x, this.y, this.width, this.height, 0xede0d4);    // background
         this.add.rectangle(this.x, this.y*0.77, this.width, this.height, 0xf4a261).setScale(0.98, 0.75);  // playing board
         this.add.rectangle(this.x, this.y*1.95, this.width, this.height, 0x023047).setScale(1, 0.2); // toolbar
@@ -24,7 +24,7 @@ export default class playerView extends Phaser.Scene {
         //TODO remove the line below once the card image rendering works
         this.currentCardBox = this.add.text(this.x, this.y*1.76, '0', {color: "0x000000"}).setOrigin(0.5);
 
-        // Activity Cards
+        // setting up the activity cards
         this.currentCard = 0;       // id of the card the player is holding - set to 0 if player is not holding a card
         this.middlePosition = 0;    // the position of the card that is rendered in the middle - only updated during stage 1
         this.leftEdge = 0;          // the position of the card furthest to the left
@@ -39,6 +39,11 @@ export default class playerView extends Phaser.Scene {
         
         //TODO remove this line once picking up cards from the stack has been implemented
         pickUpCard(this);
+        
+        
+        // setting up the board scrolling
+        var cardCamera = this.cameras.add(400, 30, this.width*0.98, this.height*0.75)
+        cardCamera.setBounds(this.width*0.01, this.height*0.01, 400, 300);
     }
     
     update() {
