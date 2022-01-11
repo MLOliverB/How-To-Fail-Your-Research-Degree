@@ -317,6 +317,18 @@ function pickUpCard(scene) {
 	}
 }
 
+/**
+ * Take an id for an activity card and return the associated image filename
+ */
+function activityImageName(id) {
+	return loadActivityCard(id).image;
+}
 
+/**
+ * Take an id for an event card and return the associated image filename
+ */
+function eventImageName(id) {
+	return loadEventCard(id).image;
+}
 
 export { CardBox, AddCardBox, CardDiscardBox, goToNextStage, pickUpCard };
