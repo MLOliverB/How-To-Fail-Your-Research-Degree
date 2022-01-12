@@ -21,7 +21,22 @@ export default class playerView extends Phaser.Scene {
         this.add.rectangle(this.x, this.y, this.width, this.height, 0xede0d4);    // background
         this.add.rectangle(this.x, this.y*0.77, this.width, this.height, 0xf4a261).setScale(0.98, 0.75);  // playing board
         this.add.rectangle(this.x, this.y*1.95, this.width, this.height, 0x023047).setScale(1, 0.2); // toolbar
-        this.add.rectangle(this.x, this.y*1.76, this.width, this.height, 0xe76f51).setScale(0.162, 0.204); // card the player is holding
+        this.cardBox = this.add.rectangle(this.x, this.y*1.76, this.width, this.height, 0xe76f51).setScale(0.162, 0.204); // card the player is holding
+        this.cardBox.on("pointerover", () => {
+            if (this.currentCard == 0) {
+				this.cardBox.setFillStyle(0xb6563e);
+			}
+		});
+        this.cardBox.on("pointerout", () => {
+            if (this.currentCard == 0) {
+				this.cardBox.setFillStyle(0xe76f51);
+			}
+		});
+        this.cardBox.on("pointerup", () => {
+			if (this.currentCard == 0) {
+				pickUpCard(this);
+			}
+		});
         //TODO remove the line below once the card image rendering works
         this.currentCardBox = this.add.text(this.x, this.y*1.76, '0', {color: "0x000000"}).setOrigin(0.5);
 
@@ -45,8 +60,7 @@ export default class playerView extends Phaser.Scene {
             loadActivityCardStack(s, (cards) => {
                 this.activityCards.push(shuffleCardStack(cards));
                 if (s == 4) { // Once all stacks have been loaded, the create the "pick up card" button
-                    // TODO Instead of picking up a card straight away - create the button to pick up new cards (Issue #31)
-                    pickUpCard(this);
+                    this.cardBox.setInteractive();
                 }
             });
         }
