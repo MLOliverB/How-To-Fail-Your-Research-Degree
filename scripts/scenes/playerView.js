@@ -28,13 +28,12 @@ export default class playerView extends Phaser.Scene {
 			}
 		});
         this.cardBox.on("pointerout", () => {
-            if (this.currentCard == 0) {
-				this.cardBox.setFillStyle(0xe76f51);
-			}
+            this.cardBox.setFillStyle(0xe76f51);
 		});
         this.cardBox.on("pointerup", () => {
 			if (this.currentCard == 0) {
 				pickUpCard(this);
+                this.cardBox.setFillStyle(0xe76f51);
 			}
 		});
         //TODO remove the line below once the card image rendering works
