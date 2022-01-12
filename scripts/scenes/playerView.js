@@ -1,4 +1,5 @@
 import { CardBox, AddCardBox, CardDiscardBox, goToNextStage, pickUpCard } from "../activity_cards/GameBoard.js";
+import { loadActivityCardStack, shuffleCardStack } from "../cards-management.js";
 
 /**
  * The scene where the player plays the game
@@ -39,7 +40,16 @@ export default class playerView extends Phaser.Scene {
         new CardDiscardBox(this, 0.175, 0.125, 0.15, 0.1); // Button for discarding the currently held card (Only possible to discard cards that are impossible to play)
         
         //TODO remove this line once picking up cards from the stack has been implemented
-        pickUpCard(this);
+        this.activityCards = [];
+        for (let s = 1; s < 5; s++) {
+            loadActivityCardStack(s, (cards) => {
+                this.activityCards.push(shuffleCardStack(cards));
+                if (s == 4) { // Once all stacks have been loaded, the create the "pick up card" button
+                    // TODO Instead of picking up a card straight away - create the button to pick up new cards (Issue #31)
+                    pickUpCard(this);
+                }
+            });
+        }
         
         
         // setting up the board scrolling

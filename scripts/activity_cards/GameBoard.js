@@ -304,12 +304,12 @@ function pickUpCard(scene) {
 	console.log("Pick up a card");
 	if (scene.currentCard == 0) {
 		//TODO update scene.currentCard so that it actually picks up a card, and remove the card that is picked up from the stack (issue #31)
-		scene.currentCard = 1;
+		scene.currentCard = scene.activityCards[scene.stage].pop().id;
 		
 		scene.currentCardBox.setText(scene.currentCard);
 		
 		
-		//TODO add something to actually check if the stack is empty (issue #34)
+		//TODO add something to actually check if the stack is empty (issue #31)
 		var stackIsEmpty = false;
 		if (stackIsEmpty) {
 			goToNextStage(scene);
