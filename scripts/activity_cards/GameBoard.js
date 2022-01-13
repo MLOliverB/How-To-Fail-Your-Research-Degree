@@ -1,4 +1,4 @@
-import { loadActivityCard } from "../cards-management.js";
+import { loadActivityCard, loadEventCard } from "../cards-management.js";
 
 /**
  * Class for the rectangle which can be clicked to place a card on the rectangle
@@ -17,7 +17,8 @@ class CardBox {
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
 		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
 		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
-		this.cardName = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), '0', {color: "0x000000"}).setOrigin(0.5);
+		this.cardName = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), 2).setVisible(false).setScale(0.2);
 	}
 	
 	/**
@@ -34,9 +35,11 @@ class CardBox {
 			console.log("Place a card");
 			this.cardId = this.scene.currentCard;
 			this.scene.currentCard = 0;
-			//TODO - replace the next 2 lines with adding the card images
+			
 			this.cardName.setText(this.cardId);
-			this.scene.currentCardBox.setText(0);
+			this.scene.currentCardBox.setText("+");
+			this.scene.currentCardImage.setVisible(false);
+			this.cardImage.setVisible(true).setTexture(this.cardId);
 		}
 		
 		// a card can only be picked up if the player is not holding a card and the card box has a card
@@ -44,9 +47,11 @@ class CardBox {
 			console.log("Pick up the card");
 			this.scene.currentCard = this.cardId;
 			this.cardId = 0;
-			//TODO - replace the next 2 lines with removing the card images
-			this.cardName.setText(0);
+			
+			this.cardName.setText("Place Card");
 			this.scene.currentCardBox.setText(this.scene.currentCard);
+			this.scene.currentCardImage.setVisible(true).setTexture(this.scene.currentCard);
+			this.cardImage.setVisible(false);
 		}
 	}
 }
@@ -102,7 +107,13 @@ class AddCardBox {
 				for (let i = position; i >= 0; i--) {
 					let currentCardId = this.scene.cards[this.scene.stage][i].cardId;
 					this.scene.cards[this.scene.stage][i].cardId = previousCardId
-					this.scene.cards[this.scene.stage][i].cardName.text = previousCardId;	//TODO replace this with moving the image instead
+					if (previousCardId == 0) {
+						this.scene.cards[this.scene.stage][i].cardImage.setVisible(false);
+						this.scene.cards[this.scene.stage][i].cardName.text = "Place Card";
+					} else {
+						this.scene.cards[this.scene.stage][i].cardImage.setVisible(true).setTexture(previousCardId);
+						this.scene.cards[this.scene.stage][i].cardName.text = previousCardId;
+					}
 					previousCardId = currentCardId;
 				}
 			}
@@ -122,7 +133,14 @@ class AddCardBox {
 				for (let i = position; i < this.scene.cards[this.scene.stage].length; i++) {
 					let currentCardId = this.scene.cards[this.scene.stage][i].cardId;
 					this.scene.cards[this.scene.stage][i].cardId = previousCardId
-					this.scene.cards[this.scene.stage][i].cardName.text = previousCardId;	//TODO replace this with moving the image instead
+					this.scene.cards[this.scene.stage][i].cardName.text = previousCardId;
+					if (previousCardId == 0) {
+						this.scene.cards[this.scene.stage][i].cardImage.setVisible(false);
+						this.scene.cards[this.scene.stage][i].cardName.text = "Place Card";
+					} else {
+						this.scene.cards[this.scene.stage][i].cardImage.setVisible(true).setTexture(previousCardId);
+						this.scene.cards[this.scene.stage][i].cardName.text = previousCardId;
+					}
 					previousCardId = currentCardId;
 				}
 			}
@@ -143,8 +161,8 @@ class AddCardBox {
 class CardDiscardBox {
 
 	/**
-	 * 
-	 * @param {Phaser.scene} scene The scene which this box should be displayed on 
+	 *
+	 * @param {Phaser.scene} scene The scene which this box should be displayed on
 	 * @param {number} relativeX X position of the discard button relative to the scene in range [0, 1]
 	 * @param {number} relativeY Y position of the discard button relative to the scene in range [0, 1]
 	 * @param {number} relativeWidth Width of the discard button relative to the scene in range [0, 1]
@@ -291,8 +309,9 @@ class CardDiscardBox {
 */
 function goToNextStage(scene) {
 	console.log("Go to next stage");
-	scene.cards.push(new Array(this.scene.cards[this.scene.stage-1].length).fill(0));	//add array the length of the previous array
 	scene.stage += 1;
+	//TODO: fix this to actually do something
+	scene.cards.push(new Array(this.scene.cards[this.scene.stage-1].length).fill(0));	//add array the length of the previous array
 }
 
 
@@ -303,17 +322,10 @@ function goToNextStage(scene) {
 function pickUpCard(scene) {
 	console.log("Pick up a card");
 	if (scene.currentCard == 0) {
-		//TODO update scene.currentCard so that it actually picks up a card, and remove the card that is picked up from the stack (issue #31)
 		scene.currentCard = scene.activityCards[scene.stage].pop().id;
 		
 		scene.currentCardBox.setText(scene.currentCard);
-		
-		
-		//TODO add something to actually check if the stack is empty (issue #31)
-		var stackIsEmpty = false;
-		if (stackIsEmpty) {
-			goToNextStage(scene);
-		}
+		scene.currentCardImage.setVisible(true).setTexture(scene.currentCard);
 	}
 }
 
@@ -331,4 +343,4 @@ function eventImageName(id) {
 	return loadEventCard(id).image;
 }
 
-export { CardBox, AddCardBox, CardDiscardBox, goToNextStage, pickUpCard };
+export { CardBox, AddCardBox, CardDiscardBox, goToNextStage, pickUpCard, activityImageName, eventImageName };
