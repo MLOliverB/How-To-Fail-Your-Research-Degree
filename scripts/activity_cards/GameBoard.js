@@ -155,6 +155,7 @@ class AddCardBox {
 }
 
 
+
 /**
  * Class for the discard button. The button only works for cards which cannot be played on the current game board.
  */
@@ -305,19 +306,53 @@ class CardDiscardBox {
 
 
 /**
-* Updates variables to move to the next scene
+ * A class for adding buttons on the toolbar
 */
-function goToNextStage(scene) {
-	console.log("Go to next stage");
-	scene.stage += 1;
-	//TODO: fix this to actually do something
-	scene.cards.push(new Array(this.scene.cards[this.scene.stage-1].length).fill(0));	//add array the length of the previous array
+class ToolbarButton {
+	/**
+	 * @param {Phaser.scene} scene The scene which this button will appear on
+	 * @param {number} x The horizontal position of the button (from 0-1)
+	 * @param {number} width The width of the button (from 0-1 as a fraction of the width of the screen)
+	 * @param {text} label The text that will appear on the button
+	 * @param {function} onClick The function that runs when the button is clicked (pass "undefined" for no action)
+	 * @param {function} onOver The function that runs when the cursor is hovering over the button (pass "undefined" for no action)
+	 * @param {function} onOut The function that runs when the cursor moves away from the button (pass "undefined" for no action)
+	*/
+	constructor(scene, x, width, label, onClick, onOver, onOut) {
+		this.scene = scene;
+		
+		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*1.875, this.scene.width, this.scene.height, 0xb1cfe0).setScale(width, 0.10).setInteractive();
+		if (onOver != undefined) {
+			this.button.on("pointerover", onOver);
+		} else {
+			this.button.on("pointerover", () => { this.button.setFillStyle(0x6c95b7); });
+		}
+		if (onOut!= undefined) {
+			this.button.on("pointerout", onOut);
+		} else {
+			this.button.on("pointerout", () => { this.button.setFillStyle(0xb1cfe0); });
+		}
+		if (onClick != undefined) {
+			this.button.on("pointerup", onClick);
+		}
+		this.cardName = this.scene.add.text(this.scene.x*x, this.scene.y*1.875, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+	}
 }
 
 
 
 /**
-* Removes the top card from the stack and sets the id to the card the player is currently holding
+ * Updates variables to move to the next player/stage
+*/
+function goToNextStage(scene) {
+	console.log("Go to next stage");
+	scene.stage += 1;
+}
+
+
+
+/**
+ * Removes the top card from the stack and sets the id to the card the player is currently holding
 */
 function pickUpCard(scene) {
 	console.log("Pick up a card");
@@ -343,4 +378,4 @@ function eventImageName(id) {
 	return loadEventCard(id).image;
 }
 
-export { CardBox, AddCardBox, CardDiscardBox, goToNextStage, pickUpCard, activityImageName, eventImageName };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, goToNextStage, pickUpCard, activityImageName, eventImageName };
