@@ -197,6 +197,49 @@ function loadEventCardStack(stage, onLoad) {
 }
 
 
+/*
+ * loadAllCards retrieves all cards from the database.
+ * - onLoad: Callback function that takes the card stack as an argument to support the asynchronous behaviour of xml http requests
+ */
+function loadAllCards(onLoad) {
+    var cardStack = [];
+
+    let config = {
+        locateFile: () => "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.1/sql-wasm.wasm",
+    };
+
+    initSqlJs(config).then(function(SQL) {
+        let xhr = new XMLHttpRequest();
+
+        xhr.open('GET', './data/Cards.db', true);
+        xhr.responseType = 'arraybuffer';
+
+        xhr.onload = function(e) {
+            var uInt8Array = new Uint8Array(this.response);
+            const db = new SQL.Database(uInt8Array);
+
+            var res = db.exec("SELECT id, stage, number, image, title, description, placement FROM Activities");
+            if (res.length > 0) {
+                let vals = res[0]["values"];
+                for (let i = 0; i < vals.length; i++) {
+                    cardStack.push(new ActivityCard(vals[i][0], vals[i][1], vals[i][3], vals[i][4], vals[i][5], vals[i][6]));
+                }
+            }
+
+            var res = db.exec("SELECT id, stage, image, title, description, save_condition, requirement, effect, else_condition FROM Events");
+            if (res.length > 0) {
+                let vals = res[0]["values"];
+                for (let i = 0; i < vals.length; i++) {
+                    cardStack.push(new EventCard(vals[i][0], vals[i][1], vals[i][2], vals[i][3], vals[i][4], vals[i][5], vals[i][6], vals[i][7], vals[i][8]));
+                }
+            }
+            onLoad(cardStack);
+        };
+        xhr.send();
+    });
+}
+
+
 // Reference: Function code based on 'Fisher-Yates shuffle' taken from https://www.w3docs.com/snippets/javascript/how-to-randomize-shuffle-a-javascript-array.html
 /*
  * Shuffles the given cardstack (i.e. array) of either activity cards or event cards
@@ -221,4 +264,4 @@ function shuffleCardStack(stack) {
     return stack;
 }
 
-export {ActivityCard, EventCard, loadActivityCard, loadActivityCardStack, loadEventCard, loadEventCardStack, shuffleCardStack};
+export {ActivityCard, EventCard, loadActivityCard, loadActivityCardStack, loadEventCard, loadEventCardStack, loadAllCards, shuffleCardStack};
