@@ -1,5 +1,5 @@
 import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, goToNextStage, pickUpCard, activityImageName, eventImageName } from "../activity_cards/GameBoard.js";
-import { loadActivityCardStack, shuffleCardStack } from "../cards-management.js";
+import { loadActivityCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
 /**
  * The scene where the player plays the game
@@ -13,12 +13,18 @@ export default class playerView extends Phaser.Scene {
 	
 	preload() {
 		// loading all card images
-		let img;
-		this.load.image("ï»¿1", "../../assets/cards/"+"act-CONTEXT-discusexperts-5.png");
-		for (let i = 2; i <= 123; i++) {
-			img = "act-CONTEXT-greatrefs-5.png";	//TODO: get the image name
-			this.load.image(i, "../../assets/cards/"+img);
-		}
+        // Reference: async loader code taken from https://pablo.gg/en/blog/games/how-to-load-assets-asynchronously-with-phaser-3/
+        const asyncLoader = (loaderPlugin) => new Promise((resolve, reject) => {
+            loaderPlugin.on('filecomplete', resolve).on('loaderror', reject);
+            loaderPlugin.start();
+        });
+        const preloadCards = async () => {
+            let cardsPromise = await loadAllCardsPromise();
+            for (let i = 0; i < cardsPromise.length; i++) {
+                await asyncLoader(this.load.image(cardsPromise[i].id, "../../assets/cards/".concat(cardsPromise[i].image)));
+            }
+        };
+        preloadCards();
 	}
     
     create() {

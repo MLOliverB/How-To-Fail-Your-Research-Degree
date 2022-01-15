@@ -239,6 +239,12 @@ function loadAllCards(onLoad) {
     });
 }
 
+const loadAllCardsPromise = () => new Promise((resolve, reject) => {
+    loadAllCards((cardStack) => {
+        resolve(cardStack);
+    });
+});
+
 
 // Reference: Function code based on 'Fisher-Yates shuffle' taken from https://www.w3docs.com/snippets/javascript/how-to-randomize-shuffle-a-javascript-array.html
 /*
@@ -264,4 +270,4 @@ function shuffleCardStack(stack) {
     return stack;
 }
 
-export {ActivityCard, EventCard, loadActivityCard, loadActivityCardStack, loadEventCard, loadEventCardStack, loadAllCards, shuffleCardStack};
+export {ActivityCard, EventCard, loadActivityCard, loadActivityCardStack, loadEventCard, loadEventCardStack, loadAllCards, loadAllCardsPromise, shuffleCardStack};
