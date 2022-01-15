@@ -21,7 +21,7 @@ export default class playerView extends Phaser.Scene {
         const preloadCards = async () => {
             let cardsPromise = await loadAllCardsPromise();
             for (let i = 0; i < cardsPromise.length; i++) {
-                await asyncLoader(this.load.image(cardsPromise[i].id, "../../assets/cards/".concat(cardsPromise[i].image)));
+                await asyncLoader(this.load.image(cardsPromise[i].id, "./assets/cards/".concat(cardsPromise[i].image)));
             }
         };
         preloadCards();
