@@ -54,7 +54,7 @@ export default class playerView extends Phaser.Scene {
 			}
 		});
         this.currentCardBox = this.add.text(this.x, this.y*1.76, '+', {color: "0x000000"}).setOrigin(0.5).setFontSize(32);	// text displayed on the box for the card the player is holding
-		this.currentCardImage = this.add.image(this.x, this.y*1.76, 2).setScale(0.3).setVisible(false);					//image displayed on the current card box
+		this.currentCardImage = this.add.image(this.x, this.y*1.76, 2).setScale(0.3).setVisible(false);						//image displayed on the current card box
 		
 
 
@@ -64,6 +64,7 @@ export default class playerView extends Phaser.Scene {
         this.leftEdge = 0;          // the position of the card furthest to the left
         this.rightEdge = 0;         // the position of the card furthest to the right
         this.cards = [];            // a 2D array of stages of card boxes, e.g. cards[0] will return the array of card boxes used in the first stage
+		this.addCardBoxes = [];		// a 1D array of the current set of add card box buttons (not in order) - this is reset after every stage
         this.stage = 0;             // Stages: 0=Plan, 1=Context, 2=Implementation, 3=Write Up, 4=Finished
         
         // start with 1 empty card box and two buttons on either side to add more card boxes
@@ -86,9 +87,9 @@ export default class playerView extends Phaser.Scene {
         }
 		
 		
-		
 		// button to move to next player/stage
 		new ToolbarButton(this, 0.19, 0.18, "Next Player", goToNextStage, undefined, undefined);
+		
 		
         
         // setting up the board scrolling

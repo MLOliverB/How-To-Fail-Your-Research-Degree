@@ -13,7 +13,9 @@ class CardBox {
 		this.distanceFromMiddle = distanceFromMiddle;
 		this.cardId = 0;
 		
+		console.log(this.distanceFromMiddle)
 		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
+		//this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*(-1)), this.scene.y*(1.33-(0.31*(1))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
 		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
 		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
@@ -69,6 +71,7 @@ class AddCardBox {
 	constructor(scene, distanceFromMiddle) {
 		this.scene = scene;
 		this.distanceFromMiddle = distanceFromMiddle;
+		this.scene.addCardBoxes.push(this);
 		
 		// the first box on the "right" does not need a multiplier
 		var distanceMultiplier = this.distanceFromMiddle;
@@ -80,7 +83,7 @@ class AddCardBox {
 		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(0x6c95b7);});
 		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(0xb1cfe0);});
 		this.buttonBox.on("pointerup", () => this.addBox());
-		this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
+		this.boxText = this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
 	/**
@@ -88,6 +91,13 @@ class AddCardBox {
 	*/
 	addBox() {
 		console.log("Add a card box");
+		console.log(this.distanceFromMiddle)
+		
+		// disable this box if it's any stage other than the first stage since cards can't be moved once they're placed on the other stages
+		if (this.scene.stage != 0) {
+			this.buttonBox.disableInteractive().setVisible(false);
+			this.boxText.setVisible(false);
+		}
 		
 		// different code is needed depending on if the card is being added to the left or right of the centre card due how the rendering positions are calculated
 		if (this.distanceFromMiddle < 0) {
@@ -100,6 +110,7 @@ class AddCardBox {
 			let position = this.scene.middlePosition+this.distanceFromMiddle+1;
 			this.scene.cards[this.scene.stage].unshift(newBox);		//adding empty box to start of the array, the card ids will be shifted later
 			this.scene.middlePosition++;
+			
 			
 			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the start of the array
 			if (position != 0) {
@@ -323,17 +334,17 @@ class ToolbarButton {
 		
 		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*1.875, this.scene.width, this.scene.height, 0xb1cfe0).setScale(width, 0.10).setInteractive();
 		if (onOver != undefined) {
-			this.button.on("pointerover", onOver);
+			this.button.on("pointerover", () => { onOver(this.scene) });
 		} else {
 			this.button.on("pointerover", () => { this.button.setFillStyle(0x6c95b7); });
 		}
 		if (onOut!= undefined) {
-			this.button.on("pointerout", onOut);
+			this.button.on("pointerout", () => { onOut(this.scene) });
 		} else {
 			this.button.on("pointerout", () => { this.button.setFillStyle(0xb1cfe0); });
 		}
 		if (onClick != undefined) {
-			this.button.on("pointerup", onClick);
+			this.button.on("pointerup", () => { onClick(this.scene) });
 		}
 		this.cardName = this.scene.add.text(this.scene.x*x, this.scene.y*1.875, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 	}
@@ -342,11 +353,43 @@ class ToolbarButton {
 
 
 /**
- * Updates variables to move to the next player/stage
+ * Updates variables to move to the next stage
 */
 function goToNextStage(scene) {
+	if (scene.stage > 2) {
+		console.log("Error: Unable to go to the next stage\nReason: Already on the final stage");
+		return;
+	}
+	
 	console.log("Go to next stage");
 	scene.stage += 1;
+	
+	// disabling all card boxes and add card box buttons from the previous stage
+	for (let i in scene.cards[scene.stage-1]) {
+		scene.cards[scene.stage-1][i].placementBox.disableInteractive()
+	}
+	for (let i in scene.addCardBoxes) {
+		scene.addCardBoxes[i].buttonBox.disableInteractive().setVisible(false);
+		scene.addCardBoxes[i].boxText.setVisible(false);
+	}
+	scene.addCardBoxes = [];	// resetting this array since the add card box buttons from the previous stage will not be needed again
+	
+	// setting up the card boxes (and other variables) for the next stage
+	// start with the same number of boxes as the previous stage (including boxes without cards)
+	scene.cards.push([]);
+	for (let i in scene.cards[scene.stage-1]) {
+		let distance = scene.cards[scene.stage-1][i].distanceFromMiddle
+		scene.cards[scene.stage].push(new CardBox(scene, distance));
+	}
+	// only start with add card boxes on the outer edges
+	scene.addCardBoxes.push(new AddCardBox(scene, scene.leftEdge-1));
+	scene.addCardBoxes.push(new AddCardBox(scene, scene.rightEdge+1));
+	
+	
+	// clearing the card the player is holding from the previous stage
+	scene.currentCard = 0;
+	scene.currentCardImage.setVisible(false);
+	scene.currentCardBox.setText("+");
 }
 
 
