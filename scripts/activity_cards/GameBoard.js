@@ -217,24 +217,27 @@ class CardDiscardBox {
 			
 			if (this.scene.stage != 0) { // All planning stage cards are connected to each other, so we only need to worry about the other stages
 				// record all indexes in the grid where a card could be placed
-				freePositions = []
+				let freePositions = []
+				freePositions.push(-1);
 				for (let i = 0; i < this.scene.cards[this.scene.stage].length; i++) {
-					if (this.scene.cards[this.scene.stage][i] == 0) {
+					if (this.scene.cards[this.scene.stage][i].cardId == 0) {
 						freePositions.push(i);
 					}
 				}
+				freePositions.push(this.scene.cards[this.scene.stage].length);
 				// Recursive callback loop function to check whether the current card is legal to place at any of the free positions
 				function checkPlacements(currentCard, freePositions, discardable, undiscardable, cardDiscardBox) {
-					console.log(freePositions.length);
 					if (freePositions.length == 0) { // If there are no free positions, the current card can't be played
 						discardable(cardDiscardBox);
 					} else {
-						ix = freePositions.pop();
-						console.log(ix);
+						let ix = freePositions.pop();
 						// Load the cards the left, the right, and the bottom of the current free position
-						loadActivityCard((ix == 0) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix-1], (leftCard) => {
-							loadActivityCard((ix == cardDiscardBox.scene.cards[cardDiscardBox.scene.stage].length-1) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix+1], (rightCard) => {
-								loadActivityCard(cardDiscardBox.scene.cards[cardDiscardBox.scene.stage-1][ix], (bottomCard) => {
+						let leftCardId = (ix <= 0) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix-1].cardId;
+						let rightCardId = (ix >= cardDiscardBox.scene.cards[cardDiscardBox.scene.stage].length-1) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix+1].cardId;
+						let bottomCardId = ((ix <= 0) || (ix >= cardDiscardBox.scene.cards[cardDiscardBox.scene.stage].length-1)) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage-1][ix].cardId;
+						loadActivityCard(leftCardId, (leftCard) => {
+							loadActivityCard(rightCardId, (rightCard) => {
+								loadActivityCard(bottomCardId, (bottomCard) => {
 									// A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
 									let leftAligned = false;
 									let leftConnected = false;
@@ -243,9 +246,9 @@ class CardDiscardBox {
 									let bottomAligned = false;
 									let bottomConnected = false;
 									let currentCardPlacements = currentCard.placement.split(",");
-									let leftCardPlacements = leftCard.placement.split(",");
-									let rightCardPlacements = rightCard.placement.split(",");
-									let bottomCardPlacements = bottomCard.placement.split(",");
+									let leftCardPlacements = (leftCard == null) ? ['1', '1', '1', '1'] : leftCard.placement.split(",");
+									let rightCardPlacements = (rightCard == null) ? ['1', '1', '1', '1'] : rightCard.placement.split(",");
+									let bottomCardPlacements = (bottomCard == null) ? ['1', '1', '1', '1'] : bottomCard.placement.split(",");
 									if (leftCard != null) {
 										leftAligned = (leftCardPlacements[1] == currentCardPlacements[0]);
 										leftConnected = (leftCardPlacements[1] == '1');
@@ -279,7 +282,7 @@ class CardDiscardBox {
 						});
 					}
 				}
-				loadActivityCard(this.scene.playerHoldingCard, (currentCard) => {
+				loadActivityCard(this.scene.currentCard, (currentCard) => {
 					if (currentCard != null) {
 						checkPlacements(currentCard, freePositions, discardable, undiscardable, this);
 					} else {
@@ -305,6 +308,9 @@ class CardDiscardBox {
 			if (this.canBeDiscarded) {
 				this.canBeDiscarded = false;
 				console.log("Discarding current card");
+				this.scene.currentCard = 0;
+				this.scene.currentCardBox.setText("+");
+				this.scene.currentCardImage.setVisible(false);
 				this.buttonBox.alpha = 1;
 				this.buttonText.alpha = 1;
 				this.buttonText.text = "Discarded";
