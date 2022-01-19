@@ -222,9 +222,7 @@ class CardDiscardBox {
 				let leftCard = this.scene.cardMap.get(leftCardId);
 				let rightCardId = (ix >= this.scene.cards[this.scene.stage].length-1) ? 0 : this.scene.cards[this.scene.stage][ix+1].cardId;
 				let rightCard = this.scene.cardMap.get(rightCardId);
-				console.log(ix, (this.scene.cards[this.scene.stage][0].distanceFromMiddle - this.scene.cards[this.scene.stage-1][0].distanceFromMiddle));
 				let bottomCardIx = ix + (this.scene.cards[this.scene.stage][0].distanceFromMiddle - this.scene.cards[this.scene.stage-1][0].distanceFromMiddle);
-				console.log(bottomCardIx);
 				let bottomCardId = ((bottomCardIx < 0) || (bottomCardIx > this.scene.cards[this.scene.stage-1].length-1)) ? 0 : this.scene.cards[this.scene.stage-1][bottomCardIx].cardId;
 				let bottomCard = this.scene.cardMap.get(bottomCardId);
 
