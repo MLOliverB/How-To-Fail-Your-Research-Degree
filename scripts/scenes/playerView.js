@@ -1,4 +1,4 @@
-import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, goToNextStage, pickUpCard, activityImageName, eventImageName } from "../activity_cards/GameBoard.js";
+import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, goToNextStage, pickUpCard } from "../activity_cards/GameBoard.js";
 import { loadActivityCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
 /**
@@ -12,6 +12,9 @@ export default class playerView extends Phaser.Scene {
     }
 	
 	preload() {
+        // Creating a mapping from card id to card object
+        this.cardMap = new Map();
+        this.cardMap.set(0, null);
 		// loading all card images
         // Reference: async loader code taken from https://pablo.gg/en/blog/games/how-to-load-assets-asynchronously-with-phaser-3/
         const asyncLoader = (loaderPlugin) => new Promise((resolve, reject) => {
@@ -21,6 +24,7 @@ export default class playerView extends Phaser.Scene {
         const preloadCards = async () => {
             let cardsPromise = await loadAllCardsPromise();
             for (let i = 0; i < cardsPromise.length; i++) {
+                this.cardMap.set(cardsPromise[i].id, cardsPromise[i]);
                 await asyncLoader(this.load.image(cardsPromise[i].id, "./assets/cards/".concat(cardsPromise[i].image)));
             }
         };
@@ -80,7 +84,7 @@ export default class playerView extends Phaser.Scene {
         for (let s = 1; s < 5; s++) {
             loadActivityCardStack(s, (cards) => {
                 this.activityCards.push(shuffleCardStack(cards));
-                if (s == 4) { // Once all stacks have been loaded, the create the "pick up card" button
+                if (s == 4) { // Once all stacks have been loaded, create the "pick up card" button
                     this.cardBox.setInteractive();
                 }
             });

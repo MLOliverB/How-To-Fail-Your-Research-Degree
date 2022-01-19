@@ -197,27 +197,15 @@ class CardDiscardBox {
 		// On hovering, we check whether the currently held card is playable
 		this.buttonBox.on("pointerover", () => {
 			console.log("Checking if current card can be discarded...");
-
-			function discardable(cardDiscardBox) {
-				console.log("Card can't be played");
-				cardDiscardBox.buttonBox.alpha = 1;
-				cardDiscardBox.buttonText.alpha = 1;
-				cardDiscardBox.buttonText.text = "  Can\nDiscard";
-				cardDiscardBox.buttonBox.setFillStyle(cardDiscardBox.colorAction);
-				cardDiscardBox.canBeDiscarded = true;
-			}
-			function undiscardable (cardDiscardBox) {
-				console.log("Card can be played");
-				cardDiscardBox.buttonBox.alpha = 0.5;
-				cardDiscardBox.buttonText.alpha = 1;
-				cardDiscardBox.buttonText.text = "  Can't\nDiscard";
-				cardDiscardBox.buttonBox.setFillStyle(cardDiscardBox.colorNoAction);
-				cardDiscardBox.canBeDiscarded = false;
-			}
 			
-			if (this.scene.stage != 0) { // All planning stage cards are connected to each other, so we only need to worry about the other stages
+			let isDiscardable = true;
+			let currentCard = this.scene.cardMap.get(this.scene.currentCard);
+			let freePositions = []
+
+			if (this.scene.stage == 0 || currentCard == null) {
+				isDiscardable = false;
+			} else {
 				// record all indexes in the grid where a card could be placed
-				let freePositions = []
 				freePositions.push(-1);
 				for (let i = 0; i < this.scene.cards[this.scene.stage].length; i++) {
 					if (this.scene.cards[this.scene.stage][i].cardId == 0) {
@@ -225,72 +213,59 @@ class CardDiscardBox {
 					}
 				}
 				freePositions.push(this.scene.cards[this.scene.stage].length);
-				// Recursive callback loop function to check whether the current card is legal to place at any of the free positions
-				function checkPlacements(currentCard, freePositions, discardable, undiscardable, cardDiscardBox) {
-					if (freePositions.length == 0) { // If there are no free positions, the current card can't be played
-						discardable(cardDiscardBox);
-					} else {
-						let ix = freePositions.pop();
-						// Load the cards the left, the right, and the bottom of the current free position
-						let leftCardId = (ix <= 0) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix-1].cardId;
-						let rightCardId = (ix >= cardDiscardBox.scene.cards[cardDiscardBox.scene.stage].length-1) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage][ix+1].cardId;
-						let bottomCardId = ((ix <= 0) || (ix >= cardDiscardBox.scene.cards[cardDiscardBox.scene.stage].length-1)) ? 0 : cardDiscardBox.scene.cards[cardDiscardBox.scene.stage-1][ix].cardId;
-						loadActivityCard(leftCardId, (leftCard) => {
-							loadActivityCard(rightCardId, (rightCard) => {
-								loadActivityCard(bottomCardId, (bottomCard) => {
-									// A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
-									let leftAligned = false;
-									let leftConnected = false;
-									let rightAligned = false;
-									let rightConnected = false;
-									let bottomAligned = false;
-									let bottomConnected = false;
-									let currentCardPlacements = currentCard.placement.split(",");
-									let leftCardPlacements = (leftCard == null) ? ['1', '1', '1', '1'] : leftCard.placement.split(",");
-									let rightCardPlacements = (rightCard == null) ? ['1', '1', '1', '1'] : rightCard.placement.split(",");
-									let bottomCardPlacements = (bottomCard == null) ? ['1', '1', '1', '1'] : bottomCard.placement.split(",");
-									if (leftCard != null) {
-										leftAligned = (leftCardPlacements[1] == currentCardPlacements[0]);
-										leftConnected = (leftCardPlacements[1] == '1');
-									} else {
-										leftAligned = true;
-										leftConnected = false;
-									}
-									if (rightCard != null) {
-										rightAligned = (rightCardPlacements[0] == currentCardPlacements[1]);
-										rightConnected = (rightCardPlacements[0] == '1');
-									} else {
-										rightAligned = true;
-										rightConnected = false;
-									}
-									if (bottomCard != null) {
-										bottomAligned = (bottomCardPlacements[2] == currentCardPlacements[3]);
-										bottomConnected = (bottomCardPlacements[2] == '1');
-									} else {
-										bottomAligned = true;
-										bottomConnected = false;
-									}
-									// If the card is placable in the current position, the user is not allowed to discard it
-									// Else we check the next placement
-									if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
-										undiscardable(cardDiscardBox);
-									} else {
-										checkPlacements(currentCard, freePositions, discardable, undiscardable, cardDiscardBox)
-									}
-								});
-							});
-						});
-					}
+			}
+
+			// Check every possible free position to check whether card would be legal to place there
+			while (freePositions.length > 0) {
+				let ix = freePositions.pop();
+				let leftCardId = (ix <= 0) ? 0 : this.scene.cards[this.scene.stage][ix-1].cardId;
+				let leftCard = this.scene.cardMap.get(leftCardId);
+				let rightCardId = (ix >= this.scene.cards[this.scene.stage].length-1) ? 0 : this.scene.cards[this.scene.stage][ix+1].cardId;
+				let rightCard = this.scene.cardMap.get(rightCardId);
+				// TODO The arrays of the different stages become misaligned when expanding to the left in any stage other than the first one
+				let bottomCardId = ((ix < 0) || (ix > this.scene.cards[this.scene.stage].length-1)) ? 0 : this.scene.cards[this.scene.stage-1][ix].cardId;
+				let bottomCard = this.scene.cardMap.get(bottomCardId);
+
+				// A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
+				let currentCardPlacements = currentCard.placement.split(",");
+				let leftCardPlacements = (leftCard == null) ? ['1', '1', '1', '1'] : leftCard.placement.split(",");
+				let rightCardPlacements = (rightCard == null) ? ['1', '1', '1', '1'] : rightCard.placement.split(",");
+				let bottomCardPlacements = (bottomCard == null) ? ['1', '1', '1', '1'] : bottomCard.placement.split(",");
+
+				let leftAligned = (leftCard == null) ? true : (leftCardPlacements[1] == currentCardPlacements[0]);
+				let rightAligned = (rightCard == null) ? true : (rightCardPlacements[0] == currentCardPlacements[1]);
+				let bottomAligned = (bottomCard == null) ? true : (bottomCardPlacements[2] == currentCardPlacements[3]);
+
+				let leftConnected = (leftCard == null) ? false : (leftCardPlacements[1] == '1' && currentCardPlacements[0] == '1');
+				let rightConnected = (rightCard == null) ? false : (rightCardPlacements[0] == '1' && currentCardPlacements[1] == '1');
+				let bottomConnected = (bottomCard == null) ? false : (bottomCardPlacements[2] == '1' && currentCardPlacements[3] == '1');
+
+				console.log(`Position (${this.scene.stage}, ${ix})`);
+				console.log(`Alignment - Left ${leftAligned}, Right ${rightAligned}, Bottom ${bottomAligned}`);
+				console.log(`Connectivity - Left ${leftConnected}, Right ${rightConnected}, Bottom ${bottomConnected}`);
+				// If the card is placable in the current position, the user is not allowed to discard it
+				// Else we check the next placement
+				if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
+					isDiscardable = false;
+					break;
 				}
-				loadActivityCard(this.scene.currentCard, (currentCard) => {
-					if (currentCard != null) {
-						checkPlacements(currentCard, freePositions, discardable, undiscardable, this);
-					} else {
-						undiscardable(this);
-					}
-				});
+			}
+
+
+			if (isDiscardable) {
+				console.log("Card can't be played");
+				this.buttonBox.alpha = 1;
+				this.buttonText.alpha = 1;
+				this.buttonText.text = "  Can\nDiscard";
+				this.buttonBox.setFillStyle(this.colorAction);
+				this.canBeDiscarded = true;
 			} else {
-				undiscardable(this);
+				console.log("Card can be played");
+				this.buttonBox.alpha = 0.5;
+				this.buttonText.alpha = 1;
+				this.buttonText.text = "  Can't\nDiscard";
+				this.buttonBox.setFillStyle(this.colorNoAction);
+				this.canBeDiscarded = false;
 			}
 		});
 
@@ -413,18 +388,4 @@ function pickUpCard(scene) {
 	}
 }
 
-/**
- * Take an id for an activity card and return the associated image filename
- */
-function activityImageName(id) {
-	return loadActivityCard(id).image;
-}
-
-/**
- * Take an id for an event card and return the associated image filename
- */
-function eventImageName(id) {
-	return loadEventCard(id).image;
-}
-
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, goToNextStage, pickUpCard, activityImageName, eventImageName };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, goToNextStage, pickUpCard };
