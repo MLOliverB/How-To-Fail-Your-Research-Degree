@@ -2,7 +2,7 @@ import { loadActivityCard, loadEventCard } from "../cards-management.js";
 
 /**
  * Class for the rectangle which can be clicked to place a card on the rectangle
-*/
+ */
 class CardBox {
 	/**
 	 * @param {Phaser.Scene} scene The scene which this box should be displayed on
@@ -12,8 +12,7 @@ class CardBox {
 		this.scene = scene;
 		this.distanceFromMiddle = distanceFromMiddle;
 		this.cardId = 0;
-		
-		console.log(this.distanceFromMiddle)
+
 		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		//this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*(-1)), this.scene.y*(1.33-(0.31*(1))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
@@ -39,7 +38,7 @@ class CardBox {
 			this.scene.currentCard = 0;
 			
 			this.cardName.setText(this.cardId);
-			this.scene.currentCardBox.setText("+");
+			this.scene.currentCardText.setText("+");
 			this.scene.currentCardImage.setVisible(false);
 			this.cardImage.setVisible(true).setTexture(this.cardId);
 		}
@@ -51,7 +50,7 @@ class CardBox {
 			this.cardId = 0;
 			
 			this.cardName.setText("Place Card");
-			this.scene.currentCardBox.setText(this.scene.currentCard);
+			this.scene.currentCardText.setText(this.scene.currentCard);
 			this.scene.currentCardImage.setVisible(true).setTexture(this.scene.currentCard);
 			this.cardImage.setVisible(false);
 		}
@@ -62,16 +61,17 @@ class CardBox {
 
 /**
  * Class for the button which can be pressed to add a new location where a card can be placed
-*/
+ */
 class AddCardBox {
 	/**
 	 * @param {Phaser.Scene} scene The scene which this box should be displayed on
 	 * @param {number} distanceFromMiddle The distance from the middle of the array that this add button is (<0 = left, >0 = right)
 	*/
 	constructor(scene, distanceFromMiddle) {
+		console.log("hi")
 		this.scene = scene;
 		this.distanceFromMiddle = distanceFromMiddle;
-		this.scene.addCardBoxes.push(this);
+		this.scene.teams[this.scene.currentTeam].get("addCardBoxes").push(this);
 		
 		// the first box on the "right" does not need a multiplier
 		var distanceMultiplier = this.distanceFromMiddle;
@@ -189,13 +189,12 @@ class CardDiscardBox {
 		this.colorDiscarded = 0xf82f2f;
 
 		// Draw the Button and button text on the scene
-		this.buttonBox = this.scene.add.rectangle(this.scene.x * relativeX, this.scene.y * relativeY, this.scene.width * relativeWidth, this.scene.height * relativeHeight, this.colorIdle)
-		this.buttonBox.setInteractive();
+		this.button = this.scene.add.rectangle(this.scene.x * relativeX, this.scene.y * relativeY, this.scene.width * relativeWidth, this.scene.height * relativeHeight, this.colorIdle)
 		this.buttonText = this.scene.add.text(this.scene.x * relativeX, this.scene.y * relativeY, "Discard", {color: "0x000000"});
 		this.buttonText.setOrigin(0.5);
 
 		// On hovering, we check whether the currently held card is playable
-		this.buttonBox.on("pointerover", () => {
+		this.button.on("pointerover", () => {
 			console.log("Checking if current card can be discarded...");
 			
 			let isDiscardable = true;
@@ -254,42 +253,42 @@ class CardDiscardBox {
 
 			if (isDiscardable) {
 				console.log("Card can't be played");
-				this.buttonBox.alpha = 1;
+				this.button.alpha = 1;
 				this.buttonText.alpha = 1;
 				this.buttonText.text = "  Can\nDiscard";
-				this.buttonBox.setFillStyle(this.colorAction);
+				this.button.setFillStyle(this.colorAction);
 				this.canBeDiscarded = true;
 			} else {
 				console.log("Card can be played");
-				this.buttonBox.alpha = 0.5;
+				this.button.alpha = 0.5;
 				this.buttonText.alpha = 1;
 				this.buttonText.text = "  Can't\nDiscard";
-				this.buttonBox.setFillStyle(this.colorNoAction);
+				this.button.setFillStyle(this.colorNoAction);
 				this.canBeDiscarded = false;
 			}
 		});
 
 		// Reset the appearance of the button when the mouse stops hovering over it
-		this.buttonBox.on("pointerout", () => {
+		this.button.on("pointerout", () => {
 			this.canBeDiscarded = false;
-			this.buttonBox.alpha = 1;
+			this.button.alpha = 1;
 			this.buttonText.alpha = 1;
 			this.buttonText.text = "Discard";
-			this.buttonBox.setFillStyle(this.colorIdle);
+			this.button.setFillStyle(this.colorIdle);
 		});
 
 		// When attempting to press the button, only discard if the card is impossible to play (computed while hovering)
-		this.buttonBox.on("pointerup", () => {
+		this.button.on("pointerup", () => {
 			if (this.canBeDiscarded) {
 				this.canBeDiscarded = false;
 				console.log("Discarding current card");
 				this.scene.currentCard = 0;
-				this.scene.currentCardBox.setText("+");
+				this.scene.currentCardText.setText("+");
 				this.scene.currentCardImage.setVisible(false);
-				this.buttonBox.alpha = 1;
+				this.button.alpha = 1;
 				this.buttonText.alpha = 1;
 				this.buttonText.text = "Discarded";
-				this.buttonBox.setFillStyle(this.colorDiscarded);
+				this.button.setFillStyle(this.colorDiscarded);
 			}
 		});
 	}
@@ -299,7 +298,7 @@ class CardDiscardBox {
 
 /**
  * A class for adding buttons on the toolbar
-*/
+ */
 class ToolbarButton {
 	/**
 	 * @param {Phaser.scene} scene The scene which this button will appear on
@@ -327,65 +326,183 @@ class ToolbarButton {
 		if (onClick != undefined) {
 			this.button.on("pointerup", () => { onClick(this.scene) });
 		}
-		this.cardName = this.scene.add.text(this.scene.x*x, this.scene.y*1.875, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.buttonText = this.scene.add.text(this.scene.x*x, this.scene.y*1.875, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 	}
 }
 
 
 
 /**
- * Updates variables to move to the next stage
-*/
-function goToNextStage(scene) {
-	if (scene.stage > 2) {
-		console.log("Error: Unable to go to the next stage\nReason: Already on the final stage");
-		return;
+ * Decides whether to move to the next team or the next stage after the next button is pressed
+ */
+function nextHandler(scene) {
+	// if not stage 0 and team -1,
+		//unload the team
+		// if all players done, set team to 0, else increment
+		//load the team
+	// else, scene.currentTeam++;
+	
+	// if stage 0, create initial boxes
+	// if other stages, create more boxes using the code already written
+	
+	
+	// WHAT IS THE PROBLEM?
+		// check console while clicking the button
+		// team not resetting to 0 properly?
+	console.log("------");
+	console.log("Stage: "+scene.stage + "\nCurrent Team: " + scene.currentTeam)
+	
+	
+	// changing teams
+	if (!(scene.stage == 0 && scene.currentTeam == -1)) {	// can't unload previous team on the first stage
+		
+		
+		scene.stage++;
+		console.log(scene.stage);
+		if (scene.currentTeam == scene.numberOfTeams - 1) {
+			scene.currentTeam == 0;		// setting the team back to the first team if all teams have played
+		} else {
+			unloadTeam(scene);
+			scene.currentTeam++;
+			loadTeam(scene);
+		}
+	} else {
+		unloadTeam(scene);
+		scene.currentTeam++;
+		loadTeam(scene);
 	}
 	
-	console.log("Go to next stage");
-	scene.stage += 1;
-	
-	// disabling all card boxes and add card box buttons from the previous stage
-	for (let i in scene.cards[scene.stage-1]) {
-		scene.cards[scene.stage-1][i].placementBox.disableInteractive()
+	// creating card boxes
+	if (scene.stage == 0) {
+		// start with 1 empty card box and two buttons on either side to add more card boxes
+		scene.cards.push([new CardBox(scene, 0)]);
+		new AddCardBox(scene, -1);
+		new AddCardBox(scene, 1);
+	} else {
+		scene.addCardBoxes = [];	// resetting this array since the add card box buttons from the previous stage will not be needed again
+		
+		// setting up the card boxes (and other variables) for the next stage
+		// start with the same number of boxes as the previous stage (including boxes without cards)
+		scene.cards.push([]);
+		for (let i in scene.cards[scene.stage-1]) {
+			let distance = scene.cards[scene.stage-1][i].distanceFromMiddle
+			scene.cards[scene.stage].push(new CardBox(scene, distance));
+		}
+		// only start with add card boxes on the outer edges
+		scene.addCardBoxes.push(new AddCardBox(scene, scene.leftEdge-1));
+		scene.addCardBoxes.push(new AddCardBox(scene, scene.rightEdge+1));
+		
+		
+		// clearing the card the player is holding from the previous stage
+		scene.currentCard = 0;
+		scene.currentCardImage.setVisible(false);
+		scene.currentCardText.setText("+");
 	}
-	for (let i in scene.addCardBoxes) {
-		scene.addCardBoxes[i].buttonBox.disableInteractive().setVisible(false);
-		scene.addCardBoxes[i].boxText.setVisible(false);
+}
+
+
+
+/**
+ * Called when the Start Button timer is pressed
+ * Runs the code to start (and end) a round of the game
+ */
+function startHandler(scene) {
+	// the game was running when the button was pressed
+	if (scene.isTimerRunning) {
+		// TODO: stop the timer
+		scene.isTimerRunning = false;
+		scene.toolbarStart.buttonText.setText("Start Timer")
+		
+		scene.toolbarStart.button.disableInteractive();
+		scene.toolbarNext.button.disableInteractive();
+		scene.toolbarDiscard.button.disableInteractive();
+		scene.currentCardBox.disableInteractive();
 	}
-	scene.addCardBoxes = [];	// resetting this array since the add card box buttons from the previous stage will not be needed again
-	
-	// setting up the card boxes (and other variables) for the next stage
-	// start with the same number of boxes as the previous stage (including boxes without cards)
-	scene.cards.push([]);
-	for (let i in scene.cards[scene.stage-1]) {
-		let distance = scene.cards[scene.stage-1][i].distanceFromMiddle
-		scene.cards[scene.stage].push(new CardBox(scene, distance));
+	// the game was paused when the button was pressed
+	else {
+		// TODO: start the timer - run stopHandler(scene); once the timer is up
+		scene.toolbarStart.buttonText.setText("Stop Timer")
+		scene.isTimerRunning = true;
+		
+		scene.toolbarNext.button.setInteractive();
+		scene.toolbarDiscard.button.setInteractive();
+		scene.currentCardBox.setInteractive();
 	}
-	// only start with add card boxes on the outer edges
-	scene.addCardBoxes.push(new AddCardBox(scene, scene.leftEdge-1));
-	scene.addCardBoxes.push(new AddCardBox(scene, scene.rightEdge+1));
 	
+}
+
+
+
+/**
+ * Loads a team
+ */
+function loadTeam(scene) {
+	// loading all the variables
+	scene.currentCard = scene.teams[scene.currentTeam][0];
+	scene.middlePosition = scene.teams[scene.currentTeam][1];
+	scene.leftEdge = scene.teams[scene.currentTeam][2];
+	scene.rightEdge = scene.teams[scene.currentTeam][3];
+	scene.cards = scene.teams[scene.currentTeam][4];
+	scene.addCardBoxes = scene.teams[scene.currentTeam][5];
+	scene.stage = scene.teams[scene.currentTeam][6];
 	
-	// clearing the card the player is holding from the previous stage
-	scene.currentCard = 0;
-	scene.currentCardImage.setVisible(false);
-	scene.currentCardBox.setText("+");
+	toggleTeamVisibility(scene, true);
+}
+
+
+
+/**
+ * Unloads a team
+ */
+function unloadTeam(scene) {
+	toggleTeamVisibility(scene, false);
+	
+	// updating all the variables
+	scene.teams[scene.currentTeam][0] = scene.currentCard;
+	scene.teams[scene.currentTeam][1] = scene.middlePosition;
+	scene.teams[scene.currentTeam][2] = scene.leftEdge;
+	scene.teams[scene.currentTeam][3] = scene.rightEdge;
+	scene.teams[scene.currentTeam][4] = scene.cards;
+	scene.teams[scene.currentTeam][5] = scene.addCardBoxes;
+	scene.teams[scene.currentTeam][6] = scene.stage;
+}
+
+
+
+/**
+ * Sets all the card boxes and add card boxes for the current player to be visible or invisible
+ * @param {boolean} isVisible True = set to visible, False = set to invisible
+ */
+function toggleTeamVisibility(scene, isVisible) {
+	//console.log(scene.stage);
+	//console.log(isVisible + " " + scene.currentTeam);
+	for (let stage = 0; stage < scene.stage+1; stage++) {
+		for (let card = 0; card < scene.cards[stage].length; card++) {
+			scene.cards[stage][card].placementBox.setVisible(isVisible);
+			scene.cards[stage][card].cardName.setVisible(isVisible);
+			scene.cards[stage][card].cardImage.setVisible(isVisible);
+		}
+		for (let button = 0; button < scene.addCardBoxes.length; button++) {
+			scene.addCardBoxes[button].buttonBox.setVisible(isVisible);
+			scene.addCardBoxes[button].boxText.setVisible(isVisible);
+		}
+	}
 }
 
 
 
 /**
  * Removes the top card from the stack and sets the id to the card the player is currently holding
-*/
+ */
 function pickUpCard(scene) {
 	console.log("Pick up a card");
 	if (scene.currentCard == 0) {
 		scene.currentCard = scene.activityCards[scene.stage].pop().id;
-		
-		scene.currentCardBox.setText(scene.currentCard);
+		scene.currentCardText.setText(scene.currentCard);
 		scene.currentCardImage.setVisible(true).setTexture(scene.currentCard);
 	}
 }
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, goToNextStage, pickUpCard };
+
+
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, nextHandler, startHandler, loadTeam, unloadTeam, pickUpCard };
