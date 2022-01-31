@@ -18,7 +18,7 @@ class CardBox {
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
 		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
 		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
-		this.cardName = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.teams[this.scene.currentTeam].get("stage")))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.cardText = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.teams[this.scene.currentTeam].get("stage")))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.teams[this.scene.currentTeam].get("stage")))), 2).setVisible(false).setScale(0.2);
 	}
 	
@@ -39,7 +39,7 @@ class CardBox {
 			this.cardId = variables.get("currentCard");
 			variables.set("currentCard", 0);
 			
-			this.cardName.setText(this.cardId);
+			this.cardText.setText(this.cardId);
 			this.scene.currentCardText.setText("+");
 			this.scene.currentCardImage.setVisible(false);
 			this.cardImage.setVisible(true).setTexture(this.cardId);
@@ -51,7 +51,7 @@ class CardBox {
 			variables.set("currentCard", this.cardId);
 			this.cardId = 0;
 			
-			this.cardName.setText("Place Card");
+			this.cardText.setText("Place Card");
 			this.scene.currentCardText.setText(variables.get("currentCard"));
 			this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
 			this.cardImage.setVisible(false);
@@ -70,7 +70,6 @@ class AddCardBox {
 	 * @param {number} distanceFromMiddle The distance from the middle of the array that this add button is (<0 = left, >0 = right)
 	*/
 	constructor(scene, distanceFromMiddle) {
-		console.log("hi")
 		this.scene = scene;
 		this.distanceFromMiddle = distanceFromMiddle;
 		this.scene.teams[this.scene.currentTeam].get("addCardBoxes").push(this);
@@ -96,7 +95,6 @@ class AddCardBox {
 		let cards = variables.get("cards")[variables.get("stage")];
 		
 		console.log("Add a card box");
-		console.log(this.distanceFromMiddle)
 		
 		// disable this box if it's any stage other than the first stage since cards can't be moved once they're placed on the other stages
 		if (variables.get("stage") != 0) {
@@ -125,10 +123,10 @@ class AddCardBox {
 					cards[i].cardId = previousCardId;
 					if (previousCardId == 0) {
 						cards[i].cardImage.setVisible(false);
-						cards[i].cardName.text = "Place Card";
+						cards[i].cardText.text = "Place Card";
 					} else {
 						cards[i].cardImage.setVisible(true).setTexture(previousCardId);
-						cards[i].cardName.text = previousCardId;
+						cards[i].cardText.text = previousCardId;
 					}
 					previousCardId = currentCardId;
 				}
@@ -149,13 +147,13 @@ class AddCardBox {
 				for (let i = position; i < cards.length; i++) {
 					let currentCardId = cards[i].cardId;
 					cards[i].cardId = previousCardId
-					cards[i].cardName.text = previousCardId;
+					cards[i].cardText.text = previousCardId;
 					if (previousCardId == 0) {
 						cards[i].cardImage.setVisible(false);
-						cards[i].cardName.text = "Place Card";
+						cards[i].cardText.text = "Place Card";
 					} else {
 						cards[i].cardImage.setVisible(true).setTexture(previousCardId);
-						cards[i].cardName.text = previousCardId;
+						cards[i].cardText.text = previousCardId;
 					}
 					previousCardId = currentCardId;
 				}
@@ -432,7 +430,7 @@ function toggleTeamVisibility(scene, isVisible) {
 	for (let stage = 0; stage < scene.stage+1; stage++) {
 		for (let card = 0; card < scene.cards[stage].length; card++) {
 			variables.get("cards")[stage][card].placementBox.setVisible(isVisible);
-			variables.get("cards")[stage][card].cardName.setVisible(isVisible);
+			variables.get("cards")[stage][card].cardText.setVisible(isVisible);
 			variables.get("cards")[stage][card].cardImage.setVisible(isVisible);
 		}
 		for (let button = 0; button < scene.addCardBoxes.length; button++) {
