@@ -13,13 +13,12 @@ class CardBox {
 		this.distanceFromMiddle = distanceFromMiddle;
 		this.cardId = 0;
 		
-		console.log(this.scene.teams[1].get());
-		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.teams[this.scene.currentTeam].get("stage")))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
+		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
 		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
 		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
-		this.cardText = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.teams[this.scene.currentTeam].get("stage")))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
-		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.teams[this.scene.currentTeam].get("stage")))), 2).setVisible(false).setScale(0.2);
+		this.cardText = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), 2).setVisible(false).setScale(0.2);
 	}
 	
 	/**
@@ -57,6 +56,24 @@ class CardBox {
 			this.cardImage.setVisible(false);
 		}
 	}
+	
+	/**
+	 * Toggles the visibility of this card object. Also toggles the interactivity since you shouldn't be able to interact with an invisible object.
+	 * @param {Boolean} visible Whether the card should be set to visible
+	 */
+	setVisible(isVisible) {
+		if (isVisible) {
+			this.placementBox.setVisible(true).setInteractive();
+			this.cardText.setVisible(true);
+			if (this.cardId != 0) {		// image should not be displayed if there is no card
+				this.cardImage.setVisible(true);
+			}
+		} else {
+			this.placementBox.setVisible(false).disableInteractive();
+			this.cardText.setVisible(false);
+			this.cardImage.setVisible(false);
+		}
+	}
 }
 
 
@@ -80,11 +97,11 @@ class AddCardBox {
 			distanceMultiplier--;
 		}
 		
-		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.teams[this.scene.currentTeam].get("stage")))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
+		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
 		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(0x6c95b7);});
 		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(0xb1cfe0);});
 		this.buttonBox.on("pointerup", () => this.addBox());
-		this.boxText = this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.teams[this.scene.currentTeam].get("stage")))), '+', {color: "0x000000"}).setOrigin(0.5);
+		this.boxText = this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
 	/**
@@ -92,12 +109,12 @@ class AddCardBox {
 	*/
 	addBox() {
 		let variables = this.scene.teams[this.scene.currentTeam];
-		let cards = variables.get("cards")[variables.get("stage")];
+		let cards = variables.get("cards")[this.scene.stage];
 		
 		console.log("Add a card box");
 		
 		// disable this box if it's any stage other than the first stage since cards can't be moved once they're placed on the other stages
-		if (variables.get("stage") != 0) {
+		if (this.scene.stage != 0) {
 			this.buttonBox.disableInteractive().setVisible(false);
 			this.boxText.setVisible(false);
 		}
@@ -166,6 +183,20 @@ class AddCardBox {
 		}
 		console.log(out);
 	}
+	
+	/**
+	 * Toggles the visibility of this button object. Also toggles the interactivity since you shouldn't be able to interact with an invisible object.
+	 * @param {Boolean} visible Whether the button should be set to visible
+	 */
+	setVisible(isVisible) {
+		if (isVisible) {
+			this.buttonBox.setVisible(true).setInteractive();
+			this.boxText.setVisible(true);
+		} else {
+			this.buttonBox.setVisible(false).disableInteractive();
+			this.boxText.setVisible(false);
+		}
+	}
 }
 
 
@@ -191,7 +222,7 @@ class CardDiscardBox {
 		this.colorAction = 0x6c95b7;
 		this.colorDiscarded = 0xf82f2f;
 		let variables = this.scene.teams[this.scene.currentTeam];
-		let cards = variables.get("cards")[variables.get("stage")];
+		let cards = variables.get("cards")[this.scene.stage];
 
 		// Draw the Button and button text on the scene
 		this.button = this.scene.add.rectangle(this.scene.x * relativeX, this.scene.y * relativeY, this.scene.width * relativeWidth, this.scene.height * relativeHeight, this.colorIdle)
@@ -206,7 +237,7 @@ class CardDiscardBox {
 			let currentCard = this.scene.cardMap.get(this.scene.currentCard);
 			let freePositions = []
 
-			if (variables.get("stage") == 0 || currentCard == null) {
+			if (this.scene.stage == 0 || currentCard == null) {
 				isDiscardable = false;
 			} else {
 				// record all indexes in the grid where a card could be placed
@@ -226,8 +257,8 @@ class CardDiscardBox {
 				let leftCard = this.scene.cardMap.get(leftCardId);
 				let rightCardId = (ix >= cards.length-1) ? 0 : cards[ix+1].cardId;
 				let rightCard = this.scene.cardMap.get(rightCardId);
-				let bottomCardIx = ix + (cards[0].distanceFromMiddle - variables.get("cards")[variables.get("stage")-1][0].distanceFromMiddle);
-				let bottomCardId = ((bottomCardIx < 0) || (bottomCardIx > variables.get("cards")[variables.get("stage")-1].length-1)) ? 0 : variables.get("cards")[variables.get("stage")-1][bottomCardIx].cardId;
+				let bottomCardIx = ix + (cards[0].distanceFromMiddle - variables.get("cards")[this.scene.stage-1][0].distanceFromMiddle);
+				let bottomCardId = ((bottomCardIx < 0) || (bottomCardIx > variables.get("cards")[this.scene.stage-1].length-1)) ? 0 : variables.get("cards")[this.scene.stage-1][bottomCardIx].cardId;
 				let bottomCard = this.scene.cardMap.get(bottomCardId);
 
 				// A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
@@ -244,7 +275,7 @@ class CardDiscardBox {
 				let rightConnected = (rightCard == null) ? false : (rightCardPlacements[0] == '1' && currentCardPlacements[1] == '1');
 				let bottomConnected = (bottomCard == null) ? false : (bottomCardPlacements[2] == '1' && currentCardPlacements[3] == '1');
 
-				console.log(`Position (${variables.get("stage")}, ${ix})`);
+				console.log(`Position (${this.scene.stage}, ${ix})`);
 				console.log(`Alignment - Left ${leftAligned}, Right ${rightAligned}, Bottom ${bottomAligned}`);
 				console.log(`Connectivity - Left ${leftConnected}, Right ${rightConnected}, Bottom ${bottomConnected}`);
 				// If the card is placable in the current position, the user is not allowed to discard it
@@ -371,7 +402,68 @@ function buttonToggle(button, type, enable) {
  * Decides whether to move to the next team or the next stage after the next button is pressed
  */
 function nextHandler(scene) {
-	console.log("Next Handler")
+	let variables = scene.teams[scene.currentTeam];
+	
+	buttonToggle(scene.toolbarNext.button, 0, false);
+	buttonToggle(scene.toolbarStart.button, 0, true);
+	
+	// making all the card components for player A invisible
+	for (let i = 0; i <= scene.stage; i++) {
+		for (let j = 0; j < variables.get("cards")[i].length; j++) {
+			variables.get("cards")[i][j].setVisible(false);
+		}
+	}
+	
+	if (scene.currentTeam == scene.numberOfTeams - 1) {		// move to next stage if all players have played
+		if (scene.stage == 3) {
+			// TODO: move to final screen scene (probably need to pass the teams array)
+			console.log("TODO: go to final screen");
+		} else {
+			scene.stage++;
+			scene.currentTeam = 0;
+		}
+	} else {
+		scene.currentTeam++;
+	}
+	
+	variables = scene.teams[scene.currentTeam];
+	// making new cards for the next scene (unless it's the first stage, in which case they were already made)
+	if (scene.stage != 0) {
+		variables.get("cards").push([new CardBox(scene, 0)]);
+		
+		// start with the same number of boxes as the previous stage (including boxes without cards)
+		let cards = variables.get("cards");
+		cards.push([]);
+		for (let i in cards[scene.stage-1]) {
+			let distance = cards[scene.stage-1][i].distanceFromMiddle
+			cards[scene.stage].push(new CardBox(scene, distance));
+		}
+		// only start with add card boxes on the outer edges
+		new AddCardBox(scene, variables.get("leftEdge") - 1);
+		new AddCardBox(scene, variables.get("rightEdge") + 1);
+		
+		
+		// start with the same number of boxes as the previous stage (including boxes without cards)
+		cards.push([]);
+		for (let i in cards[scene.stage-1]) {
+			let distance = cards[scene.stage-1][i].distanceFromMiddle
+			cards[scene.stage].push(new CardBox(scene, distance));
+		}
+		// only start with add card boxes on the outer edges
+		variables.get("addCardBoxes").push(new AddCardBox(scene, scene.leftEdge-1));
+		variables.get("addCardBoxes").push(new AddCardBox(scene, scene.rightEdge+1));
+	}
+	
+	
+	// making all the card components for player B visible
+	for (let i = 0; i <= scene.stage; i++) {
+		for (let j = 0; j < variables.get("cards")[i].length; j++) {
+			variables.get("cards")[i][j].setVisible(true);
+		}
+	}
+	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
+		variables.get("addCardBoxes")[i].setVisible(true);
+	}
 }
 
 
@@ -388,15 +480,24 @@ function startHandler(scene) {
 	}
 	// the game was paused when the button was pressed
 	else {
+		let variables = scene.teams[scene.currentTeam];
 		// TODO: start the timer - run stopHandler(scene); once the timer is up
-		scene.toolbarStart.buttonText.setText("Stop Timer")
+		scene.toolbarStart.buttonText.setText("Stop Timer");
 		scene.isTimerRunning = true;
 		
 		buttonToggle(scene.toolbarNext.button, 0, false);
 		buttonToggle(scene.toolbarDiscard.button, 0, true);
 		buttonToggle(scene.currentCardBox, 1, true);
 		
-		//TODO: make cards for current round visible
+		// making all the card components visible
+		for (let i = 0; i <= scene.stage; i++) {
+			for (let j = 0; j < variables.get("cards")[i].length; j++) {
+				variables.get("cards")[i][j].setVisible(true);
+			}
+		}
+		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
+			variables.get("addCardBoxes")[i].setVisible(true);
+		}
 	}
 	
 	
@@ -404,6 +505,9 @@ function startHandler(scene) {
 	 * Stops the timer and ends the current round
 	 */
 	function stopHandler(scene) {
+		let variables = scene.teams[scene.currentTeam];
+		
+		// TODO: stop the timer if it's not already stopped (does it stop by default once it reaches a certain time?)
 		scene.isTimerRunning = false;
 		scene.toolbarStart.buttonText.setText("Start Timer")
 		
@@ -412,7 +516,15 @@ function startHandler(scene) {
 		buttonToggle(scene.toolbarDiscard.button, 0, false);
 		buttonToggle(scene.currentCardBox, 1, false);
 		
-		//TODO: delete add card buttons from current round
+		// disabling all the card placement boxes
+		for (let i = 0; i < variables.get("cards")[scene.stage].length; i++) {
+			variables.get("cards")[scene.stage][i].placementBox.disableInteractive();
+		}
+		
+		// deleting all the add card buttons from the current round
+		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
+			variables.get("addCardBoxes")[i].setVisible(false);
+		}
 	}
 }
 
@@ -449,7 +561,7 @@ function pickUpCard(scene) {
 	console.log("Pick up a card");
 	let variables = scene.teams[scene.currentTeam];
 	if (variables.get("currentCard") == 0) {
-		variables.set("currentCard", scene.activityCards[variables.get("stage")].pop().id);
+		variables.set("currentCard", scene.activityCards[scene.stage].pop().id);
 		scene.currentCardText.setText(variables.get("currentCard"));
 		scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
 	}
