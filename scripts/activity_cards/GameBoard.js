@@ -221,8 +221,6 @@ class CardDiscardBox {
 		this.colorNoAction = 0x9cacb8;
 		this.colorAction = 0x6c95b7;
 		this.colorDiscarded = 0xf82f2f;
-		let variables = this.scene.teams[this.scene.currentTeam];
-		let cards = variables.get("cards")[this.scene.stage];
 
 		// Draw the Button and button text on the scene
 		this.button = this.scene.add.rectangle(this.scene.x * relativeX, this.scene.y * relativeY, this.scene.width * relativeWidth, this.scene.height * relativeHeight, this.colorIdle)
@@ -232,9 +230,12 @@ class CardDiscardBox {
 		// On hovering, we check whether the currently held card is playable
 		this.button.on("pointerover", () => {
 			console.log("Checking if current card can be discarded...");
+			let variables = this.scene.teams[this.scene.currentTeam];
+			let cards = variables.get("cards")[this.scene.stage];
+
 			
 			let isDiscardable = true;
-			let currentCard = this.scene.cardMap.get(this.scene.currentCard);
+			let currentCard = this.scene.cardMap.get(variables.get("currentCard"));
 			let freePositions = []
 
 			if (this.scene.stage == 0 || currentCard == null) {
