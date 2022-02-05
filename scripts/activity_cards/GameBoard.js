@@ -439,13 +439,17 @@ function nextHandler(scene) {
 			buttonToggle(scene.toolbarStart.button, 0, false);
 			// TODO: move to final screen scene (probably need to pass the teams array)
 			console.log("TODO: go to final screen");
+			scene.currentStageText.setText("Stage: MOVE TO FINAL SCREEN");
 			return;	//TODO: remove this once moved to final stage
 		} else {
 			scene.stage++;
+			scene.currentStageText.setText("Stage: " + (scene.stage + 1));
 			scene.currentTeam = 0;
+			scene.currentTeamText.setText("Team: 1");
 		}
 	} else {
 		scene.currentTeam++;
+		scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
 	}
 	
 	variables = scene.teams[scene.currentTeam];

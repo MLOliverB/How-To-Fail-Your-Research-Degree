@@ -49,7 +49,7 @@ export default class playerView extends Phaser.Scene {
 		
 		//// TEAMS ////
 		this.stage = 0;				// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-		this.numberOfTeams = 1;		//TODO: get this to recieve numberOfTeams from start menu!
+		this.numberOfTeams = 3;		//TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
 		this.teams = []
 		// creating a new map for each team - the map contains the variables for that team
@@ -101,7 +101,8 @@ export default class playerView extends Phaser.Scene {
 		this.currentCardText = this.add.text(this.x, this.y*1.76, '+', {color: "0x000000"}).setOrigin(0.5).setFontSize(32);	// text displayed on the box for the card the player is holding
 		this.currentCardImage = this.add.image(this.x, this.y*1.76, 2).setScale(0.3).setVisible(false);						// image displayed on the current card box
 		
-		this.currentTeamText = this.add.text(this.x, this.y*0.15, '0', {color: "0x000000"}).setOrigin(0.5).setFontSize(32);
+		this.currentStageText = this.add.text(this.x, this.y*0.09, 'Stage: 1', {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
+		this.currentTeamText = this.add.text(this.x, this.y*0.18, 'Team: 1', {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
 		
 		this.toolbarNext = new ToolbarButton(this, 0.19, 0.18, "Next Player", nextHandler, undefined, undefined);	// button to move to next player/stage
 		this.toolbarStart = new ToolbarButton(this, 0.7, 0.12, "Start", startHandler, undefined, undefined);	// button to start the game
