@@ -337,9 +337,11 @@ class CardDiscardBox {
 			if (this.canBeDiscarded) {
 				this.canBeDiscarded = false;
 				console.log("Discarding current card");
-				this.scene.currentCard = 0;
+
+				this.scene.teams[this.scene.currentTeam].set("currentCard", 0);
 				this.scene.currentCardText.setText("+");
 				this.scene.currentCardImage.setVisible(false);
+				
 				this.button.alpha = 1;
 				this.buttonText.alpha = 1;
 				this.buttonText.text = "Discarded";
