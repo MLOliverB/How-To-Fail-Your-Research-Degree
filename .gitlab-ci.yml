@@ -2,4 +2,4 @@ image: mcr.microsoft.com/windows/servercore:1809-amd64
 
 test1:
   script:
-    - exit 1
+    - exit 0
