@@ -12,6 +12,7 @@ class CardBox {
 		this.scene = scene;
 		this.distanceFromMiddle = distanceFromMiddle;
 		this.cardId = 0;
+		this.hasWorkLate = false;
 		
 		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
@@ -19,6 +20,7 @@ class CardBox {
 		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
 		this.cardText = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), 2).setVisible(false).setScale(0.2);
+		this.workLateImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "workLate").setVisible(false).setScale(0.17);
 	}
 	
 	/**
@@ -32,8 +34,28 @@ class CardBox {
 			isPlayerHoldingCard = false;
 		}
 		
+		// pick up the work late tile if there is one before doing anything else
+		if (this.hasWorkLate) {
+			if (this.scene.isPlayerHoldingWorkLate) {
+				returnWorkLate(this.scene);
+			} else {
+				this.scene.isPlayerHoldingWorkLate = true;
+				this.scene.workLateImage.setVisible(true);
+			}
+			this.hasWorkLate = false;
+			this.workLateImage.setVisible(false);
+		}
+		
+		// a work late tile can only be placed if the player is holding a work late tile and there is a card in the card box (and there isn't already a work late tile)
+		else if (this.scene.isPlayerHoldingWorkLate && this.cardId != 0 && !this.hasWorkLate) {
+			this.hasWorkLate = true;
+			this.workLateImage.setVisible(true);
+			this.scene.isPlayerHoldingWorkLate = false;
+			this.scene.workLateImage.setVisible(false);
+		}
+		
 		// a card can only be placed if the player is holding a card and the card box is empty
-		if (isPlayerHoldingCard && this.cardId == 0) {
+		else if (isPlayerHoldingCard && this.cardId == 0) {
 			console.log("Place a card");
 			this.cardId = variables.get("currentCard");
 			variables.set("currentCard", 0);
@@ -514,6 +536,7 @@ function startHandler(scene) {
 		scene.isTimerRunning = true;
 		
 		buttonToggle(scene.toolbarNext.button, 0, false);
+		buttonToggle(scene.toolbarWorkLate.button, 0, true);
 		buttonToggle(scene.toolbarDiscard.button, 0, true);
 		buttonToggle(scene.currentCardBox, 1, true);
 		
@@ -546,6 +569,7 @@ function startHandler(scene) {
 		
 		buttonToggle(scene.toolbarNext.button, 0, true);
 		buttonToggle(scene.toolbarStart.button, 0, false);
+		buttonToggle(scene.toolbarWorkLate.button, 0, false);
 		buttonToggle(scene.toolbarDiscard.button, 0, false);
 		buttonToggle(scene.currentCardBox, 1, false);
 		
@@ -560,6 +584,39 @@ function startHandler(scene) {
 		}
 		variables.set("addCardBoxes", [])	//cleared since the old add card buttons will not be needed again
 	}
+}
+
+
+
+/**
+ * Called when the Work Late button is pressed
+ * Allows the user to use work late tiles
+ */
+function workLateHandler(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	
+	if (scene.isPlayerHoldingWorkLate) {		// the user is holding a work late tile so they want to put it back
+		returnWorkLate(scene);
+		scene.isPlayerHoldingWorkLate = false;
+		scene.workLateImage.setVisible(false);
+	} else {
+		let variables = scene.teams[scene.currentTeam];
+		scene.isPlayerHoldingWorkLate = true;
+		scene.workLateImage.setVisible(true);
+		variables.set("workLateTiles", variables.get("workLateTiles") - 1);
+		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
+	}
+}
+
+
+
+/**
+ * returns a work late tile
+ */
+function returnWorkLate(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	variables.set("workLateTiles", variables.get("workLateTiles") + 1);
+	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
 }
 
 
@@ -717,4 +774,4 @@ function getIllegalPlacements(scene) {
 
 
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, pickUpCard, getIllegalPlacements };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, getIllegalPlacements };
