@@ -52,7 +52,7 @@ export default class playerView extends Phaser.Scene {
 		
 		//// TEAMS ////
 		this.stage = 0;				// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-		this.numberOfTeams = 1;		//TODO: get this to recieve numberOfTeams from start menu!
+		this.numberOfTeams = 2;		//TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
 		this.teams = []
 		//TODO: get number of work late tiles from menu

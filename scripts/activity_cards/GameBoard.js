@@ -95,6 +95,9 @@ class CardBox {
 			if (this.cardId != 0) {		// image should not be displayed if there is no card
 				this.cardImage.setVisible(true);
 			}
+			if (this.hasWorkLate) {
+				this.workLateImage.setVisible(true);
+			}
 		} else {
 			if (isInteractiveToggle) {
 				this.placementBox.setVisible(false).disableInteractive();
@@ -103,6 +106,9 @@ class CardBox {
 			}
 			this.cardText.setVisible(false);
 			this.cardImage.setVisible(false);
+			if (this.hasWorkLate) {
+				this.workLateImage.setVisible(false);
+			}
 		}
 	}
 }
@@ -510,6 +516,8 @@ function nextHandler(scene) {
 	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
 		variables.get("addCardBoxes")[i].setVisible(true, false);
 	}
+	
+	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
 }
 
 
@@ -573,6 +581,13 @@ function startHandler(scene) {
 		buttonToggle(scene.toolbarDiscard.button, 0, false);
 		buttonToggle(scene.currentCardBox, 1, false);
 		
+		// returning unused work late tiles
+		if (scene.isPlayerHoldingWorkLate) {
+			returnWorkLate(scene);
+			scene.workLateImage.setVisible(false);
+			scene.isPlayerHoldingWorkLate = false;
+		}
+		
 		// disabling all the card placement boxes
 		for (let i = 0; i < variables.get("cards")[scene.stage].length; i++) {
 			variables.get("cards")[scene.stage][i].placementBox.disableInteractive();
@@ -599,7 +614,7 @@ function workLateHandler(scene) {
 		returnWorkLate(scene);
 		scene.isPlayerHoldingWorkLate = false;
 		scene.workLateImage.setVisible(false);
-	} else {
+	} else if (variables.get("workLateTiles") > 0) {	// can only pick up a tile if there are still any in inventory
 		let variables = scene.teams[scene.currentTeam];
 		scene.isPlayerHoldingWorkLate = true;
 		scene.workLateImage.setVisible(true);
