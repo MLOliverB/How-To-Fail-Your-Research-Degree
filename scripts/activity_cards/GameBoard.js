@@ -275,6 +275,7 @@ class CardDiscardBox {
 
 		// On hovering, we check whether the currently held card is playable
 		this.button.on("pointerover", () => {
+			console.group("Card Discard");
 			console.log("Checking if current card can be discarded...");
 			let variables = this.scene.teams[this.scene.currentTeam];
 			let cards = variables.get("cards")[this.scene.stage];
@@ -314,17 +315,26 @@ class CardDiscardBox {
 				let rightCardPlacements = (rightCard == null) ? ['1', '1', '1', '1'] : rightCard.placement.split(",");
 				let bottomCardPlacements = (bottomCard == null) ? ['1', '1', '1', '1'] : bottomCard.placement.split(",");
 
+				// Check if any adjacent card is overlaid with a work-late tile. If that is the case, the card is connected in all directions
+				leftCardPlacements = (leftCard != null && cards[ix-1].hasWorkLate) ? ['1', '1', '1', '1'] : leftCardPlacements;
+				rightCardPlacements = (rightCard != null && cards[ix+1].hasWorkLate) ? ['1', '1', '1', '1'] : rightCardPlacements;
+				bottomCardPlacements = (bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ['1', '1', '1', '1'] : bottomCardPlacements;
+
+				// For each direction (left, right, bottom), check if the connections of the cards line up
 				let leftAligned = (leftCard == null) ? true : (leftCardPlacements[1] == currentCardPlacements[0]);
 				let rightAligned = (rightCard == null) ? true : (rightCardPlacements[0] == currentCardPlacements[1]);
 				let bottomAligned = (bottomCard == null) ? true : (bottomCardPlacements[2] == currentCardPlacements[3]);
 
+				// For each direction (left, right, bottom), check if the card is actually connected in that direction
 				let leftConnected = (leftCard == null) ? false : (leftCardPlacements[1] == '1' && currentCardPlacements[0] == '1');
 				let rightConnected = (rightCard == null) ? false : (rightCardPlacements[0] == '1' && currentCardPlacements[1] == '1');
 				let bottomConnected = (bottomCard == null) ? false : (bottomCardPlacements[2] == '1' && currentCardPlacements[3] == '1');
 
-				console.log(`Position (${this.scene.stage}, ${ix})`);
+				console.group(`Position (${this.scene.stage}, ${ix})`);
+				console.log(`| ${(leftCardPlacements[2] == '1' ? '^' : 'x')}   ${(currentCardPlacements[2] == '1' ? '^' : 'x')}   ${(rightCardPlacements[2] == '1' ? '^' : 'x')} |${(leftCard != null && cards[ix-1].hasWorkLate) ? ' Left Card Work Late' : (leftCard != null) ? ' Left Card Normal' : ' No Left Card'}\n|${(leftCardPlacements[0] == '1' ? '<' : 'x')}L${(leftCardPlacements[1] == '1' ? '>' : 'x')} ${(currentCardPlacements[0] == '1' ? '<' : 'x')}C${(currentCardPlacements[1] == '1' ? '>' : 'x')} ${(rightCardPlacements[0] == '1' ? '<' : 'x')}R${(rightCardPlacements[1] == '1' ? '>' : 'x')}|${(rightCard != null && cards[ix+1].hasWorkLate) ? ' Right Card Work Late' : (rightCard != null) ? ' Right Card Normal' : ' No Right Card'}\n| ${(leftCardPlacements[3] == '1' ? 'v' : 'x')}   ${(currentCardPlacements[3] == '1' ? 'v' : 'x')}   ${(rightCardPlacements[3] == '1' ? 'v' : 'x')} |${(bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ' Bottom Card Work Late' : (bottomCard != null) ? ' Bottom Card Normal' : ' No Bottom Card'}\n|     ${(bottomCardPlacements[2] == '1' ? '^' : 'x')}     |\n|    ${(bottomCardPlacements[0] == '1' ? '<' : 'x')}B${(bottomCardPlacements[1] == '1' ? '>' : 'x')}    |\n|     ${(bottomCardPlacements[3] == '1' ? 'v' : 'x')}     |`);
 				console.log(`Alignment - Left ${leftAligned}, Right ${rightAligned}, Bottom ${bottomAligned}`);
 				console.log(`Connectivity - Left ${leftConnected}, Right ${rightConnected}, Bottom ${bottomConnected}`);
+				console.groupEnd();
 				// If the card is placable in the current position, the user is not allowed to discard it
 				// Else we check the next placement
 				if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
@@ -349,6 +359,7 @@ class CardDiscardBox {
 				this.button.setFillStyle(this.colorNoAction);
 				this.canBeDiscarded = false;
 			}
+			console.groupEnd();
 		});
 
 		// Reset the appearance of the button when the mouse stops hovering over it
@@ -680,16 +691,20 @@ function pickUpCard(scene) {
  */
 function getIllegalPlacements(scene) {
 	class Node {
-		constructor(stage, ix, id) {
+		constructor(stage, ix, cards) {
 			this.stage = stage;
 			this.ix = ix;
-			this.id = id;
+			this.id = cards[stage][ix].cardId;
 			this.adjacencyList = null;
 			this.connectivity = [] // [left, right, up, down] (true if can connect, false otherwise)
-			let placements = scene.cardMap.get(id) == null ? ['1', '1', '1', '1'] : scene.cardMap.get(id).placement.split(",");
-            for (let i = 0; i < placements.length; i++) {
-                this.connectivity.push(placements[i] == '1');
-            }
+			if (cards[stage][ix].hasWorkLate) {
+				this.connectivity = [true, true, true, true];
+			} else {
+				let placements = scene.cardMap.get(id) == null ? ['1', '1', '1', '1'] : scene.cardMap.get(id).placement.split(",");
+				for (let i = 0; i < placements.length; i++) {
+					this.connectivity.push(placements[i] == '1');
+				}
+			}
             this.visited = false;
             this.illegal = false;
 		}
@@ -702,7 +717,7 @@ function getIllegalPlacements(scene) {
 	for (let stage = 0; stage <= scene.stage; stage++) {
 		let stageList = [];
 		for (let ix = 0; ix < cards[stage].length; ix++) {
-			let node = cards[stage][ix] == null ? null : new Node(stage, ix, cards[stage][ix].cardId);
+			let node = (cards[stage][ix].cardId == 0) ? null : new Node(stage, ix, cards);
 			nodes.push(node);
 			stageList.push(node);
 		}
