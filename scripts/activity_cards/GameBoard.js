@@ -12,6 +12,7 @@ class CardBox {
 		this.scene = scene;
 		this.distanceFromMiddle = distanceFromMiddle;
 		this.cardId = 0;
+		this.hasWorkLate = false;
 		
 		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
@@ -19,6 +20,7 @@ class CardBox {
 		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
 		this.cardText = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), 2).setVisible(false).setScale(0.2);
+		this.workLateImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "workLate").setVisible(false).setScale(0.17);
 	}
 	
 	/**
@@ -32,8 +34,28 @@ class CardBox {
 			isPlayerHoldingCard = false;
 		}
 		
+		// pick up the work late tile if there is one before doing anything else
+		if (this.hasWorkLate) {
+			if (this.scene.isPlayerHoldingWorkLate) {
+				returnWorkLate(this.scene);
+			} else {
+				this.scene.isPlayerHoldingWorkLate = true;
+				this.scene.workLateImage.setVisible(true);
+			}
+			this.hasWorkLate = false;
+			this.workLateImage.setVisible(false);
+		}
+		
+		// a work late tile can only be placed if the player is holding a work late tile and there is a card in the card box (and there isn't already a work late tile)
+		else if (this.scene.isPlayerHoldingWorkLate && this.cardId != 0 && !this.hasWorkLate) {
+			this.hasWorkLate = true;
+			this.workLateImage.setVisible(true);
+			this.scene.isPlayerHoldingWorkLate = false;
+			this.scene.workLateImage.setVisible(false);
+		}
+		
 		// a card can only be placed if the player is holding a card and the card box is empty
-		if (isPlayerHoldingCard && this.cardId == 0) {
+		else if (isPlayerHoldingCard && this.cardId == 0) {
 			console.log("Place a card");
 			this.cardId = variables.get("currentCard");
 			variables.set("currentCard", 0);
@@ -73,6 +95,9 @@ class CardBox {
 			if (this.cardId != 0) {		// image should not be displayed if there is no card
 				this.cardImage.setVisible(true);
 			}
+			if (this.hasWorkLate) {
+				this.workLateImage.setVisible(true);
+			}
 		} else {
 			if (isInteractiveToggle) {
 				this.placementBox.setVisible(false).disableInteractive();
@@ -81,6 +106,9 @@ class CardBox {
 			}
 			this.cardText.setVisible(false);
 			this.cardImage.setVisible(false);
+			if (this.hasWorkLate) {
+				this.workLateImage.setVisible(false);
+			}
 		}
 	}
 }
@@ -247,6 +275,7 @@ class CardDiscardBox {
 
 		// On hovering, we check whether the currently held card is playable
 		this.button.on("pointerover", () => {
+			console.group("Card Discard");
 			console.log("Checking if current card can be discarded...");
 			let variables = this.scene.teams[this.scene.currentTeam];
 			let cards = variables.get("cards")[this.scene.stage];
@@ -286,17 +315,26 @@ class CardDiscardBox {
 				let rightCardPlacements = (rightCard == null) ? ['1', '1', '1', '1'] : rightCard.placement.split(",");
 				let bottomCardPlacements = (bottomCard == null) ? ['1', '1', '1', '1'] : bottomCard.placement.split(",");
 
+				// Check if any adjacent card is overlaid with a work-late tile. If that is the case, the card is connected in all directions
+				leftCardPlacements = (leftCard != null && cards[ix-1].hasWorkLate) ? ['1', '1', '1', '1'] : leftCardPlacements;
+				rightCardPlacements = (rightCard != null && cards[ix+1].hasWorkLate) ? ['1', '1', '1', '1'] : rightCardPlacements;
+				bottomCardPlacements = (bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ['1', '1', '1', '1'] : bottomCardPlacements;
+
+				// For each direction (left, right, bottom), check if the connections of the cards line up
 				let leftAligned = (leftCard == null) ? true : (leftCardPlacements[1] == currentCardPlacements[0]);
 				let rightAligned = (rightCard == null) ? true : (rightCardPlacements[0] == currentCardPlacements[1]);
 				let bottomAligned = (bottomCard == null) ? true : (bottomCardPlacements[2] == currentCardPlacements[3]);
 
+				// For each direction (left, right, bottom), check if the card is actually connected in that direction
 				let leftConnected = (leftCard == null) ? false : (leftCardPlacements[1] == '1' && currentCardPlacements[0] == '1');
 				let rightConnected = (rightCard == null) ? false : (rightCardPlacements[0] == '1' && currentCardPlacements[1] == '1');
 				let bottomConnected = (bottomCard == null) ? false : (bottomCardPlacements[2] == '1' && currentCardPlacements[3] == '1');
 
-				console.log(`Position (${this.scene.stage}, ${ix})`);
+				console.group(`Position (${this.scene.stage}, ${ix})`);
+				console.log(`| ${(leftCardPlacements[2] == '1' ? '^' : 'x')}   ${(currentCardPlacements[2] == '1' ? '^' : 'x')}   ${(rightCardPlacements[2] == '1' ? '^' : 'x')} |${(leftCard != null && cards[ix-1].hasWorkLate) ? ' Left Card Work Late' : (leftCard != null) ? ' Left Card Normal' : ' No Left Card'}\n|${(leftCardPlacements[0] == '1' ? '<' : 'x')}L${(leftCardPlacements[1] == '1' ? '>' : 'x')} ${(currentCardPlacements[0] == '1' ? '<' : 'x')}C${(currentCardPlacements[1] == '1' ? '>' : 'x')} ${(rightCardPlacements[0] == '1' ? '<' : 'x')}R${(rightCardPlacements[1] == '1' ? '>' : 'x')}|${(rightCard != null && cards[ix+1].hasWorkLate) ? ' Right Card Work Late' : (rightCard != null) ? ' Right Card Normal' : ' No Right Card'}\n| ${(leftCardPlacements[3] == '1' ? 'v' : 'x')}   ${(currentCardPlacements[3] == '1' ? 'v' : 'x')}   ${(rightCardPlacements[3] == '1' ? 'v' : 'x')} |${(bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ' Bottom Card Work Late' : (bottomCard != null) ? ' Bottom Card Normal' : ' No Bottom Card'}\n|     ${(bottomCardPlacements[2] == '1' ? '^' : 'x')}     |\n|    ${(bottomCardPlacements[0] == '1' ? '<' : 'x')}B${(bottomCardPlacements[1] == '1' ? '>' : 'x')}    |\n|     ${(bottomCardPlacements[3] == '1' ? 'v' : 'x')}     |`);
 				console.log(`Alignment - Left ${leftAligned}, Right ${rightAligned}, Bottom ${bottomAligned}`);
 				console.log(`Connectivity - Left ${leftConnected}, Right ${rightConnected}, Bottom ${bottomConnected}`);
+				console.groupEnd();
 				// If the card is placable in the current position, the user is not allowed to discard it
 				// Else we check the next placement
 				if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
@@ -321,6 +359,7 @@ class CardDiscardBox {
 				this.button.setFillStyle(this.colorNoAction);
 				this.canBeDiscarded = false;
 			}
+			console.groupEnd();
 		});
 
 		// Reset the appearance of the button when the mouse stops hovering over it
@@ -488,6 +527,8 @@ function nextHandler(scene) {
 	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
 		variables.get("addCardBoxes")[i].setVisible(true, false);
 	}
+	
+	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
 }
 
 
@@ -514,6 +555,7 @@ function startHandler(scene) {
 		scene.isTimerRunning = true;
 		
 		buttonToggle(scene.toolbarNext.button, 0, false);
+		buttonToggle(scene.toolbarWorkLate.button, 0, true);
 		buttonToggle(scene.toolbarDiscard.button, 0, true);
 		buttonToggle(scene.currentCardBox, 1, true);
 		
@@ -546,8 +588,16 @@ function startHandler(scene) {
 		
 		buttonToggle(scene.toolbarNext.button, 0, true);
 		buttonToggle(scene.toolbarStart.button, 0, false);
+		buttonToggle(scene.toolbarWorkLate.button, 0, false);
 		buttonToggle(scene.toolbarDiscard.button, 0, false);
 		buttonToggle(scene.currentCardBox, 1, false);
+		
+		// returning unused work late tiles
+		if (scene.isPlayerHoldingWorkLate) {
+			returnWorkLate(scene);
+			scene.workLateImage.setVisible(false);
+			scene.isPlayerHoldingWorkLate = false;
+		}
 		
 		// disabling all the card placement boxes
 		for (let i = 0; i < variables.get("cards")[scene.stage].length; i++) {
@@ -560,6 +610,39 @@ function startHandler(scene) {
 		}
 		variables.set("addCardBoxes", [])	//cleared since the old add card buttons will not be needed again
 	}
+}
+
+
+
+/**
+ * Called when the Work Late button is pressed
+ * Allows the user to use work late tiles
+ */
+function workLateHandler(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	
+	if (scene.isPlayerHoldingWorkLate) {		// the user is holding a work late tile so they want to put it back
+		returnWorkLate(scene);
+		scene.isPlayerHoldingWorkLate = false;
+		scene.workLateImage.setVisible(false);
+	} else if (variables.get("workLateTiles") > 0) {	// can only pick up a tile if there are still any in inventory
+		let variables = scene.teams[scene.currentTeam];
+		scene.isPlayerHoldingWorkLate = true;
+		scene.workLateImage.setVisible(true);
+		variables.set("workLateTiles", variables.get("workLateTiles") - 1);
+		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
+	}
+}
+
+
+
+/**
+ * returns a work late tile
+ */
+function returnWorkLate(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	variables.set("workLateTiles", variables.get("workLateTiles") + 1);
+	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
 }
 
 
@@ -608,16 +691,20 @@ function pickUpCard(scene) {
  */
 function getIllegalPlacements(scene) {
 	class Node {
-		constructor(stage, ix, id) {
+		constructor(stage, ix, cards) {
 			this.stage = stage;
 			this.ix = ix;
-			this.id = id;
+			this.id = cards[stage][ix].cardId;
 			this.adjacencyList = null;
 			this.connectivity = [] // [left, right, up, down] (true if can connect, false otherwise)
-			let placements = scene.cardMap.get(id) == null ? ['1', '1', '1', '1'] : scene.cardMap.get(id).placement.split(",");
-            for (let i = 0; i < placements.length; i++) {
-                this.connectivity.push(placements[i] == '1');
-            }
+			if (cards[stage][ix].hasWorkLate) {
+				this.connectivity = [true, true, true, true];
+			} else {
+				let placements = scene.cardMap.get(id) == null ? ['1', '1', '1', '1'] : scene.cardMap.get(id).placement.split(",");
+				for (let i = 0; i < placements.length; i++) {
+					this.connectivity.push(placements[i] == '1');
+				}
+			}
             this.visited = false;
             this.illegal = false;
 		}
@@ -630,7 +717,7 @@ function getIllegalPlacements(scene) {
 	for (let stage = 0; stage <= scene.stage; stage++) {
 		let stageList = [];
 		for (let ix = 0; ix < cards[stage].length; ix++) {
-			let node = cards[stage][ix] == null ? null : new Node(stage, ix, cards[stage][ix].cardId);
+			let node = (cards[stage][ix].cardId == 0) ? null : new Node(stage, ix, cards);
 			nodes.push(node);
 			stageList.push(node);
 		}
@@ -717,4 +804,4 @@ function getIllegalPlacements(scene) {
 
 
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, pickUpCard, getIllegalPlacements };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, getIllegalPlacements };
