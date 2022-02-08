@@ -51,14 +51,18 @@ export default class playerView extends Phaser.Scene {
 		
 		
 		//// TEAMS ////
-		this.stage = 0;				// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-		this.numberOfTeams = 2;		//TODO: get this to recieve numberOfTeams from start menu!
+		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
+		this.numberOfTeams = 2;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
-		this.teams = []
-		//TODO: get number of work late tiles from menu
-		let totalWorkLate = 4;		// The number of work late tiles each team starts with
+		
+		this.roundLength = 30;					// The maximum length of each round in seconds (TODO: get this from menu)
+		this.timer;
+		this.isTimerRunning = false;
+		
+		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
 		this.isPlayerHoldingWorkLate = false;	// Whether or not the player is currently holding a work late tile
 		
+		this.teams = []
 		// creating a new map for each team - the map contains the variables for that team
 		for (let i = 0; i < this.numberOfTeams; i++) {
 			this.currentTeam++;
@@ -106,13 +110,14 @@ export default class playerView extends Phaser.Scene {
 				this.currentCardBox.setFillStyle(0xe76f51);
 			}
 		});
-		this.currentCardText = this.add.text(this.x, this.y*1.76, '+', {color: "0x000000"}).setOrigin(0.5).setFontSize(32);	// text displayed on the box for the card the player is holding
+		this.currentCardText = this.add.text(this.x, this.y*1.76, "+", {color: "0x000000"}).setOrigin(0.5).setFontSize(32);	// text displayed on the box for the card the player is holding
 		this.currentCardImage = this.add.image(this.x, this.y*1.76, 2).setScale(0.3).setVisible(false);						// image displayed on the current card box
 		
 		this.workLateImage = this.add.image(this.x*0.7, this.y*1.63, "workLate").setScale(0.12).setVisible(false);				// image displayed of the work late tile
 		
-		this.currentStageText = this.add.text(this.x, this.y*0.09, 'Stage: 1', {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
-		this.currentTeamText = this.add.text(this.x, this.y*0.18, 'Team: 1', {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
+		this.currentStageText = this.add.text(this.x, this.y*0.09, "Stage: 1", {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
+		this.currentTeamText = this.add.text(this.x, this.y*0.18, "Team: 1", {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
+		this.timerText = this.add.text(this.x*0.3, this.y*0.13, "Time Remaining: "+this.roundLength+"s", {color: "0x000000"}).setOrigin(0.5).setFontSize(20);
 		
 		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Player", nextHandler, undefined, undefined);		// button to move to next player/stage
 		this.toolbarStart = new ToolbarButton(this, 0.43, 0.12, "Start", startHandler, undefined, undefined);			// button to start the game
