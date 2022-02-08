@@ -529,12 +529,13 @@ function nextHandler(scene) {
 	}
 	
 	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
+	scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
 }
 
 
 
 /**
- * Called when the Start Button timer is pressed
+ * Called when the Start button is pressed
  * Runs the code to start (and end) a round of the game
  */
 function startHandler(scene) {
@@ -542,17 +543,15 @@ function startHandler(scene) {
 	
 	// the game was running when the button was pressed (stop the timer)
 	if (scene.isTimerRunning) {
-		variables.set("currentCard", 0);
-		scene.currentCardText.setText("+");
-		scene.currentCardImage.setVisible(false);
-		
 		stopHandler(scene);
 	}
 	// the game was paused when the button was pressed (start the timer)
 	else {
-		// TODO: start the timer - run stopHandler(scene); once the timer is up
-		scene.toolbarStart.buttonText.setText("Stop Timer");
+		// starting the timer
+		scene.timer = scene.time.addEvent({delay: 1000, repeat: scene.roundLength-1, callback: timerUpdater, args: [scene]});
 		scene.isTimerRunning = true;
+		
+		scene.toolbarStart.buttonText.setText("Stop Timer");
 		
 		buttonToggle(scene.toolbarNext.button, 0, false);
 		buttonToggle(scene.toolbarWorkLate.button, 0, true);
@@ -574,42 +573,63 @@ function startHandler(scene) {
 			variables.get("addCardBoxes")[i].setVisible(true, true);
 		}
 	}
-	
-	
-	/**
-	 * Stops the timer and ends the current round
-	 */
-	function stopHandler(scene) {
-		let variables = scene.teams[scene.currentTeam];
-		
-		// TODO: stop the timer if it's not already stopped (does it stop by default once it reaches a certain time?)
-		scene.isTimerRunning = false;
-		scene.toolbarStart.buttonText.setText("Start Timer")
-		
-		buttonToggle(scene.toolbarNext.button, 0, true);
-		buttonToggle(scene.toolbarStart.button, 0, false);
-		buttonToggle(scene.toolbarWorkLate.button, 0, false);
-		buttonToggle(scene.toolbarDiscard.button, 0, false);
-		buttonToggle(scene.currentCardBox, 1, false);
-		
-		// returning unused work late tiles
-		if (scene.isPlayerHoldingWorkLate) {
-			returnWorkLate(scene);
-			scene.workLateImage.setVisible(false);
-			scene.isPlayerHoldingWorkLate = false;
-		}
-		
-		// disabling all the card placement boxes
-		for (let i = 0; i < variables.get("cards")[scene.stage].length; i++) {
-			variables.get("cards")[scene.stage][i].placementBox.disableInteractive();
-		}
-		
-		// deleting all the add card buttons from the current round
-		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
-			variables.get("addCardBoxes")[i].setVisible(false, true);
-		}
-		variables.set("addCardBoxes", [])	//cleared since the old add card buttons will not be needed again
+}
+
+
+/**
+ * Called every 1 second by the timer while a round is playing
+ * Updates the timer values
+ */
+function timerUpdater(scene) {
+	let timeRemaining = scene.timer.getOverallRemainingSeconds();
+	if (timeRemaining == 0) {
+		stopHandler(scene);
+	} else {
+		scene.timerText.setText("Time Remaining: "+timeRemaining+"s");
 	}
+}
+
+
+
+/**
+ * Ends the current round
+ */
+function stopHandler(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	
+	if (scene.timer.getOverallRemainingSeconds() > 0) {
+		scene.timer.remove();
+	}
+	scene.isTimerRunning = false;
+	scene.toolbarStart.buttonText.setText("Start Timer")
+	
+	variables.set("currentCard", 0);
+	scene.currentCardText.setText("+");
+	scene.currentCardImage.setVisible(false);
+	
+	buttonToggle(scene.toolbarNext.button, 0, true);
+	buttonToggle(scene.toolbarStart.button, 0, false);
+	buttonToggle(scene.toolbarWorkLate.button, 0, false);
+	buttonToggle(scene.toolbarDiscard.button, 0, false);
+	buttonToggle(scene.currentCardBox, 1, false);
+	
+	// returning unused work late tiles
+	if (scene.isPlayerHoldingWorkLate) {
+		returnWorkLate(scene);
+		scene.workLateImage.setVisible(false);
+		scene.isPlayerHoldingWorkLate = false;
+	}
+	
+	// disabling all the card placement boxes
+	for (let i = 0; i < variables.get("cards")[scene.stage].length; i++) {
+		variables.get("cards")[scene.stage][i].placementBox.disableInteractive();
+	}
+	
+	// deleting all the add card buttons from the current round
+	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
+		variables.get("addCardBoxes")[i].setVisible(false, true);
+	}
+	variables.set("addCardBoxes", [])	//cleared since the old add card buttons will not be needed again
 }
 
 
