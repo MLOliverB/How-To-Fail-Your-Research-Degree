@@ -1,5 +1,5 @@
-import { loadActivityCard } from "../cards-management.js";
-
+import { loadActivityCard, loadEventCard } from "../cards-management.js";
+import { loadEffect } from "../event_cards/tempEffect.js";
 
 
 /**
@@ -489,11 +489,19 @@ function nextHandler(scene) {
 			scene.currentStageText.setText("Stage: " + (scene.stage + 1));
 			scene.currentTeam = 0;
 			scene.currentTeamText.setText("Team: 1");
-		}
+        }
 	} else {
 		scene.currentTeam++;
 		scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
 	}
+    
+    // reset event cards
+    scene.currentEvent = 0;
+    scene.currentEventBox.setText("+");
+    scene.eventBox.setVisible(true);
+    scene.currentEventImage.setVisible(false);
+    scene.tempButton.setAlpha(1).setScale(0.13, 0.08);
+    //scene.tempText.setText('Play card');
 	
 	variables = scene.teams[scene.currentTeam];
 	// making new cards for team A the next stage (unless it's the first stage, in which case they were already made)
@@ -530,6 +538,35 @@ function nextHandler(scene) {
 		variables.get("addCardBoxes")[i].setVisible(true, false);
 	}
 	
+    
+    // updating the back of event cards
+    switch (scene.stage) {
+        case 1:
+            scene.eventBack.setTexture("e1").setVisible(true);
+            console.log(scene.stage);
+            break;
+        case 2:
+            scene.eventBack.setTexture("e2").setVisible(true);
+            console.log(scene.stage);
+            break;
+        case 3:
+            scene.eventBack.setTexture("e3").setVisible(true);
+            console.log(scene.stage);
+            break;
+        default:
+            scene.eventBack.setVisible(false);
+            console.log(scene.stage);
+    }
+    
+    // reset event cards
+    scene.currentEvent = 0;
+    scene.currentEventBox.setText("+");
+    scene.eventBox.setVisible(true);
+    scene.currentEventImage.setVisible(false);
+    scene.tempButton.setAlpha(1).setScale(0.13, 0.08);
+    //scene.tempText.setText('Play card');
+
+    
 	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
 	scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
 }
@@ -707,6 +744,45 @@ function pickUpCard(scene) {
 }
 
 
+/**
+ * Obtain event card
+ */
+function eventTest(scene) {
+    console.log("obtain event card");
+    let variables = scene.teams[scene.currentTeam];
+	if (variables.get("currentEvent") == 0) {
+        variables.set("currentEvent", scene.eventCards[scene.stage].pop().id);
+        //scene.currentEvent = scene.eventCards[scene.stage].pop().id;
+        scene.currentEventBox.setText(variables.get("currentEvent"));
+        //scene.currentEventBox.setText(scene.currentEvent);
+        scene.eventBox.setVisible(false);
+        console.log("test");
+        scene.currentEventImage.setTexture(variables.get("currentEvent")).setVisible(true);
+        console.log(variables.get("currentEvent"));
+        scene.tempButton.setAlpha(0.01).setScale(0.18, 0.45);
+        //scene.tempText.setText('');
+    }
+}
+/**
+ * Begin effect of cards
+ */
+function useEffect(scene) {
+    console.log("use event card");
+    let variables = scene.teams[scene.currentTeam];
+	if (variables.get("currentEvent") != 0) {
+        loadEffect();
+        console.log(variables.get("currentEvent"));
+        //console.log(scene.currentEvent);
+        variables.set("currentEvent", 0);
+        //scene.currentEvent = 0;
+        scene.currentEventBox.setText('0');
+        scene.eventBox.setVisible(true);
+        scene.currentEventImage.setVisible(false);
+        //scene.tempText.setText('Pick card');
+        scene.tempButton.setScale(0.13, 0.08);
+    }
+}
+
 
 /**
  * Returns a list of positions (stage, index) of illegally played cards
@@ -826,4 +902,4 @@ function getIllegalPlacements(scene) {
 
 
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, eventTest, useEffect };

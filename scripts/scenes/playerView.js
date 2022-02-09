@@ -1,5 +1,5 @@
-import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard.js";
-import { eventTest, useEffect } from "../event_cards/eventBoard.js";
+import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, eventTest, useEffect } from "../activity_cards/GameBoard.js";
+//import { eventTest, useEffect } from "../event_cards/eventBoard.js";
 import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
 /**
@@ -67,7 +67,7 @@ export default class playerView extends Phaser.Scene {
 		
 		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
 		this.isPlayerHoldingWorkLate = false;	// Whether or not the player is currently holding a work late tile
-		
+        
 		this.teams = []
 		// creating a new map for each team - the map contains the variables for that team
 		for (let i = 0; i < this.numberOfTeams; i++) {
@@ -79,7 +79,8 @@ export default class playerView extends Phaser.Scene {
 				["rightEdge", 0],					// the position of the card furthest to the right
 				["cards", []],						// a 2D array of stages of card boxes, e.g. cards[0] will return the array of card boxes used in the first stage
 				["addCardBoxes", []],				// a 1D array of the current set of add card box buttons (not in order) - this is reset after every stage
-				["workLateTiles", totalWorkLate]	// the number of work late tiles the team has remaining in their inventory
+				["workLateTiles", totalWorkLate],	// the number of work late tiles the team has remaining in their inventory
+                ["currentEvent", 0]                 // id of event card player is holding
 			]);
 			this.teams.push(team);
 		}
@@ -150,7 +151,7 @@ export default class playerView extends Phaser.Scene {
 		
 		
 		//// EVENT CARDS ////
-		this.eventBack = this.add.image(this.x*1.81, this.y*1.76, 'e1').setScale(0.15).setVisible(true);
+		this.eventBack = this.add.image(this.x*1.81, this.y*1.76, 'e1').setScale(0.15).setVisible(false);
         // overlay for back of event cards to be animated
         this.eventBox = this.add.rectangle(this.x*1.81, this.y*1.76, this.width, this.height, 0xe76f8d).setScale(0.1, 0.25).setAlpha(0.01); 
         // actions for flipping event cards
@@ -172,7 +173,7 @@ export default class playerView extends Phaser.Scene {
                         console.log("Error: no event cards\nReason: First stage has no event cards");
                     }
                     else {
-                        console.log("Error: no event cards\nReason: Game has ended");
+                        console.log(error);
                     }
                 }
             }
@@ -185,26 +186,26 @@ export default class playerView extends Phaser.Scene {
         // tempButton causes image (when visible) to be interactive
         this.tempButton = this.add.rectangle(this.x*1.81, this.y*1.29, this.width, this.height).setScale(0.13, 0.08).setInteractive();
         // temporary text for bug checking
-        this.tempText = this.add.text(this.x*1.81, this.y*1.29, 'Play card', {color: "0x000000"}).setOrigin(0.5, 0.5).setFontSize(20);
+        //this.tempText = this.add.text(this.x*1.81, this.y*1.29, 'Play card', {color: "0x000000"}).setOrigin(0.5, 0.5).setFontSize(20);
         // actions for event cards
-        this.tempButton.on("pointerover", () => {
-            if (this.currentEvent == 0) {
+        /*this.tempButton.on("pointerover", () => {
+            if (this.currentEventBox == 0) {
                 this.tempText.setText('No card');
             }
-        });
-        this.tempButton.on("pointerout", () => {
-            if (this.currentEvent == 0){
+            else {
+                this.tempText.setText('test');
+            }
+        });*/
+        /*this.tempButton.on("pointerout", () => {
+            if (this.currentEventBox == 0){
                 this.tempText.setText('Play card');
             }
-            else {
-                this.tempText.setText('');
-            }
-        });
+        });*/
         this.tempButton.on("pointerup", () => {
-            if(this.currentEvent != 0) {
+            if(this.currentEventBox != 0) {
                 useEffect(this);
             }
-        })
+        });
 		
 		this.eventCards = [];
         for (let s = 1; s < 5; s++) {

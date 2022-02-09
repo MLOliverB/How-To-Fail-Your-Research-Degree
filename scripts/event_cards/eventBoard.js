@@ -1,5 +1,5 @@
 import { loadEventCard } from "../cards-management.js";
-import { loadEffect } from "./effect.js";
+import { loadEffect } from "./tempEffect.js";
 
 function eventTest(scene) {
     console.log("obtain event card");
