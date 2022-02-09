@@ -1,7 +1,7 @@
 import { loadEventCard } from "../cards-management.js";
 
-function loadEffect() {
-    console.log(this.currentEvent);
+function loadEffect(eventID) {
+    console.log(eventID);
 }
 
 export { loadEffect };

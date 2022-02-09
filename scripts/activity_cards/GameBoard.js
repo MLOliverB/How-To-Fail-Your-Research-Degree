@@ -770,7 +770,9 @@ function useEffect(scene) {
     console.log("use event card");
     let variables = scene.teams[scene.currentTeam];
 	if (variables.get("currentEvent") != 0) {
-        loadEffect();
+        //temp = variables.get("currentEvent");
+        loadEffect(variables.get("currentEvent"));
+        //console.log(temp);
         console.log(variables.get("currentEvent"));
         //console.log(scene.currentEvent);
         variables.set("currentEvent", 0);
