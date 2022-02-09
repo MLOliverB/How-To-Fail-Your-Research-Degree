@@ -1,4 +1,7 @@
 import { loadActivityCard, loadEventCard } from "../cards-management.js";
+import { loadEffect } from "../event_cards/effect.js";
+
+
 
 /**
  * Class for the rectangle which can be clicked to place a card on the rectangle
@@ -824,4 +827,32 @@ function getIllegalPlacements(scene) {
 
 
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, getIllegalPlacements };
+function eventTest(scene) {
+    console.log("obtain event card");
+    if (scene.currentEvent == 0) {
+        scene.currentEvent = scene.eventCards[scene.stage].pop().id;
+        scene.currentEventBox.setText(scene.currentEvent);
+        scene.eventBox.setVisible(false);
+        scene.currentEventImage.setTexture(scene.currentEvent).setVisible(true);
+        console.log(scene.currentEvent);
+        scene.tempButton.setAlpha(0.01).setScale(0.18, 0.45);
+        scene.tempText.setText('');
+    }
+}
+
+function useEffect(scene) {
+    console.log("use event card");
+    if (scene.currentEvent != 0) {
+        loadEffect(scene.currentEventBox);
+        scene.currentEvent = 0;
+        scene.currentEventBox.setText('0');
+        scene.eventBox.setVisible(true);
+        scene.currentEventImage.setVisible(false);
+        scene.tempText.setText('Pick card');
+        scene.tempButton.setScale(0.13, 0.08);
+    }
+}
+
+
+
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, eventTest, useEffect };

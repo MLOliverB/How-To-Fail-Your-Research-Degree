@@ -1,5 +1,5 @@
-import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard.js";
-import { loadActivityCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
+import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, eventTest, useEffect } from "../activity_cards/GameBoard.js";
+import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
 /**
  * The scene where the player plays the game
@@ -32,6 +32,11 @@ export default class playerView extends Phaser.Scene {
 		
 		//loading the work late tile image
 		this.load.image("workLate", "./assets/cards/worklate.png");
+		
+		//loading event card extra images
+		this.load.image('e1', './assets/cards/event-BACK-CONTEXT.png');
+        this.load.image('e2', './assets/cards/event-BACK-IMP.png');
+        this.load.image('e3', './assets/cards/event-BACK-WRITE-UP.png');
 	}
     
     create() {
@@ -140,6 +145,72 @@ export default class playerView extends Phaser.Scene {
 				}
 			});
 		}
+		
+		
+		
+		//// EVENT CARDS ////
+		this.eventBack = this.add.image(this.x*0.19, this.y*1.76, 'e1').setScale(0.15).setVisible(true);
+        
+        this.eventBox = this.add.rectangle(this.x*0.19, this.y*1.76, this.width, this.height, 0xe76f8d).setScale(0.1, 0.25).setAlpha(0.01);   // event card
+        this.eventBox.on("pointerover", () => {
+            this.eventBox.setPosition(this.x*0.19, this.y*1.45).setScale(0.13, 0.305);
+            this.eventBack.setPosition(this.x*0.19, this.y*1.45).setScale(0.2);
+        });
+        this.eventBox.on("pointerout", () => {
+            this.eventBox.setPosition(this.x*0.19, this.y*1.76).setScale(0.1, 0.204);
+            this.eventBack.setPosition(this.x*0.19, this.y*1.76).setScale(0.15);
+        });
+        this.eventBox.on("pointerup", () => {
+            if(this.currentEvent == 0) {
+                try {
+                    eventTest(this);
+                }
+                catch (error) {
+                    if (this.stage == 0) {
+                        console.log("Error: no event cards\nReason: First stage has no event cards");
+                    }
+                    else {
+                        console.log("Error: no event cards\nReason: Game has ended");
+                    }
+                }
+            }
+        });
+        this.currentEventBox = this.add.text(this.x*0.19, this.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1); // text displayed on event box
+        this.currentEventImage = this.add.image(this.x*0.19, this.y*1.3, 2).setScale(0.25).setVisible(false);
+        
+        // tempButton causes image to be interactive
+        this.tempButton = this.add.rectangle(this.x*0.19, this.y*1.29, this.width, this.height).setScale(0.13, 0.08).setInteractive();
+        // temporary text for bug checking
+        this.tempText = this.add.text(this.x*0.19, this.y*1.29, 'Play card', {color: "0x000000"}).setOrigin(0.5, 0.5).setFontSize(20);
+        this.tempButton.on("pointerover", () => {
+            if (this.currentEvent == 0) {
+                this.tempText.setText('No card');
+            }
+        });
+        this.tempButton.on("pointerout", () => {
+            if (this.currentEvent == 0){
+                this.tempText.setText('Play card');
+            }
+            else {
+                this.tempText.setText('');
+            }
+        });
+        this.tempButton.on("pointerup", () => {
+            if(this.currentEvent != 0) {
+                useEffect(this);
+            }
+        })
+		
+		this.eventCards = [];
+        for (let s = 1; s < 5; s++) {
+            loadEventCardStack(s, (ecards) => {
+                this.eventCards.push(shuffleCardStack(ecards));
+                if(s == 4) {
+                    this.eventBox.setInteractive();
+                    //this.currentEventImage.setInteractive();
+                }
+            });
+        }
 		
 		
 		
