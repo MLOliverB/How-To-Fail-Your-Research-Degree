@@ -1,4 +1,5 @@
-import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, eventTest, useEffect } from "../activity_cards/GameBoard.js";
+import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard.js";
+import { eventTest, useEffect } from "../event_cards/eventBoard.js";
 import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
 /**
@@ -149,16 +150,17 @@ export default class playerView extends Phaser.Scene {
 		
 		
 		//// EVENT CARDS ////
-		this.eventBack = this.add.image(this.x*0.19, this.y*1.76, 'e1').setScale(0.15).setVisible(true);
-        
-        this.eventBox = this.add.rectangle(this.x*0.19, this.y*1.76, this.width, this.height, 0xe76f8d).setScale(0.1, 0.25).setAlpha(0.01);   // event card
+		this.eventBack = this.add.image(this.x*1.81, this.y*1.76, 'e1').setScale(0.15).setVisible(true);
+        // overlay for back of event cards to be animated
+        this.eventBox = this.add.rectangle(this.x*1.81, this.y*1.76, this.width, this.height, 0xe76f8d).setScale(0.1, 0.25).setAlpha(0.01); 
+        // actions for flipping event cards
         this.eventBox.on("pointerover", () => {
-            this.eventBox.setPosition(this.x*0.19, this.y*1.45).setScale(0.13, 0.305);
-            this.eventBack.setPosition(this.x*0.19, this.y*1.45).setScale(0.2);
+            this.eventBox.setPosition(this.x*1.81, this.y*1.45).setScale(0.13, 0.305);
+            this.eventBack.setPosition(this.x*1.81, this.y*1.45).setScale(0.2);
         });
         this.eventBox.on("pointerout", () => {
-            this.eventBox.setPosition(this.x*0.19, this.y*1.76).setScale(0.1, 0.204);
-            this.eventBack.setPosition(this.x*0.19, this.y*1.76).setScale(0.15);
+            this.eventBox.setPosition(this.x*1.81, this.y*1.76).setScale(0.1, 0.204);
+            this.eventBack.setPosition(this.x*1.81, this.y*1.76).setScale(0.15);
         });
         this.eventBox.on("pointerup", () => {
             if(this.currentEvent == 0) {
@@ -175,13 +177,16 @@ export default class playerView extends Phaser.Scene {
                 }
             }
         });
-        this.currentEventBox = this.add.text(this.x*0.19, this.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1); // text displayed on event box
-        this.currentEventImage = this.add.image(this.x*0.19, this.y*1.3, 2).setScale(0.25).setVisible(false);
+        // text displayed on event box
+        this.currentEventBox = this.add.text(this.x*1.81, this.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1);
+        // event card image
+        this.currentEventImage = this.add.image(this.x*1.81, this.y*1.3, 2).setScale(0.25).setVisible(false);
         
-        // tempButton causes image to be interactive
-        this.tempButton = this.add.rectangle(this.x*0.19, this.y*1.29, this.width, this.height).setScale(0.13, 0.08).setInteractive();
+        // tempButton causes image (when visible) to be interactive
+        this.tempButton = this.add.rectangle(this.x*1.81, this.y*1.29, this.width, this.height).setScale(0.13, 0.08).setInteractive();
         // temporary text for bug checking
-        this.tempText = this.add.text(this.x*0.19, this.y*1.29, 'Play card', {color: "0x000000"}).setOrigin(0.5, 0.5).setFontSize(20);
+        this.tempText = this.add.text(this.x*1.81, this.y*1.29, 'Play card', {color: "0x000000"}).setOrigin(0.5, 0.5).setFontSize(20);
+        // actions for event cards
         this.tempButton.on("pointerover", () => {
             if (this.currentEvent == 0) {
                 this.tempText.setText('No card');
