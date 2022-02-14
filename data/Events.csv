@@ -11,7 +11,7 @@
 69,2,event-CONTEXT-loandelay.png,Interlibrary loan delay,,Null,!1,n(15/16/31):1,Null
 70,2,event-CONTEXT-lostenthus.png,Lost enthusiasm,,Null,!4,n0:1,Null
 71,2,event-CONTEXT-mentorleaves.png,Mentor leaves,,Null,Null,n7:<=9,Null
-72,2,event-CONTEXT-multiperspective.png,Multiple perspectives,,(17+18+19+20+21+22+23+24+25+26+27+28):>1,Null,i(79/101/121):1:(2/3/4),Null
+72,2,event-CONTEXT-multiperspective.png,Multiple perspectives,,(17+18+19+20+21+22+23+24+25+26+27+28):>=2,Null,i(79/101/121):1:(2/3/4),Null
 73,2,event-CONTEXT-procrastinate.png,Procrastinate!,,Null,!5,n0:3:2,f5:1
 74,2,event-CONTEXT-shoddynotes.png,Shoddy notes,,Null,!1,o0:2:(3&4),Null
 75,2,event-CONTEXT-sick.png,Sick!,,Null,!1,n0:2:2,Null
