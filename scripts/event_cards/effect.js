@@ -1,6 +1,4 @@
-//import { loadEventCard } from "cards-management.js";
-
-// get ID of chosen card (currently obtained through input for testing)
+// get ID of chosen card (old file for testing event cards)
 
 // load the effect of the drawn card (currently loads the file)
 // includes loading the requirement, effect, and else condition of card
