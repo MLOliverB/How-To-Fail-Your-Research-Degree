@@ -1,5 +1,5 @@
 import { loadEventCard } from "../cards-management.js";
-import { buttonToggle } from "../activity_cards/GameBoard.js"
+import { buttonToggle } from "../activity_cards/GameBoard.js";
 
 
 class EventCard {
@@ -89,70 +89,25 @@ class EventBarButton {
 	}
 }
 
-
-
-function pickUpEventCard(scene) {
+function countIds(scene) {
     let variables = scene.teams[scene.currentTeam];
-    
-    console.log("Pick up an event card");
-    if (variables.get("currentEventCard") == 0 && scene.isEventRound && scene.drawnEventCards != 3) {     // this check should be redundant but just in case...
-        variables.set("currentEventCard", scene.eventCards[scene.stage].pop().id);
-        scene.eventStack.setTexture(variables.get("currentEventCard")).setVisible(true);
-		scene.eventBarPlay.setVisible(true);
-        // current event card in hand
-        let holdEventID = scene.cardMap.get(variables.get("currentEventCard"));
-        var chosenSave = holdEventID.save_conditon.toString();
-        if (!chosenSave.includes('Null')){
-            scene.eventBarStore.setVisible(true);
-        }
-        console.log(variables.get("currentEventCard"));
-        scene.drawnEventCards += 1;
-    }
-    if (scene.drawnEventCards == 3) {
-        console.log("3 event cards have been drawn, event phase over");
-        buttonToggle(scene.toolbarNext.button, 0, true);
-    }
-}
-
-
-
-function useEffect(scene) {
-    console.log("use event card");
-    //pickUpEventCard(scene);
-    let variables = scene.teams[scene.currentTeam];
-    // current event card in hand
-    let holdEventID = scene.cardMap.get(variables.get("currentEventCard"));
-    
     // creating array for holding activity cards placed 
     let arrayOfCards = variables.get("cards");
-    if (arrayOfCards[0] == null) {
-        var firstCards = [0];
-    }
-    else{ 
-        var firstCards = arrayOfCards[0];
-    }
-    if (arrayOfCards[1] == null) {
-        var secondCards = [0];
-    }
-    else {
-        var secondCards = arrayOfCards[1];
-    }
-    if (arrayOfCards[2] == null) {
-        var thirdCards = [0];
-    }
-    else {
-        var thirdCards = arrayOfCards[2];
-    }
-    if (arrayOfCards[3] == null) {
-        var fourthCards = [0];
-    }
-    else{
-        var fourthCards = arrayOfCards[3];
-    }
-    var arrayFirst = new Array();
-    var arraySecond = new Array();
-    var arrayThird = new Array();
-    var arrayFourth = new Array();
+    // first row
+    if (arrayOfCards[0] == null) { var firstCards = [0];} 
+    else { var firstCards = arrayOfCards[0]; }
+    // second row
+    if (arrayOfCards[1] == null) {var secondCards = [0];}
+    else {var secondCards = arrayOfCards[1];}
+    // third row
+    if (arrayOfCards[2] == null) {var thirdCards = [0];}
+    else {var thirdCards = arrayOfCards[2];}
+    // fourth row
+    if (arrayOfCards[3] == null) {var fourthCards = [0];}
+    else{var fourthCards = arrayOfCards[3];}
+
+    var arrayFirst = new Array(); var arraySecond = new Array(); 
+    var arrayThird = new Array(); var arrayFourth = new Array();
     for (let i = 0; i < firstCards.length; i++) {
         var x = firstCards[i].cardId;
         arrayFirst.push(x);
@@ -169,18 +124,104 @@ function useEffect(scene) {
         var x = fourthCards[i].cardId;
         arrayFourth.push(x);
     }
+    // put all four rows into one array
     var arrayAll = "";
     arrayAll = arrayFirst.concat(arraySecond, arrayThird, arrayFourth);
     console.log(arrayAll);
+    return arrayAll;
+}
+
+function pickUpEventCard(scene) {
+    let variables = scene.teams[scene.currentTeam];
+    let cardArray = countIds(scene);
     
+    console.log("Pick up an event card");
+    if (variables.get("currentEventCard") == 0 && scene.isEventRound && scene.drawnEventCards != 3) {     // this check should be redundant but just in case...
+        variables.set("currentEventCard", scene.eventCards[scene.stage].pop().id);
+        scene.eventStack.setTexture(variables.get("currentEventCard")).setVisible(true);
+		scene.eventBarPlay.setVisible(true);
+        /*
+         * Check the save_condition of chosen card
+         */
+        // current event card in hand
+        let holdEventID = scene.cardMap.get(variables.get("currentEventCard"));
+        // array to check for cards required to be stored
+        var requiredCards = new Array();
+        var saveCon = new Array();
+        var chosenSave = holdEventID.save_conditon.toString();
+        var splitSave = chosenSave.split(/:/);
+        if (splitSave.includes('TRUE')){
+            scene.eventBarStore.setVisible(true);
+        }
+        else if (!splitSave.includes('Null')) {
+            var card = splitSave[0].match(/\d+/g);
+            requiredCards.push(card);
+            var con = splitSave[0].match(/\d+/g);
+            var saveCon = con;
+            console.log(`TItle of event card: ${chosenTitle} \n
+                        Save condition - \n
+                        CardID(s): ${requiredCards}\n
+                        Require at least ${saveCon}`);
+            if(arrayMatch(requiredCards, ids).length >= saveCon) {
+                scene.eventBarStore.setVisible(true);
+            }
+            else {
+                console.log("Required cards do not exist on board");
+            }
+        }
+        else {
+            console.log("This card cannot be stored");
+        }
+        console.log(variables.get("currentEventCard"));
+        scene.drawnEventCards += 1;
+    }
+    if (scene.drawnEventCards == 3) {
+        console.log("3 event cards have been drawn, event phase over");
+        buttonToggle(scene.toolbarNext.button, 0, true);
+    }
+}
+
+// function to get matching cardIDs from activity cards array and required cards
+// taken from: https://www.tutsmake.com/javascript-compare-two-arrays-for-matches/
+function arrayMatch(arr1, arr2) {
+    var arr = new Array();  // Array to contain match elements
+        for(var i=0 ; i<arr1.length ; ++i) {
+            for(var j=0 ; j<arr2.length ; ++j) {
+                if(arr1[i] == arr2[j]) {    // If element is in both the arrays
+                arr.push(arr1[i]);        // Push to arr array
+            }
+        }
+    }
+    return arr;  // Return the arr elements
+}
+
+function countCardOccurrences(scene){
     // get count of all occurrences of each activity card ID
     // taken from: https://stackoverflow.com/questions/5667888/counting-the-occurrences-frequency-of-array-elements
+    var arrayAll = countIds(scene);
     const occurrences = arrayAll.reduce(function (acc, curr) {
         return acc[curr] ? ++acc[curr] : acc[curr] = 1, acc }, {});
     console.log(occurrences);
     // array of ids and array of count
     const ids = Object.keys(occurrences);
     const count = Object.values(occurrences);
+    
+    return occurrences;
+}
+
+function useEffect(scene) {
+    console.log("use event card");
+    //pickUpEventCard(scene);
+    let variables = scene.teams[scene.currentTeam];
+    
+    // current event card in hand
+    let holdEventID = scene.cardMap.get(variables.get("currentEventCard"));
+    // all cards in array
+    var arrayAll = countIds(scene);
+    // array of all cards with its number of occurrences
+    let cardArray = countCardOccurrences(scene);
+    const idArray = Object.keys(cardArray);
+    const countArray = Object.values(cardArray);
     
     // for console log
     var chosenTitle = holdEventID.title.toString();
@@ -218,7 +259,6 @@ function useEffect(scene) {
     var forActionElse = new Array();
     var totalAmountElse = new Array();
     var cardStageElse = new Array();
-    
     
     /* 
      * get requirement(s) of chosen card
@@ -287,6 +327,16 @@ function useEffect(scene) {
                         Requirement -\n
                         Card(s) that should be absent: ${toBeAbsent}\n
                         Specific number of card(s) not to exceed: ${absCondition}`);
+            var matched = arrayMatch(toBeAbsent, arrayAll);
+            console.log(matched);
+            if(matched.length) {
+                var counting = new Array();
+                for (var i = 0; i < matched.length; i++){
+                    const selectedCount = Object.values(matched[i]);
+                    counting.push(selectedCount);
+                }
+                console.log(counting);
+            }
         }
         if((!toBeAbsent.length) && (toBePresent.length)){
             console.log(`Title of event card: ${chosenTitle} \n
@@ -296,7 +346,7 @@ function useEffect(scene) {
         }
     }
 
-
+    
 
     /* 
      * get effect(s) of chosen card
@@ -314,7 +364,7 @@ function useEffect(scene) {
         splitEffect[i] = x;
     }
 
-// effect of card chosen
+    // effect of card chosen
     for (var i = 0; i < splitEffect.length; i++) {
         
         // temp values
@@ -467,31 +517,6 @@ function useEffect(scene) {
                 CardID(s): ${forActionElse}\n
                 Number of card(s)/space(s): ${totalAmountElse}\n
                 Stages: ${cardStageElse}`);
-    }
-    
-    
-    /*
-     * Check the save_condition of chosen card
-     */
-    // array to check for cards required to be stored
-    var requiredCards = new Array();
-    var saveCon = new Array();
-    var chosenSave = holdEventID.save_conditon.toString();
-    var splitSave = chosenSave.split(/:/);
-    
-    // check if value is TRUE
-    if (splitSave.includes('TRUE')) {
-        scene.eventBarStore.setVisible(true);
-    }
-    else if (!splitSave.includes('Null')) {
-        var card = splitSave[0].match(/\d+/g);
-        requiredCards.push(card);
-        var con = splitSave[0].match(/\d+/g);
-        saveCon.push(con);
-        console.log(`TItle of event card: ${chosenTitle} \n
-                    Save condition -
-                    CardID(s): ${requiredCards}\n
-                    Require at least ${saveCon}`);
     }
     
 }
