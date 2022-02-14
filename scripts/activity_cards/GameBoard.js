@@ -469,106 +469,124 @@ function nextHandler(scene) {
 	
 	buttonToggle(scene.toolbarNext.button, 0, false);
 	buttonToggle(scene.toolbarStart.button, 0, true);
-	
-	// making all the card components for team A invisible
-	for (let i = 0; i <= scene.stage; i++) {
-		for (let j = 0; j < variables.get("cards")[i].length; j++) {
-			variables.get("cards")[i][j].setVisible(false, true);
-		}
-	}
-	
-	if (scene.currentTeam == scene.numberOfTeams - 1) {		// move to next stage if all teams have played
-		if (scene.stage == 3) {
-			buttonToggle(scene.toolbarStart.button, 0, false);
-			// TODO: move to final screen scene (probably need to pass the teams array)
-			console.log("TODO: go to final screen");
-			scene.currentStageText.setText("Stage: MOVE TO FINAL SCREEN");
-			return;	//TODO: remove this once moved to final stage
-		} else {
-			scene.stage++;
-			scene.currentStageText.setText("Stage: " + (scene.stage + 1));
-			scene.currentTeam = 0;
-			scene.currentTeamText.setText("Team: 1");
-        }
-	} else {
-		scene.currentTeam++;
-		scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
-	}
-    
-    // reset event cards
-    scene.currentEvent = 0;
-    scene.currentEventBox.setText("+");
-    scene.eventBox.setVisible(true);
-    scene.currentEventImage.setVisible(false);
-    scene.tempButton.setAlpha(1).setScale(0.13, 0.08);
-    //scene.tempText.setText('Play card');
-	
-	variables = scene.teams[scene.currentTeam];
-	// making new cards for team A the next stage (unless it's the first stage, in which case they were already made)
-	if (scene.stage != 0) {
-		// start with the same number of boxes as the previous stage (including boxes without cards)
-		let cards = variables.get("cards");
-		cards.push([]);
-		for (let i in cards[scene.stage-1]) {
-			let distance = cards[scene.stage-1][i].distanceFromMiddle
-			cards[scene.stage].push(new CardBox(scene, distance));
-			cards[scene.stage][i].placementBox.disableInteractive();
-		}
-		
-		// only start with add card boxes on the outer edges
-		var box = new AddCardBox(scene, variables.get("leftEdge") - 1)
-		box.setVisible(false, true);
-		variables.get("addCardBoxes").push(box);
-		box = new AddCardBox(scene, variables.get("rightEdge") + 1)
-		box.setVisible(false, true);
-		variables.get("addCardBoxes").push(box);
-		
-		
-		console.log(variables.get("cards")[scene.stage]);
-	}
-	
-	
-	// making all the card components for team B visible
-	for (let i = 0; i <= scene.stage; i++) {
-		for (let j = 0; j < variables.get("cards")[i].length; j++) {
-			variables.get("cards")[i][j].setVisible(true, false);
-		}
-	}
-	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
-		variables.get("addCardBoxes")[i].setVisible(true, false);
-	}
-	
-    
-    // updating the back of event cards
-    switch (scene.stage) {
-        case 1:
-            scene.eventBack.setTexture("e1").setVisible(true);
-            console.log(scene.stage);
-            break;
-        case 2:
-            scene.eventBack.setTexture("e2").setVisible(true);
-            console.log(scene.stage);
-            break;
-        case 3:
-            scene.eventBack.setTexture("e3").setVisible(true);
-            console.log(scene.stage);
-            break;
-        default:
-            scene.eventBack.setVisible(false);
-            console.log(scene.stage);
-    }
-    
-    // reset event cards
-    scene.currentEvent = 0;
-    scene.currentEventBox.setText("+");
-    scene.eventBox.setVisible(true);
-    scene.currentEventImage.setVisible(false);
-    scene.tempButton.setAlpha(1).setScale(0.13, 0.08);
-    //scene.tempText.setText('Play card');
 
+	console.log("----")
+	console.log(scene.isEventRound)
+	console.log(scene.stage)
+	console.log(scene.currentTeam)
+	console.log(scene.numberOfTeams - 1)
+	
+	// switching teams/stages
+	if (!scene.isEventRound && scene.stage != 0) {
+		moveToEventRound(scene);
+	} else {
+		// making all the card components for team A invisible
+		for (let i = 0; i <= scene.stage; i++) {
+			for (let j = 0; j < variables.get("cards")[i].length; j++) {
+				variables.get("cards")[i][j].setVisible(false, true);
+			}
+		}
+		
+		
+		if ((scene.isEventRound || scene.stage == 0) && scene.currentTeam != scene.numberOfTeams - 1 && scene.stage != 3) {
+			moveToNextTeam(scene);
+		} else if ((scene.isEventRound || scene.stage == 0) && scene.currentTeam == scene.numberOfTeams - 1) {
+			moveToNextStage(scene);
+		}
+		
+		scene.currentStageText.setText("Stage: "+(scene.stage+1));
+		
+		
+		variables = scene.teams[scene.currentTeam];
+		// making new cards for team A the next stage (unless it's the first stage, in which case they were already made)
+		if (scene.stage != 0) {
+			// start with the same number of boxes as the previous stage (including boxes without cards)
+			let cards = variables.get("cards");
+			cards.push([]);
+			for (let i in cards[scene.stage-1]) {
+				let distance = cards[scene.stage-1][i].distanceFromMiddle
+				cards[scene.stage].push(new CardBox(scene, distance));
+				cards[scene.stage][i].placementBox.disableInteractive();
+			}
+			
+			// only start with add card boxes on the outer edges
+			var box = new AddCardBox(scene, variables.get("leftEdge") - 1)
+			box.setVisible(false, true);
+			variables.get("addCardBoxes").push(box);
+			box = new AddCardBox(scene, variables.get("rightEdge") + 1)
+			box.setVisible(false, true);
+			variables.get("addCardBoxes").push(box);
+			
+			
+			console.log(variables.get("cards")[scene.stage]);
+		}
+		
+		
+		// making all the card components for team B visible
+		for (let i = 0; i <= scene.stage; i++) {
+			for (let j = 0; j < variables.get("cards")[i].length; j++) {
+				variables.get("cards")[i][j].setVisible(true, false);
+			}
+		}
+		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
+			variables.get("addCardBoxes")[i].setVisible(true, false);
+		}
+		
+		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
+		scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
+	}
+	
     
-	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
-	scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
+    // reset event cards
+    //scene.currentEvent = 0;
+    //scene.currentEventBox.setText("+");
+    //scene.eventBox.setVisible(true);
+    //scene.currentEventImage.setVisible(false);
+    //scene.tempButton.setAlpha(1).setScale(0.13, 0.08);
+    //scene.tempText.setText('Play card');
+}
+
+
+
+function moveToEventRound(scene) {
+	console.log("Moving to event round");
+	scene.isEventRound = true;
+	scene.currentStageText.setText("Stage: Events "+(scene.stage+1));
+	buttonToggle(scene.toolbarStart.button, 0, false)
+	scene.eventStack.setTexture("e"+scene.stage).setVisible(true).setInteractive();
+}
+
+function moveToNextTeam(scene) {
+	console.log("Moving to next team");
+	scene.isEventRound = false;
+	scene.eventCardsRemaining = scene.totalEventCards;
+	
+	scene.currentTeam++;
+	scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
+	scene.eventBarPlay.setVisible(false);
+	scene.eventBarStore.setVisible(false);
+}
+
+function moveToNextStage(scene) {
+	console.log("Moving to next stage")
+	scene.isEventRound = false;
+	scene.eventCardsRemaining = scene.totalEventCards;
+	
+	scene.eventBarPlay.setVisible(false);
+	scene.eventBarStore.setVisible(false);
+	
+	if (scene.stage == 3) {
+		buttonToggle(scene.toolbarStart.button, 0, false);
+		// TODO: move to final screen scene (probably need to pass the teams array)
+		console.log("TODO: go to final screen");
+		scene.currentStageText.setText("Stage: MOVE TO FINAL SCREEN");
+		return;	//TODO: remove this once moved to final stage
+	} else {
+		scene.stage++;
+		scene.currentStageText.setText("Stage: " + (scene.stage + 1));
+		scene.currentTeam = 0;
+		scene.currentTeamText.setText("Team: 1");
+	}
 }
 
 
@@ -613,6 +631,7 @@ function startHandler(scene) {
 		}
 	}
 }
+
 
 
 /**
@@ -744,47 +763,6 @@ function pickUpCard(scene) {
 }
 
 
-/**
- * Obtain event card
- */
-function eventTest(scene) {
-    console.log("obtain event card");
-    let variables = scene.teams[scene.currentTeam];
-	if (variables.get("currentEvent") == 0) {
-        variables.set("currentEvent", scene.eventCards[scene.stage].pop().id);
-        //scene.currentEvent = scene.eventCards[scene.stage].pop().id;
-        scene.currentEventBox.setText(variables.get("currentEvent"));
-        //scene.currentEventBox.setText(scene.currentEvent);
-        scene.eventBox.setVisible(false);
-        console.log("test");
-        scene.currentEventImage.setTexture(variables.get("currentEvent")).setVisible(true);
-        console.log(variables.get("currentEvent"));
-        scene.tempButton.setAlpha(0.01).setScale(0.18, 0.45);
-        //scene.tempText.setText('');
-    }
-}
-/**
- * Begin effect of cards
- */
-function useEffect(scene) {
-    console.log("use event card");
-    let variables = scene.teams[scene.currentTeam];
-	if (variables.get("currentEvent") != 0) {
-        //temp = variables.get("currentEvent");
-        loadEffect(variables.get("currentEvent"));
-        //console.log(temp);
-        console.log(variables.get("currentEvent"));
-        //console.log(scene.currentEvent);
-        variables.set("currentEvent", 0);
-        //scene.currentEvent = 0;
-        scene.currentEventBox.setText('0');
-        scene.eventBox.setVisible(true);
-        scene.currentEventImage.setVisible(false);
-        //scene.tempText.setText('Pick card');
-        scene.tempButton.setScale(0.13, 0.08);
-    }
-}
-
 
 /**
  * Returns a list of positions (stage, index) of illegally played cards
@@ -904,4 +882,4 @@ function getIllegalPlacements(scene) {
 
 
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, eventTest, useEffect };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard };

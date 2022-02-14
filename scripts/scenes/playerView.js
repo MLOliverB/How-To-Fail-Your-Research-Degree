@@ -1,5 +1,5 @@
-import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, eventTest, useEffect } from "../activity_cards/GameBoard.js";
-//import { eventTest, useEffect } from "../event_cards/eventBoard.js";
+import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard.js";
+import { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler } from "../event_cards/eventBoard.js";
 import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
 /**
@@ -58,12 +58,16 @@ export default class playerView extends Phaser.Scene {
 		
 		//// TEAMS ////
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-		this.numberOfTeams = 2;					// TODO: get this to recieve numberOfTeams from start menu!
+		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
 		
 		this.roundLength = 30;					// The maximum length of each round in seconds (TODO: get this from menu)
 		this.timer;
 		this.isTimerRunning = false;
+		
+		this.isEventRound = false;
+		this.totalEventCards = 1;							// TODO: get the number of event cards per round from menu
+		this.eventCardsRemaining = this.totalEventCards;	// The number of event cards drawn each round
 		
 		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
 		this.isPlayerHoldingWorkLate = false;	// Whether or not the player is currently holding a work late tile
@@ -78,9 +82,10 @@ export default class playerView extends Phaser.Scene {
 				["leftEdge", 0],					// the position of the card furthest to the left
 				["rightEdge", 0],					// the position of the card furthest to the right
 				["cards", []],						// a 2D array of stages of card boxes, e.g. cards[0] will return the array of card boxes used in the first stage
+				["eventCards", []],					// a 1D array of event card ids that the team has in their inventory
 				["addCardBoxes", []],				// a 1D array of the current set of add card box buttons (not in order) - this is reset after every stage
 				["workLateTiles", totalWorkLate],	// the number of work late tiles the team has remaining in their inventory
-                ["currentEvent", 0]                 // id of event card player is holding
+                ["currentEventCard", 0]             // id of event card player is holding
 			]);
 			this.teams.push(team);
 		}
@@ -137,6 +142,14 @@ export default class playerView extends Phaser.Scene {
 		buttonToggle(this.toolbarDiscard.button, 0, false);
 		buttonToggle(this.currentCardBox, 1, false);
 		
+		this.eventBarPlay = new EventBarButton(this, 0.7, 0.1, "Play", playHandler, undefined, undefined);			// button to play the event card
+		this.eventBarStore = new EventBarButton(this, 1.3, 0.1, "Store", storeHandler, undefined, undefined);		// button to store the event card
+		this.eventBarFinish = new EventBarButton(this, 0.7, 0.1, "Finish", finishHandler, undefined, undefined);	// button to finish playing the event card
+		this.eventBarPlay.setVisible(false);
+		this.eventBarStore.setVisible(false);
+		this.eventBarFinish.setVisible(false);
+
+		
 		// creating a button to pick up a card from the stack
 		this.activityCards = [];
 		for (let s = 1; s < 5; s++) {
@@ -151,22 +164,14 @@ export default class playerView extends Phaser.Scene {
 		
 		
 		//// EVENT CARDS ////
-		this.eventBack = this.add.image(this.x*1.81, this.y*1.76, 'e1').setScale(0.15).setVisible(false);
-        // overlay for back of event cards to be animated
-        this.eventBox = this.add.rectangle(this.x*1.81, this.y*1.76, this.width, this.height, 0xe76f8d).setScale(0.1, 0.25).setAlpha(0.01); 
-        // actions for flipping event cards
-        this.eventBox.on("pointerover", () => {
-            this.eventBox.setPosition(this.x*1.81, this.y*1.45).setScale(0.13, 0.305);
-            this.eventBack.setPosition(this.x*1.81, this.y*1.45).setScale(0.2);
-        });
-        this.eventBox.on("pointerout", () => {
-            this.eventBox.setPosition(this.x*1.81, this.y*1.76).setScale(0.1, 0.204);
-            this.eventBack.setPosition(this.x*1.81, this.y*1.76).setScale(0.15);
-        });
-        this.eventBox.on("pointerup", () => {
-            if(this.currentEvent == 0) {
+		this.eventStack = this.add.image(this.x*1, this.y*1.55, 'e1').setScale(0.235).setInteractive().setVisible(false);
+		this.eventStack.on("pointerup", () => {
+			if (this.eventCardsRemaining <= 0) {
+				console.log("Error: no more event cards to be picked up this round");
+            } else if (this.teams[this.currentTeam].get("currentEventCard") == 0) {
                 try {
-                    eventTest(this);
+					pickUpEventCard(this);
+					this.eventCardsRemaining--;
                 }
                 catch (error) {
                     if (this.stage == 0) {
@@ -178,13 +183,13 @@ export default class playerView extends Phaser.Scene {
                 }
             }
         });
-        // text displayed on event box
-        this.currentEventBox = this.add.text(this.x*1.81, this.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1);
-        // event card image
-        this.currentEventImage = this.add.image(this.x*1.81, this.y*1.3, 2).setScale(0.25).setVisible(false);
+		
+		
+		//this.test = new EventCard(this);
+
         
         // tempButton causes image (when visible) to be interactive
-        this.tempButton = this.add.rectangle(this.x*1.81, this.y*1.29, this.width, this.height).setScale(0.13, 0.08).setInteractive();
+        //this.tempButton = this.add.rectangle(this.x*1.81, this.y*1.29, this.width, this.height).setScale(0.13, 0.08).setInteractive();
         // temporary text for bug checking
         //this.tempText = this.add.text(this.x*1.81, this.y*1.29, 'Play card', {color: "0x000000"}).setOrigin(0.5, 0.5).setFontSize(20);
         // actions for event cards
@@ -200,21 +205,17 @@ export default class playerView extends Phaser.Scene {
             if (this.currentEventBox == 0){
                 this.tempText.setText('Play card');
             }
-        });*/
+        });
         this.tempButton.on("pointerup", () => {
             if(this.currentEventBox != 0) {
                 useEffect(this);
             }
-        });
+        });*/
 		
 		this.eventCards = [];
         for (let s = 1; s < 5; s++) {
             loadEventCardStack(s, (ecards) => {
                 this.eventCards.push(shuffleCardStack(ecards));
-                if(s == 4) {
-                    this.eventBox.setInteractive();
-                    //this.currentEventImage.setInteractive();
-                }
             });
         }
 		
