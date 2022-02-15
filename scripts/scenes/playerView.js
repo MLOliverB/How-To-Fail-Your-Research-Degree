@@ -143,7 +143,7 @@ export default class playerView extends Phaser.Scene {
 		buttonToggle(this.currentCardBox, 1, false);
 		
 		this.eventBarPlay = new EventBarButton(this, 1.5, 1, 0.1, "Play", playHandler, undefined, undefined);			// button to play the event card
-		this.eventBarStore = new EventBarButton(this, 1.5, 0.87, 0.1, "Store", storeHandler, undefined, undefined);		// button to store the event card
+		this.eventBarStore = new EventBarButton(this, 1.3, 1, 0.1, "Store", storeHandler, undefined, undefined);		// button to store the event card
 		this.eventBarFinish = new EventBarButton(this, 1.5, 1, 0.1, "Finish", finishHandler, undefined, undefined);	// button to finish playing the event card
 		this.eventBarPlay.setVisible(false);
 		this.eventBarStore.setVisible(false);

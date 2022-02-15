@@ -1,5 +1,5 @@
 import { loadEventCard } from "../cards-management.js";
-import { buttonToggle } from "../activity_cards/GameBoard.js";
+import { buttonToggle, AddCardBox, CardBox, CardDiscardBox } from "../activity_cards/GameBoard.js";
 
 
 class EventCard {
@@ -166,9 +166,9 @@ function matchCount(valToBeChecked, valChecked) {
     return valToBeChecked == valChecked;
 }
 
+// get count of all occurrences of each activity card ID
+// taken from: https://stackoverflow.com/questions/5667888/counting-the-occurrences-frequency-of-array-elements
 function countCardOccurrences(scene){
-    // get count of all occurrences of each activity card ID
-    // taken from: https://stackoverflow.com/questions/5667888/counting-the-occurrences-frequency-of-array-elements
     var arrayAll = countIds(scene);
     const occurrences = arrayAll.reduce(function (acc, curr) {
         return acc[curr] ? ++acc[curr] : acc[curr] = 1, acc }, {});
@@ -181,6 +181,7 @@ function countCardOccurrences(scene){
     
     return occurrences;
 }
+
 
 function useEffect(scene) {
     console.log("use event card");
@@ -213,32 +214,26 @@ function useEffect(scene) {
     var preCondition = new Array();
     
     // action = action taken
-    // sAct = action taken (original form: one letter)
     // adjacency = whether cards have to be adjacent
     // forAction = action taken on cardID(s)
     // totalAmount = total amount of card(s)
     // cardStage = stage(s) of card to take action
     var action = new Array();
-    var sAct = new Array();
     var adjacency = new Array();
     var forAction = new Array();
     var totalAmount = new Array();
     var cardStage = new Array();
     
-    // else condition to do second effect
-    // actionElse = action taken in Else
-    // forActionElse = action taken on cardID(s) in Else
-    // totalAmountElse = total amount of card(s) in Else
-    // cardStageElse = specific card stage(s) in Else
-    var actionElse = new Array();
-    var forActionElse = new Array();
-    var totalAmountElse = new Array();
-    var cardStageElse = new Array();
+    // wholeEffect = all actions of card
+    var wholeEffect = new Array;
+    
+    // sAct = action taken for either effect or else (original form: one letter)
+    var sAct = new Array();
     
     /* 
      * get requirement(s) of chosen card and check if requirement is met
      */
-    function booleanRequirement() {
+    function booleanRequirement(scene) {
         // get requirement(s) of chosen card
         var chosenRequirement = holdEventID.requirement.toString();
         // if double requirements, split string into separate  
@@ -312,7 +307,7 @@ function useEffect(scene) {
                         Specific number of card(s) necessary: ${preCondition}`);
             }
         }
-        
+
         // check if requirement is met
         var booleanArr = new Array();
         var matchAbs = arrayMatch(toBeAbsent, arrayAll);
@@ -358,187 +353,198 @@ function useEffect(scene) {
             return false;
         }
     }
-    console.log(booleanRequirement());
-    
-    
+    console.log(booleanRequirement(scene));
 
-    /* 
-     * get effect(s) of chosen card
-     */
-    var chosenEffect = holdEventID.effect.toString();
-    /* 
-    splitting the effect into a:b:c (0:1:2)
-    splitEffect[order of effect][a, b, or c][first index]
-        e.g. splitEffect[0][0][0]: first index of first effect's "a"
-    */
-    var doubleEffect = chosenEffect.split(/&(?!\d)/);
-    var splitEffect = new Array();
-    for (var i = 0; i < doubleEffect.length; i++) {
-        var x = doubleEffect[i].split(/:/);
-        splitEffect[i] = x;
-    }
-
-    // effect of card chosen
-    for (var i = 0; i < splitEffect.length; i++) {
-        
-        // temp values
-        var card;
-        var stage;
+    if (booleanRequirement(scene)) {    // if requirements are fulfilled, can use effect
         /* 
-        check for action taken on card based on first letter:
-        n = remove a card
-        p = add a card
-        s = stand in for a card
-        o = block out spaces
-        i = ignore effects of another event card
-        l = placeholder (for default)
-        */
-        switch(splitEffect[i][0][0]) {
-            case "n":
-                action.push('Remove card');
-                sAct.push("n");
-                break;
-            case "p":
-                action.push('Add card');
-                sAct.push("p");
-                break;
-            case "s":
-                action.push('Stand in for');
-                sAct.push("s");
-                break;
-            case "o":
-                action.push('Block out');
-                sAct.push("o");
-                break;
-            case "i":
-                action.push('Ignore effects of');
-                sAct.push("i");
-                break;
-            default:
-                console.log('none');
-                sAct.push("l");
-        }
+         * get effect(s) of chosen card
+         */
+        var chosenEffect = holdEventID.effect.toString();
         /* 
-        check the a:b:c :
-        a = specific ID of card (0 = not a specific card, -(...) = non-adjacent cards)
-        b = total number of cards to change
-        c = stage of card if not a specific card (optional)
+        splitting the effect into a:b:c (0:1:2)
+        splitEffect[order of effect][a, b, or c][first index]
+            e.g. splitEffect[0][0][0]: first index of first effect's "a"
         */
-
-        // check if cards to take action upon should be adjacent
-        if(splitEffect[i][0].includes('-')){
-            adjacency.push('non-adjacent');
-        }
-        else{
-            adjacency.push('adjacent');
-        }
-        card = splitEffect[i][0].match(/\d+/g);
-
-        // check if there is/are specific cardID(s) to take action
-        if(card=='0'){
-            forAction.push('Not stated');
-        }
-        else{
-            forAction.push(card);
+        var doubleEffect = chosenEffect.split(/&(?!\d)/);
+        var splitEffect = new Array();
+        for (var i = 0; i < doubleEffect.length; i++) {
+            var x = doubleEffect[i].split(/:/);
+            splitEffect[i] = x;
         }
 
-        // check for total number of cards to take action
-        totalAmount.push(splitEffect[i][1]);
+        // effect of card chosen
+        for (var i = 0; i < splitEffect.length; i++) {
 
-        // check if stage of card is stated
-        if(splitEffect[i][2]){
-            stage = splitEffect[i][2].match(/\d+/g);
-            cardStage.push(stage);
-        }
-        else {
-            cardStage.push('Not stated');
+            // temp values
+            var card;
+            var stage;
+            /* 
+            check for action taken on card based on first letter:
+            n = remove a card
+            p = add a card
+            s = stand in for a card
+            o = block out spaces
+            i = ignore effects of another event card
+            l = placeholder (for default)
+            */
+            switch(splitEffect[i][0][0]) {
+                case "n":
+                    action.push('Remove card');
+                    sAct.push("n");
+                    break;
+                case "p":
+                    action.push('Add card');
+                    sAct.push("p");
+                    break;
+                case "s":
+                    action.push('Stand in for');
+                    sAct.push("s");
+                    break;
+                case "o":
+                    action.push('Block out');
+                    sAct.push("o");
+                    break;
+                case "i":
+                    action.push('Ignore effects of');
+                    sAct.push("i");
+                    break;
+                default:
+                    console.log('none');
+                    sAct.push("l");
+            }
+            /* 
+            check the a:b:c :
+            a = specific ID of card (0 = not a specific card, -(...) = non-adjacent cards)
+            b = total number of cards to change
+            c = stage of card if not a specific card (optional)
+            */
+
+            // check if cards to take action upon should be adjacent
+            if(splitEffect[i][0].includes('-')){
+                adjacency.push('non-adjacent');
+            }
+            else{
+                adjacency.push('null');
+            }
+            card = splitEffect[i][0].match(/\d+/g);
+
+            // check if there is/are specific cardID(s) to take action
+            if(card=='0'){
+                forAction.push('Not stated');
+            }
+            else{
+                forAction.push(card);
+            }
+
+            // check for total number of cards to take action
+            totalAmount.push(splitEffect[i][1]);
+
+            // check if stage of card is stated
+            if(splitEffect[i][2]){
+                stage = splitEffect[i][2].match(/\d+/g);
+                cardStage.push(stage);
+            }
+            else {
+                cardStage.push('Not stated');
+            }
+            wholeEffect.push(action, adjacency, forAction, totalAmount, cardStage);
         }
         console.log(`Title of event card: ${chosenTitle} \n
-                Effect ${i+1} -\n
-                Action to take: ${action}\n
-                Adjacency of card(s): ${adjacency}\n
-                CardID(s): ${forAction}\n
-                Total number of card(s)/space(s): ${totalAmount}\n
-                Stage: ${cardStage}`);
-    }
+                    Effect -\n
+                    Action to take: ${action}\n
+                    Adjacency of card(s): ${adjacency}\n
+                    CardID(s): ${forAction}\n
+                    Total number of card(s)/space(s): ${totalAmount}\n
+                    Stage: ${cardStage}`);
+        console.log(wholeEffect);
     
-
-
-
-    /* 
-     * get else condition of chosen card
-     */
-    var chosenElse = holdEventID.else_condition.toString();
-    var splitElse = chosenElse.split(/:/);
-
-    // check if value is Null
-    if(splitElse.includes('Null')){
-        console.log('There are no else effects');
-    }
-    else{
+    } else {  // if requirements not fulfilled, go to else condition and use (if exists)
         /* 
-        check for action taken on card based on first letter:
-        n = remove a card
-        p = add a card
-        s = stand in for a card
-        o = block out spaces
-        i = ignore effects of another event card
-        f = flip a card
-        */
-        switch(splitElse[0][0]) {
-            case "n":
-                actionElse.push('Remove card');
-                break;
-            case "p":
-                actionElse.push('Add card');
-                break;
-            case "s":
-                actionElse.push('Stand in for');
-                break;
-            case "o":
-                actionElse.push('Block out');
-                break;
-            case "i":
-                actionElse.push('Ignore effects of');
-                break;
-            case "f":
-                actionElse.push('Flip card');
-                break;
-            default:
-                alert('test');
-        }
-         /* 
-        check the a:b:c :
-        a = specific ID of card (0 = not a specific card, -(...) = non-adjacent cards)
-        b = number of cards to change
-        c = stage of card if not a specific card (optional)
-        */
-        card = splitElse[0].match(/\d+/g);
-        // check if there is/are specific cardID(s) to take action
-        if(card=='0'){
-            forActionElse.push('no specific cardID');
+         * get else condition of chosen card
+         */
+        var chosenElse = holdEventID.else_condition.toString();
+        var splitElse = chosenElse.split(/:/);
+
+        // check if value is Null
+        if(splitElse.includes('Null')){
+            console.log('There are no else effects');
         }
         else{
-            forActionElse.push(card);
-        }
+            adjacency.push("null");
+            /* 
+            check for action taken on card based on first letter:
+            n = remove a card
+            p = add a card
+            s = stand in for a card
+            o = block out spaces
+            i = ignore effects of another event card
+            f = flip a card
+            l = default (placeholder)
+            */
+            switch(splitElse[0][0]) {
+                case "n":
+                    action.push('Remove card');
+                    sAct.push("n");
+                    break;
+                case "p":
+                    action.push('Add card');
+                    sAct.push("p");
+                    break;
+                case "s":
+                    action.push('Stand in for');
+                    sAct.push("s");
+                    break;
+                case "o":
+                    action.push('Block out');
+                    sAct.push("o");
+                    break;
+                case "i":
+                    action.push('Ignore effects of');
+                    sAct.push("i");
+                    break;
+                case "f":
+                    actionElse.push('Flip card');
+                    sAct.push("f");
+                    break;
+                default:
+                    console.log("have no action");
+                    sAct.push("l");
+            }
+             /* 
+            check the a:b:c :
+            a = specific ID of card (0 = not a specific card, -(...) = non-adjacent cards)
+            b = number of cards to change
+            c = stage of card if not a specific card (optional)
+            */
+            card = splitElse[0].match(/\d+/g);
+            // check if there is/are specific cardID(s) to take action
+            if(card=='0'){
+                forAction.push('not stated');
+            }
+            else{
+                forAction.push(card);
+            }
 
-        // check for total number of cards to take action
-        totalAmountElse.push(splitElse[1]);
+            // check for total number of cards to take action
+            totalAmount.push(splitElse[1]);
 
-        // check if stage of card is stated
-        if(splitElse[2]){
-            stage = splitElse[2].match(/\d+/g);
-            cardStageElse.push(stage);
+            // check if stage of card is stated
+            if(splitElse[2]){
+                stage = splitElse[2].match(/\d+/g);
+                cardStage.push(stage);
+            }
+            else {
+                cardStage.push('not stated');
+            }
+            wholeEffect.push(action, adjacency, forAction, totalAmount, cardStage);
+            console.log(`Title of event card: ${chosenTitle} \n
+                    Else effect - \n
+                    Action to take: ${action}\n
+                    CardID(s): ${forAction}\n
+                    Number of card(s)/space(s): ${totalAmount}\n
+                    Stages: ${cardStage}`);
+            console.log(wholeEffect);
         }
-        else {
-            cardStageElse.push('not stated');
-        }
-        console.log(`Title of event card: ${chosenTitle} \n
-                Else effect - \n
-                Action to take: ${actionElse}\n
-                CardID(s): ${forActionElse}\n
-                Number of card(s)/space(s): ${totalAmountElse}\n
-                Stages: ${cardStageElse}`);
     }
     
 }
@@ -582,6 +588,10 @@ function booleanSave(scene) {
     return false;
 }
 
+function effectDiscard(scene) {
+    return true;
+}
+
 /**
  * Runs when the play event card button is clicked
  * Lets the player use the effects of the cards
@@ -589,11 +599,35 @@ function booleanSave(scene) {
 function playHandler(scene) {
 	console.log("Play the event card");
     useEffect(scene);
-    //if (scene.drawnEventCards == 3) {
-        scene.eventBarPlay.setVisible(false);
-        scene.eventBarStore.setVisible(false);
-        scene.eventBarFinish.setVisible(true);
-    //}
+    var variables = scene.teams[scene.currentTeam];
+
+    // allow activity cards to be played (overrides illegal moves)
+    buttonToggle(scene.toolbarDiscard.button, 0, true);
+    buttonToggle(scene.currentCardBox, 1, true);
+
+    // all stages will become interactive and all card components visible
+    for (let i = 0; i < scene.stage+1; i++) {
+        for (let j = 0; j < variables.get("cards")[i].length; j++) {
+            variables.get("cards")[i][j].setVisible(true, true);
+        }
+    }
+
+    for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
+        variables.get("addCardBoxes")[i].setVisible(true, true);
+    }
+    
+    // TO BE COMPLETED: only start with add card boxes on the outer edges
+    var box = new AddCardBox(scene, variables.get("leftEdge") - 1)
+    box.setVisible(false, true);
+    variables.get("addCardBoxes").push(box);
+    box = new AddCardBox(scene, variables.get("rightEdge") + 1)
+    box.setVisible(false, true);
+    variables.get("addCardBoxes").push(box);
+    
+    scene.eventBarPlay.setVisible(false);
+    scene.eventBarStore.setVisible(false);
+    scene.eventBarFinish.setVisible(true);
+    
 }
 
 
@@ -620,9 +654,24 @@ function finishHandler(scene) {
 	if (areRulesMatched) {
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
-		
-		scene.eventStack.setTexture(`e${scene.stage}`);
-		if (scene.eventCardsRemaining > 0 /*scene.drawnEventCards <= 3*/) {
+		buttonToggle(scene.toolbarDiscard.button, 0, false);
+        buttonToggle(scene.currentCardBox, 1, false);
+        
+        // disabling all the card placement boxes
+        for (let j = 0; j < scene.stage+1; j++) {
+            for (let i = 0; i < variables.get("cards")[j].length; i++) {
+                variables.get("cards")[j][i].placementBox.disableInteractive();
+            }
+        }
+
+        // TO BE COMPLETED: deleting all the add card buttons from the current round
+        for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
+            variables.get("addCardBoxes")[i].setVisible(false, true);
+        }
+        variables.set("addCardBoxes", [])
+        
+		scene.eventStack.setTexture("e"+scene.stage);
+		if (scene.eventCardsRemaining > 0) {
 			variables.set("currentEventCard", 0);
 			scene.eventBarFinish.setVisible(false);
 			console.log(variables.get("currentEventCard"));
@@ -636,4 +685,4 @@ function finishHandler(scene) {
 
 
 
-export { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler };
+export { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler, effectDiscard };

@@ -1,4 +1,5 @@
 import { loadActivityCard, loadEventCard } from "../cards-management.js";
+import { effectDiscard } from "../event_cards/eventBoard.js";
 
 
 /**
@@ -345,7 +346,7 @@ class CardDiscardBox {
 			}
 
 
-			if (isDiscardable) {
+			if (isDiscardable && effectDiscard) {
 				console.log("Card can't be played");
 				this.button.alpha = 1;
 				this.buttonText.alpha = 1;
@@ -534,15 +535,6 @@ function nextHandler(scene) {
 		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
 		scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
 	}
-	
-    
-    // reset event cards
-    //scene.currentEvent = 0;
-    //scene.currentEventBox.setText("+");
-    //scene.eventBox.setVisible(true);
-    //scene.currentEventImage.setVisible(false);
-    //scene.tempButton.setAlpha(1).setScale(0.13, 0.08);
-    //scene.tempText.setText('Play card');
 }
 
 
