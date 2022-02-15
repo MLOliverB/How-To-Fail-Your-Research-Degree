@@ -89,10 +89,10 @@ class EventBarButton {
 
 function countIds(scene) {
     let variables = scene.teams[scene.currentTeam];
-    // creating array for holding activity cards placed 
+    // creating array for holding activity cards placed
     let arrayOfCards = variables.get("cards");
     // first row
-    if (arrayOfCards[0] == null) { var firstCards = [0];} 
+    if (arrayOfCards[0] == null) { var firstCards = [0];}
     else { var firstCards = arrayOfCards[0]; }
     // second row
     if (arrayOfCards[1] == null) {var secondCards = [0];}
@@ -104,7 +104,7 @@ function countIds(scene) {
     if (arrayOfCards[3] == null) {var fourthCards = [0];}
     else{var fourthCards = arrayOfCards[3];}
 
-    var arrayFirst = new Array(); var arraySecond = new Array(); 
+    var arrayFirst = new Array(); var arraySecond = new Array();
     var arrayThird = new Array(); var arrayFourth = new Array();
     for (let i = 0; i < firstCards.length; i++) {
         var x = firstCards[i].cardId;
@@ -136,7 +136,7 @@ function pickUpEventCard(scene) {
     console.log("Pick up an event card");
     if (variables.get("currentEventCard") == 0 && scene.isEventRound) {     // this check should be redundant but just in case...
         variables.set("currentEventCard", scene.eventCards[scene.stage].pop().id);
-        scene.eventStack.setTexture(variables.get("currentEventCard")).setVisible(true);
+        scene.eventStack.setTexture(variables.get("currentEventCard"));
 		scene.eventBarPlay.setVisible(true);
         if(booleanSave){
             scene.eventBarStore.setVisible(true);
@@ -235,15 +235,15 @@ function useEffect(scene) {
     var totalAmountElse = new Array();
     var cardStageElse = new Array();
     
-    /* 
+    /*
      * get requirement(s) of chosen card and check if requirement is met
      */
     function booleanRequirement() {
         // get requirement(s) of chosen card
         var chosenRequirement = holdEventID.requirement.toString();
-        // if double requirements, split string into separate  
+        // if double requirements, split string into separate
         //requirements before splitting the requirement into a:b
-        /* 
+        /*
         splitRequirement[order of requirement][a or b][first index]
             e.g. splitRequirement[0][0][0]: first index of first requirement's "a"
         */
@@ -362,11 +362,11 @@ function useEffect(scene) {
     
     
 
-    /* 
+    /*
      * get effect(s) of chosen card
      */
     var chosenEffect = holdEventID.effect.toString();
-    /* 
+    /*
     splitting the effect into a:b:c (0:1:2)
     splitEffect[order of effect][a, b, or c][first index]
         e.g. splitEffect[0][0][0]: first index of first effect's "a"
@@ -384,7 +384,7 @@ function useEffect(scene) {
         // temp values
         var card;
         var stage;
-        /* 
+        /*
         check for action taken on card based on first letter:
         n = remove a card
         p = add a card
@@ -418,7 +418,7 @@ function useEffect(scene) {
                 console.log('none');
                 sAct.push("l");
         }
-        /* 
+        /*
         check the a:b:c :
         a = specific ID of card (0 = not a specific card, -(...) = non-adjacent cards)
         b = total number of cards to change
@@ -465,7 +465,7 @@ function useEffect(scene) {
 
 
 
-    /* 
+    /*
      * get else condition of chosen card
      */
     var chosenElse = holdEventID.else_condition.toString();
@@ -476,7 +476,7 @@ function useEffect(scene) {
         console.log('There are no else effects');
     }
     else{
-        /* 
+        /*
         check for action taken on card based on first letter:
         n = remove a card
         p = add a card
@@ -507,7 +507,7 @@ function useEffect(scene) {
             default:
                 alert('test');
         }
-         /* 
+         /*
         check the a:b:c :
         a = specific ID of card (0 = not a specific card, -(...) = non-adjacent cards)
         b = number of cards to change
@@ -620,10 +620,9 @@ function finishHandler(scene) {
 	if (areRulesMatched) {
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
-		
-		scene.eventStack.setTexture(`e${scene.stage}`);
+		variables.set("currentEventCard", 0);
 		if (scene.eventCardsRemaining > 0 /*scene.drawnEventCards <= 3*/) {
-			variables.set("currentEventCard", 0);
+			scene.eventStack.setTexture(`e${scene.stage}`);
 			scene.eventBarFinish.setVisible(false);
 			console.log(variables.get("currentEventCard"));
 		} else {
