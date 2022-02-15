@@ -221,10 +221,12 @@ export default class playerView extends Phaser.Scene {
             }
         });*/
 		
-		this.eventCards = [];
-        for (let s = 1; s < 5; s++) {
+		this.eventCards = [[], [], [], []];
+        for (let s = 2; s < 5; s++) {
             loadEventCardStack(s, (ecards) => {
-                this.eventCards.push(shuffleCardStack(ecards));
+				console.log(ecards)
+				let ix = ecards[0].stage - 1;
+                this.eventCards[ix] = shuffleCardStack(ecards);
             });
         }
 		
