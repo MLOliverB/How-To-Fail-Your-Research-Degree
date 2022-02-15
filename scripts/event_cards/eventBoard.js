@@ -253,6 +253,7 @@ function useEffect(scene) {
         // check if value is Null
         if(splitRequirement[0].includes('Null')) {
             console.log(`There are no requirements.`);
+            return true;
         }
         else {
             for (var i = 0; i < splitRequirement.length; i++) {
@@ -345,7 +346,6 @@ function useEffect(scene) {
                 }
             }
         }
-        console.log(booleanArr);
         if (!booleanArr.includes(false)) {
             return true;
         }
@@ -353,7 +353,6 @@ function useEffect(scene) {
             return false;
         }
     }
-    console.log(booleanRequirement(scene));
 
     if (booleanRequirement(scene)) {    // if requirements are fulfilled, can use effect
         /* 
@@ -447,7 +446,8 @@ function useEffect(scene) {
             else {
                 cardStage.push('Not stated');
             }
-            wholeEffect.push(action, adjacency, forAction, totalAmount, cardStage);
+            wholeEffect.push(sAct, adjacency, forAction, totalAmount, cardStage);
+            //checkEffect(action, adjacency, forAction, totalAmount);
         }
         console.log(`Title of event card: ${chosenTitle} \n
                     Effect -\n
@@ -457,7 +457,6 @@ function useEffect(scene) {
                     Total number of card(s)/space(s): ${totalAmount}\n
                     Stage: ${cardStage}`);
         console.log(wholeEffect);
-    
 
     } else {  // if requirements not fulfilled, go to else condition and use (if exists)
         /* 
@@ -537,7 +536,8 @@ function useEffect(scene) {
             else {
                 cardStage.push('not stated');
             }
-            wholeEffect.push(action, adjacency, forAction, totalAmount, cardStage);
+            wholeEffect.push(sAct, adjacency, forAction, totalAmount, cardStage);
+            //checkEffect(action, adjacency, forAction, totalAmount);
             console.log(`Title of event card: ${chosenTitle} \n
                     Else effect - \n
                     Action to take: ${action}\n
@@ -547,7 +547,37 @@ function useEffect(scene) {
             console.log(wholeEffect);
         }
     }
-    
+}
+
+function checkEffect(action, adjacency, forAction, totalAmount){
+    switch (action){
+        // remove card
+        case n:
+            
+            break;
+        // add card
+        case p:
+            
+            break;
+        // stand in for card
+        case s:
+            
+            break;
+        // block out spaces
+        case o:
+            
+            break;
+        // ignore effects of card
+        case i:
+            
+            break;
+        // flip card
+        case f:
+            
+            break;
+        default:
+            console.log("no action");
+    }
 }
 
 /*
