@@ -31,12 +31,9 @@ class EventCard {
         });
         
 
-        this.currentEventText = this.scene.add.text(this.scene.x*1.81, this.scene.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1);
-        this.currentEventImage = this.scene.add.image(this.scene.x*1.81, this.scene.y*1.3, 70).setScale(0.25).setVisible(false);
+        this.currentEventText = this.scene.add.text(this.scene.x*2, this.scene.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1);
+        this.currentEventImage = this.scene.add.image(this.scene.x*2, this.scene.y*1.3, 70).setScale(0.25).setVisible(false);
         
-        // variable for storing the amount of event cards drawn
-        // each player (team) has to draw 3 cards
-        var drawnEventCards = 0;
         // effectCards: array of cards that needs to be changed due to effect
         let effectCards = [];
         // elseCards: array of cards that needs to be changed due to else_condition
@@ -54,16 +51,17 @@ class EventBarButton {
 	/**
 	 * @param {Phaser.scene} scene The scene which this button will appear on
 	 * @param {number} x The horizontal position of the button (from 0-1)
+     * @param {number} y The vertical position of the button (from 0-1)
 	 * @param {number} width The width of the button (from 0-1 as a fraction of the width of the screen)
 	 * @param {text} label The text that will appear on the button
 	 * @param {function} onClick The function that runs when the button is clicked (pass "undefined" for no action)
 	 * @param {function} onOver The function that runs when the cursor is hovering over the button (pass "undefined" for no action)
 	 * @param {function} onOut The function that runs when the cursor moves away from the button (pass "undefined" for no action)
 	*/
-	constructor(scene, x, width, label, onClick, onOver, onOut) {
+	constructor(scene, x, y, width, label, onClick, onOver, onOut) {
 		this.scene = scene;
 		
-		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*1.64, this.scene.width, this.scene.height, 0xb1cfe0).setScale(width, 0.07).setInteractive();
+		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*y*1.63, this.scene.width, this.scene.height, 0xb1cfe0).setScale(width, 0.07).setInteractive();
 		if (onOver != undefined) {
 			this.button.on("pointerover", () => { onOver(this.scene) });
 		} else {
@@ -77,7 +75,7 @@ class EventBarButton {
 		if (onClick != undefined) {
 			this.button.on("pointerup", () => { onClick(this.scene) });
 		}
-		this.buttonText = this.scene.add.text(this.scene.x*x, this.scene.y*1.64, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.buttonText = this.scene.add.text(this.scene.x*x, this.scene.y*y*1.63, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 	}
 	
 	/*
@@ -136,49 +134,17 @@ function pickUpEventCard(scene) {
     let cardArray = countIds(scene);
     
     console.log("Pick up an event card");
-    if (variables.get("currentEventCard") == 0 && scene.isEventRound && scene.drawnEventCards != 3) {     // this check should be redundant but just in case...
+    if (variables.get("currentEventCard") == 0 && scene.isEventRound) {     // this check should be redundant but just in case...
         variables.set("currentEventCard", scene.eventCards[scene.stage].pop().id);
         scene.eventStack.setTexture(variables.get("currentEventCard")).setVisible(true);
 		scene.eventBarPlay.setVisible(true);
-        /*
-         * Check the save_condition of chosen card
-         */
-        // current event card in hand
-        let holdEventID = scene.cardMap.get(variables.get("currentEventCard"));
-        // array to check for cards required to be stored
-        var requiredCards = new Array();
-        var saveCon = new Array();
-        var chosenSave = holdEventID.save_conditon.toString();
-        var splitSave = chosenSave.split(/:/);
-        if (splitSave.includes('TRUE')){
+        if(booleanSave){
             scene.eventBarStore.setVisible(true);
         }
-        else if (!splitSave.includes('Null')) {
-            var card = splitSave[0].match(/\d+/g);
-            requiredCards.push(card);
-            var con = splitSave[0].match(/\d+/g);
-            var saveCon = con;
-            console.log(`TItle of event card: ${chosenTitle} \n
-                        Save condition - \n
-                        CardID(s): ${requiredCards}\n
-                        Require at least ${saveCon}`);
-            if(arrayMatch(requiredCards, ids).length >= saveCon) {
-                scene.eventBarStore.setVisible(true);
-            }
-            else {
-                console.log("Required cards do not exist on board");
-            }
-        }
-        else {
-            console.log("This card cannot be stored");
-        }
+        scene.eventBarStore.setVisible(false);
         console.log(variables.get("currentEventCard"));
-        scene.drawnEventCards += 1;
     }
-    if (scene.drawnEventCards == 3) {
-        console.log("3 event cards have been drawn, event phase over");
-        buttonToggle(scene.toolbarNext.button, 0, true);
-    }
+    buttonToggle(scene.toolbarNext.button, 0, true);
 }
 
 // function to get matching cardIDs from activity cards array and required cards
@@ -577,7 +543,44 @@ function useEffect(scene) {
     
 }
 
-
+/*
+ * Check the save_condition of chosen card
+ */
+function booleanSave(scene) {
+    let variables = scene.teams[scene.currentTeam];
+    // current event card in hand
+    let holdEventID = scene.cardMap.get(variables.get("currentEventCard"));
+    // array to check for cards required to be stored
+    var requiredCards = new Array();
+    var saveCon = new Array();
+    var chosenSave = holdEventID.save_conditon.toString();
+    var splitSave = chosenSave.split(/:/);
+    if (splitSave.includes('TRUE')){
+        return true;
+    }
+    else if (!splitSave.includes('Null')) {
+        var card = splitSave[0].match(/\d+/g);
+        requiredCards.push(card);
+        var con = splitSave[0].match(/\d+/g);
+        var saveCon = con;
+        console.log(`TItle of event card: ${chosenTitle} \n
+                    Save condition - \n
+                    CardID(s): ${requiredCards}\n
+                    Require at least ${saveCon}`);
+        if(arrayMatch(requiredCards, ids).length >= saveCon) {
+            return true;
+        }
+        else {
+            console.log("Required cards do not exist on board");
+            return false;
+        }
+    }
+    else {
+        console.log("This card cannot be stored");
+        return false;
+    }
+    return false;
+}
 
 /**
  * Runs when the play event card button is clicked

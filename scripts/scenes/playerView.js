@@ -66,7 +66,7 @@ export default class playerView extends Phaser.Scene {
 		this.isTimerRunning = false;
 		
 		this.isEventRound = false;
-		this.totalEventCards = 1;							// TODO: get the number of event cards per round from menu
+		this.totalEventCards = 10;							// TODO: get the number of event cards per round from menu
 		this.eventCardsRemaining = this.totalEventCards;	// The number of event cards drawn each round
 		
 		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
@@ -142,9 +142,9 @@ export default class playerView extends Phaser.Scene {
 		buttonToggle(this.toolbarDiscard.button, 0, false);
 		buttonToggle(this.currentCardBox, 1, false);
 		
-		this.eventBarPlay = new EventBarButton(this, 0.7, 0.1, "Play", playHandler, undefined, undefined);			// button to play the event card
-		this.eventBarStore = new EventBarButton(this, 1.3, 0.1, "Store", storeHandler, undefined, undefined);		// button to store the event card
-		this.eventBarFinish = new EventBarButton(this, 0.7, 0.1, "Finish", finishHandler, undefined, undefined);	// button to finish playing the event card
+		this.eventBarPlay = new EventBarButton(this, 1.5, 1, 0.1, "Play", playHandler, undefined, undefined);			// button to play the event card
+		this.eventBarStore = new EventBarButton(this, 1.5, 0.87, 0.1, "Store", storeHandler, undefined, undefined);		// button to store the event card
+		this.eventBarFinish = new EventBarButton(this, 1.5, 1, 0.1, "Finish", finishHandler, undefined, undefined);	// button to finish playing the event card
 		this.eventBarPlay.setVisible(false);
 		this.eventBarStore.setVisible(false);
 		this.eventBarFinish.setVisible(false);
@@ -164,7 +164,7 @@ export default class playerView extends Phaser.Scene {
 		
 		
 		//// EVENT CARDS ////
-		this.eventStack = this.add.image(this.x*1, this.y*1.55, 'e1').setScale(0.235).setInteractive().setVisible(false);
+		this.eventStack = this.add.image(this.x*1.81, this.y*1.55, 'e1').setScale(0.235).setInteractive().setVisible(false);
 		this.eventStack.on("pointerup", () => {
 			if (this.eventCardsRemaining <= 0) {
 				console.log("Error: no more event cards to be picked up this round");
