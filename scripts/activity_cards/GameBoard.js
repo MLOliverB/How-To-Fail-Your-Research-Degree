@@ -469,12 +469,7 @@ function nextHandler(scene) {
 	
 	buttonToggle(scene.toolbarNext.button, 0, false);
 	buttonToggle(scene.toolbarStart.button, 0, true);
-
-	console.log("----")
-	console.log(scene.isEventRound)
-	console.log(scene.stage)
-	console.log(scene.currentTeam)
-	console.log(scene.numberOfTeams - 1)
+	
 	
 	// switching teams/stages
 	if (!scene.isEventRound && scene.stage != 0) {

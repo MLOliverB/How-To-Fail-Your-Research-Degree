@@ -66,7 +66,7 @@ export default class playerView extends Phaser.Scene {
 		this.isTimerRunning = false;
 		
 		this.isEventRound = false;
-		this.totalEventCards = 10;							// TODO: get the number of event cards per round from menu
+		this.totalEventCards = 2;							// TODO: get the number of event cards per round from menu
 		this.eventCardsRemaining = this.totalEventCards;	// The number of event cards drawn each round
 		
 		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
@@ -131,7 +131,7 @@ export default class playerView extends Phaser.Scene {
 		this.currentTeamText = this.add.text(this.x, this.y*0.18, "Team: 1", {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
 		this.timerText = this.add.text(this.x*0.3, this.y*0.13, "Time Remaining: "+this.roundLength+"s", {color: "0x000000"}).setOrigin(0.5).setFontSize(20);
 		
-		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Player", nextHandler, undefined, undefined);		// button to move to next player/stage
+		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Round", nextHandler, undefined, undefined);		// button to move to next player/stage
 		this.toolbarStart = new ToolbarButton(this, 0.43, 0.12, "Start", startHandler, undefined, undefined);			// button to start the game
 		this.toolbarWorkLate = new ToolbarButton(this, 0.7, 0.12, "Work Late\nTiles: "+totalWorkLate, workLateHandler, undefined, undefined);	// button to use work late tiles
 		this.toolbarDiscard = new CardDiscardBox(this, 1.33, 1.875, 0.15, 0.1);	// button for discarding the currently held card (Only possible to discard cards that are impossible to play)
