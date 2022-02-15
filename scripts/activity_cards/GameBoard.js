@@ -799,49 +799,51 @@ function getIllegalPlacements(scene, team) {
     for (let stage = 0; stage < nodesGrid.length; stage++) {
         for (let ix = 0; ix < nodesGrid[stage].length; ix++) {
             let node = nodesGrid[stage][ix];
-            node.adjacencyList = [];
-            // Check if this node can connect to a left node and if this left node is connected
-            if (node.connectivity[0] && node.ix > 0) {
-                if (nodesGrid[node.stage][node.ix-1] != null) {
-                    if (nodesGrid[node.stage][node.ix-1].connectivity[1]) {
-                        node.adjacencyList.push(nodesGrid[node.stage][node.ix-1]);
-                    } else {
-                        node.illegal = true
-                    }
-                }
-            }
-            // Check if this node can connect to a right node and if this right node is connected
-            if (node.connectivity[1] && node.ix < nodesGrid[node.stage].length-1) {
-                if (nodesGrid[node.stage][node.ix+1] != null) {
-                    if (nodesGrid[node.stage][node.ix+1].connectivity[0]) {
-                        node.adjacencyList.push(nodesGrid[node.stage][node.ix+1]);
-                    } else {
-                        node.illegal = true
-                    }
-                }
-            }
-            // Check if this node can connect to a top node and if this top node is connected
-            if (node.connectivity[2] && node.stage < scene.stage) {
-                let topCardIx = node.ix + (cards[node.stage+1][0].distanceFromMiddle - cards[node.stage][0].distanceFromMiddle);
-                if (nodesGrid[node.stage+1][topCardIx] != null) {
-                    if (nodesGrid[node.stage+1][topCardIx].connectivity[3]) {
-                        node.adjacencyList.push(nodesGrid[node.stage+1][topCardIx]);
-                    } else {
-                        node.illegal = true
-                    }
-                }
-            }
-            // Check if this node can connect to a bottom node and if this bottom node is connected
-            if (node.connectivity[3]) {
-                let bottomCardIx = node.ix + (cards[node.stage][0].distanceFromMiddle - cards[node.stage-1][0].distanceFromMiddle);
-                if (nodesGrid[node.stage-1][bottomCardIx] != null) {
-                    if (nodesGrid[node.stage-1][bottomCardIx].connectivity[2]) {
-                        node.adjacencyList.push(nodesGrid[node.stage-1][bottomCardIx]);
-                    } else {
-                        node.illegal = true
-                    }
-                }
-            }
+			if (node != null) {
+				node.adjacencyList = [];
+				// Check if this node can connect to a left node and if this left node is connected
+				if (node.connectivity[0] && node.ix > 0) {
+					if (nodesGrid[node.stage][node.ix-1] != null) {
+						if (nodesGrid[node.stage][node.ix-1].connectivity[1]) {
+							node.adjacencyList.push(nodesGrid[node.stage][node.ix-1]);
+						} else {
+							node.illegal = true
+						}
+					}
+				}
+				// Check if this node can connect to a right node and if this right node is connected
+				if (node.connectivity[1] && node.ix < nodesGrid[node.stage].length-1) {
+					if (nodesGrid[node.stage][node.ix+1] != null) {
+						if (nodesGrid[node.stage][node.ix+1].connectivity[0]) {
+							node.adjacencyList.push(nodesGrid[node.stage][node.ix+1]);
+						} else {
+							node.illegal = true
+						}
+					}
+				}
+				// Check if this node can connect to a top node and if this top node is connected
+				if (node.connectivity[2] && node.stage < scene.stage) {
+					let topCardIx = node.ix + (cards[node.stage+1][0].distanceFromMiddle - cards[node.stage][0].distanceFromMiddle);
+					if (nodesGrid[node.stage+1][topCardIx] != null) {
+						if (nodesGrid[node.stage+1][topCardIx].connectivity[3]) {
+							node.adjacencyList.push(nodesGrid[node.stage+1][topCardIx]);
+						} else {
+							node.illegal = true
+						}
+					}
+				}
+				// Check if this node can connect to a bottom node and if this bottom node is connected
+				if (node.connectivity[3]) {
+					let bottomCardIx = node.ix + (cards[node.stage][0].distanceFromMiddle - cards[node.stage-1][0].distanceFromMiddle);
+					if (nodesGrid[node.stage-1][bottomCardIx] != null) {
+						if (nodesGrid[node.stage-1][bottomCardIx].connectivity[2]) {
+							node.adjacencyList.push(nodesGrid[node.stage-1][bottomCardIx]);
+						} else {
+							node.illegal = true
+						}
+					}
+				}
+			}
         }
     }
 	nodesGrid = undefined; // The variable becomes obsolete at this point
@@ -864,7 +866,7 @@ function getIllegalPlacements(scene, team) {
 	// Add nodes that are flagged illegal and nodes that are still unvisited to the list of illegals
 	let illegals = [];
 	for (let i = 0; i < nodes.length; i++) {
-		if (nodes[i].illegal || !nodes[i].visited) {
+		if (nodes[i] != null && (nodes[i].illegal || !nodes[i].visited)) {
 			illegals.push([nodes[i].stage, nodes[i].ix]);
 		}
 	}
