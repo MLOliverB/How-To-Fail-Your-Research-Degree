@@ -466,7 +466,7 @@ function nextHandler(scene) {
 	let variables = scene.teams[scene.currentTeam];
 
 	// Identify all illegally placed cards
-	console.log(getIllegalPlacements(scene));
+	console.log("Illegal Placements Team", scene.currentTeam, "\n", getIllegalPlacements(scene, scene.currentTeam));
 	
 	buttonToggle(scene.toolbarNext.button, 0, false);
 	buttonToggle(scene.toolbarStart.button, 0, true);
@@ -712,7 +712,7 @@ function pickUpCard(scene) {
 /**
  * Returns a list of positions (stage, index) of illegally played cards
  */
-function getIllegalPlacements(scene) {
+function getIllegalPlacements(scene, team) {
 	class Node {
 		constructor(stage, ix, cards) {
 			this.stage = stage;
@@ -736,7 +736,7 @@ function getIllegalPlacements(scene) {
 	let nodes = []
 	let nodesGrid = []
 	// Convert all cards in the game board grid (of the current team) to nodes
-	let cards = scene.teams[scene.currentTeam].get("cards");
+	let cards = scene.teams[team].get("cards");
 	for (let stage = 0; stage <= scene.stage; stage++) {
 		let stageList = [];
 		for (let ix = 0; ix < cards[stage].length; ix++) {
@@ -823,6 +823,15 @@ function getIllegalPlacements(scene) {
 
 	// Return list of illegally placed cards (or cards that can resolve an illegal placement)
 	return illegals;
+}
+
+
+function highlightIllegalPlacements(scene) {
+
+}
+
+function resetHighlightIllegalPlacements(scene) {
+	
 }
 
 
