@@ -1,5 +1,4 @@
 import { loadActivityCard, loadEventCard } from "../cards-management.js";
-import { loadEffect } from "../event_cards/tempEffect.js";
 
 
 /**

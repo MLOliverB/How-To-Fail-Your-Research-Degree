@@ -195,6 +195,11 @@ function arrayMatch(arr1, arr2) {
     return arr;  // Return the arr elements
 }
 
+// function for filtering same card IDs
+function matchCount(valToBeChecked, valChecked) {
+    return valToBeChecked == valChecked;
+}
+
 function countCardOccurrences(scene){
     // get count of all occurrences of each activity card ID
     // taken from: https://stackoverflow.com/questions/5667888/counting-the-occurrences-frequency-of-array-elements
@@ -205,6 +210,8 @@ function countCardOccurrences(scene){
     // array of ids and array of count
     const ids = Object.keys(occurrences);
     const count = Object.values(occurrences);
+    console.log(ids);
+    console.log(count);
     
     return occurrences;
 }
@@ -240,11 +247,13 @@ function useEffect(scene) {
     var preCondition = new Array();
     
     // action = action taken
+    // sAct = action taken (original form: one letter)
     // adjacency = whether cards have to be adjacent
     // forAction = action taken on cardID(s)
     // totalAmount = total amount of card(s)
     // cardStage = stage(s) of card to take action
     var action = new Array();
+    var sAct = new Array();
     var adjacency = new Array();
     var forAction = new Array();
     var totalAmount = new Array();
@@ -261,91 +270,130 @@ function useEffect(scene) {
     var cardStageElse = new Array();
     
     /* 
-     * get requirement(s) of chosen card
+     * get requirement(s) of chosen card and check if requirement is met
      */
-    var chosenRequirement = holdEventID.requirement.toString();
-    // if double requirements, split string into separate  
-    //requirements before splitting the requirement into a:b
-    /* 
-    splitRequirement[order of requirement][a or b][first index]
-        e.g. splitRequirement[0][0][0]: first index of first requirement's "a"
-    */
-    var doubleRequirement = chosenRequirement.split(/&(?=!)/);
-    var splitRequirement = new Array();
-    for (var i = 0; i < doubleRequirement.length; i++) {
-        var x = doubleRequirement[i].split(/:/);
-        splitRequirement[i] = x.toString();
-    }
-
-    // requirement of card chosen in order to take effect
-    // check if value is Null
-    if(splitRequirement[0].includes('Null')) {
-        console.log(`There are no requirements.`);
-    }
-    else {
-        for (var i = 0; i < splitRequirement.length; i++) {
-            let appearance = splitRequirement[i].includes('!');
-            let condition = splitRequirement[i].includes('>');
-            var card;
-
-            // check for "!" symbol at start to see if card must appear or not
-            if(appearance) {
-                // check if there is any condition(b) for the number of cards to appear/not appear
-                if(condition) {
-                    var times = splitRequirement[i].slice(-1);
-                    absCondition.push(times);
-                    var temp = splitRequirement[i].slice(0,-2);
-                    card = temp.match(/\d+/g);
-                    toBeAbsent.push(card);
-                }
-                // if there is no condition, push 0 into the list of conditions
-                else {
-                    absCondition.push('0');
-                    card = splitRequirement[i].match(/\d+/g);
-                    toBeAbsent.push(card);
-                }
-            }
-            else {
-                // check if there is any condition(b) for the number of cards to appear/not appear
-                if(condition) {
-                    times = splitRequirement[i].slice(-1);
-                    preCondition.push(times);
-                    temp = splitRequirement[i].slice(0,-2);
-                    card = temp.match(/\d+/g);
-                    toBePresent.push(card);
-                }
-                // if there is no condition, push 1 into the list of conditions
-                else {
-                    preCondition.push('1');
-                    card = splitRequirement[i].match(/\d+/g);
-                    toBePresent.push(card);
-                }
-            }
+    function booleanRequirement() {
+        // get requirement(s) of chosen card
+        var chosenRequirement = holdEventID.requirement.toString();
+        // if double requirements, split string into separate  
+        //requirements before splitting the requirement into a:b
+        /* 
+        splitRequirement[order of requirement][a or b][first index]
+            e.g. splitRequirement[0][0][0]: first index of first requirement's "a"
+        */
+        var doubleRequirement = chosenRequirement.split(/&(?=!)/);
+        var splitRequirement = new Array();
+        for (var i = 0; i < doubleRequirement.length; i++) {
+            var x = doubleRequirement[i].split(/:/);
+            splitRequirement[i] = x.toString();
         }
-        if((!toBePresent.length) && (toBeAbsent.length)){
-            console.log(`Title of event card: ${chosenTitle} \n
+
+        // requirement of card chosen in order to take effect
+        // check if value is Null
+        if(splitRequirement[0].includes('Null')) {
+            console.log(`There are no requirements.`);
+        }
+        else {
+            for (var i = 0; i < splitRequirement.length; i++) {
+                let appearance = splitRequirement[i].includes('!');
+                let condition = splitRequirement[i].includes('>');
+                var card;
+
+                // check for "!" symbol at start to see if card must appear or not
+                if(appearance) {
+                    // check if there is any condition(b) for the number of cards to appear/not appear
+                    if(condition) {
+                        var times = splitRequirement[i].slice(-1);
+                        absCondition.push(times);
+                        var temp = splitRequirement[i].slice(0,-2);
+                        card = temp.match(/\d+/g);
+                        toBeAbsent.push(card);
+                    }
+                    // if there is no condition, push 0 into the list of conditions
+                    else {
+                        absCondition.push('0');
+                        card = splitRequirement[i].match(/\d+/g);
+                        toBeAbsent.push(card);
+                    }
+                }
+                else {
+                    // check if there is any condition(b) for the number of cards to appear/not appear
+                    if(condition) {
+                        var times = splitRequirement[i].slice(-1);
+                        preCondition.push(times);
+                        var temp = splitRequirement[i].slice(0,-2);
+                        card = temp.match(/\d+/g);
+                        toBePresent.push(card);
+                    }
+                    // if there is no condition, push 1 into the list of conditions
+                    else {
+                        preCondition.push('1');
+                        card = splitRequirement[i].match(/\d+/g);
+                        toBePresent.push(card);
+                    }
+                }
+            }
+            if((!toBePresent.length) && (toBeAbsent.length)){
+                console.log(`Title of event card: ${chosenTitle} \n
+                            Requirement -\n
+                            Card(s) that should be absent: ${toBeAbsent}\n
+                            Specific number of card(s) not to exceed: ${absCondition}`);
+            }
+            if((!toBeAbsent.length) && (toBePresent.length)){
+                console.log(`Title of event card: ${chosenTitle} \n
                         Requirement -\n
-                        Card(s) that should be absent: ${toBeAbsent}\n
-                        Specific number of card(s) not to exceed: ${absCondition}`);
-            var matched = arrayMatch(toBeAbsent, arrayAll);
-            console.log(matched);
-            if(matched.length) {
-                var counting = new Array();
-                for (var i = 0; i < matched.length; i++){
-                    const selectedCount = Object.values(matched[i]);
-                    counting.push(selectedCount);
-                }
-                console.log(counting);
+                        Card(s) that should be present: ${toBePresent}\n
+                        Specific number of card(s) necessary: ${preCondition}`);
             }
         }
-        if((!toBeAbsent.length) && (toBePresent.length)){
-            console.log(`Title of event card: ${chosenTitle} \n
-                    Requirement -\n
-                    Card(s) that should be present: ${toBePresent}\n
-                    Specific number of card(s) necessary: ${preCondition}`);
+        
+        // check if requirement is met
+        var booleanArr = new Array();
+        var matchAbs = arrayMatch(toBeAbsent, arrayAll);
+        var matchPre = arrayMatch(toBePresent, arrayAll);
+        console.log(matchAbs, matchPre);
+        if(matchAbs.length) {
+            for (var i = 0; i < matchAbs.length; i++){
+                var temp = matchAbs[i][0];
+                console.log(temp);
+                var index = idArray.indexOf(temp);
+                console.log(index);
+                if (countArray[index] > absCondition) {
+                    console.log("requirement not fulfilled, cannot use card");
+                    booleanArr.push(false);
+                }
+                else {
+                    console.log("requirement fulfilled, move to next requirement");
+                    booleanArr.push(true);
+                }
+            }
+        }
+        if(matchPre.length) {
+            for (var i = 0; i < matchPre.length; i++){
+                var temp = matchPre[i][0];
+                console.log(temp);
+                var index = idArray.indexOf(temp);
+                console.log(index);
+                if (countArray[index] < preCondition) {
+                    console.log("requirement not fulfilled, cannot use card");
+                    booleanArr.push(false);
+                }
+                else {
+                    console.log("requirement fulfilled, move to next requirement");
+                    booleanArr.push(true);
+                }
+            }
+        }
+        console.log(booleanArr);
+        if (!booleanArr.includes(false)) {
+            return true;
+        }
+        else {
+            return false;
         }
     }
-
+    console.log(booleanRequirement());
+    
     
 
     /* 
@@ -377,25 +425,32 @@ function useEffect(scene) {
         s = stand in for a card
         o = block out spaces
         i = ignore effects of another event card
+        l = placeholder (for default)
         */
         switch(splitEffect[i][0][0]) {
             case "n":
                 action.push('Remove card');
+                sAct.push("n");
                 break;
             case "p":
                 action.push('Add card');
+                sAct.push("p");
                 break;
             case "s":
                 action.push('Stand in for');
+                sAct.push("s");
                 break;
             case "o":
                 action.push('Block out');
+                sAct.push("o");
                 break;
             case "i":
                 action.push('Ignore effects of');
+                sAct.push("i");
                 break;
             default:
-                alert('none');
+                console.log('none');
+                sAct.push("l");
         }
         /* 
         check the a:b:c :
@@ -440,6 +495,7 @@ function useEffect(scene) {
                 Total number of card(s)/space(s): ${totalAmount}\n
                 Stage: ${cardStage}`);
     }
+    
 
 
 
