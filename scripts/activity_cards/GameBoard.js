@@ -1,4 +1,6 @@
 import { loadActivityCard, loadEventCard } from "../cards-management.js";
+import { effectDiscard } from "../event_cards/eventBoard.js";
+
 
 /**
  * Class for the rectangle which can be clicked to place a card on the rectangle
@@ -297,51 +299,55 @@ class CardDiscardBox {
 				}
 				freePositions.push(cards.length);
 			}
-
+            if (this.scene.isEventRound){
+                isDiscardable = true;
+            }
+            else {
 			// Check every possible free position to check whether card would be legal to place there
-			while (freePositions.length > 0) {
-				let ix = freePositions.pop();
-				let leftCardId = (ix <= 0) ? 0 : cards[ix-1].cardId;
-				let leftCard = this.scene.cardMap.get(leftCardId);
-				let rightCardId = (ix >= cards.length-1) ? 0 : cards[ix+1].cardId;
-				let rightCard = this.scene.cardMap.get(rightCardId);
-				let bottomCardIx = ix + (cards[0].distanceFromMiddle - variables.get("cards")[this.scene.stage-1][0].distanceFromMiddle);
-				let bottomCardId = ((bottomCardIx < 0) || (bottomCardIx > variables.get("cards")[this.scene.stage-1].length-1)) ? 0 : variables.get("cards")[this.scene.stage-1][bottomCardIx].cardId;
-				let bottomCard = this.scene.cardMap.get(bottomCardId);
+                while (freePositions.length > 0) {
+                    let ix = freePositions.pop();
+                    let leftCardId = (ix <= 0) ? 0 : cards[ix-1].cardId;
+                    let leftCard = this.scene.cardMap.get(leftCardId);
+                    let rightCardId = (ix >= cards.length-1) ? 0 : cards[ix+1].cardId;
+                    let rightCard = this.scene.cardMap.get(rightCardId);
+                    let bottomCardIx = ix + (cards[0].distanceFromMiddle - variables.get("cards")[this.scene.stage-1][0].distanceFromMiddle);
+                    let bottomCardId = ((bottomCardIx < 0) || (bottomCardIx > variables.get("cards")[this.scene.stage-1].length-1)) ? 0 : variables.get("cards")[this.scene.stage-1][bottomCardIx].cardId;
+                    let bottomCard = this.scene.cardMap.get(bottomCardId);
 
-				// A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
-				let currentCardPlacements = currentCard.placement.split(",");
-				let leftCardPlacements = (leftCard == null) ? ['1', '1', '1', '1'] : leftCard.placement.split(",");
-				let rightCardPlacements = (rightCard == null) ? ['1', '1', '1', '1'] : rightCard.placement.split(",");
-				let bottomCardPlacements = (bottomCard == null) ? ['1', '1', '1', '1'] : bottomCard.placement.split(",");
+                    // A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
+                    let currentCardPlacements = currentCard.placement.split(",");
+                    let leftCardPlacements = (leftCard == null) ? ['1', '1', '1', '1'] : leftCard.placement.split(",");
+                    let rightCardPlacements = (rightCard == null) ? ['1', '1', '1', '1'] : rightCard.placement.split(",");
+                    let bottomCardPlacements = (bottomCard == null) ? ['1', '1', '1', '1'] : bottomCard.placement.split(",");
 
-				// Check if any adjacent card is overlaid with a work-late tile. If that is the case, the card is connected in all directions
-				leftCardPlacements = (leftCard != null && cards[ix-1].hasWorkLate) ? ['1', '1', '1', '1'] : leftCardPlacements;
-				rightCardPlacements = (rightCard != null && cards[ix+1].hasWorkLate) ? ['1', '1', '1', '1'] : rightCardPlacements;
-				bottomCardPlacements = (bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ['1', '1', '1', '1'] : bottomCardPlacements;
+                    // Check if any adjacent card is overlaid with a work-late tile. If that is the case, the card is connected in all directions
+                    leftCardPlacements = (leftCard != null && cards[ix-1].hasWorkLate) ? ['1', '1', '1', '1'] : leftCardPlacements;
+                    rightCardPlacements = (rightCard != null && cards[ix+1].hasWorkLate) ? ['1', '1', '1', '1'] : rightCardPlacements;
+                    bottomCardPlacements = (bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ['1', '1', '1', '1'] : bottomCardPlacements;
 
-				// For each direction (left, right, bottom), check if the connections of the cards line up
-				let leftAligned = (leftCard == null) ? true : (leftCardPlacements[1] == currentCardPlacements[0]);
-				let rightAligned = (rightCard == null) ? true : (rightCardPlacements[0] == currentCardPlacements[1]);
-				let bottomAligned = (bottomCard == null) ? true : (bottomCardPlacements[2] == currentCardPlacements[3]);
+                    // For each direction (left, right, bottom), check if the connections of the cards line up
+                    let leftAligned = (leftCard == null) ? true : (leftCardPlacements[1] == currentCardPlacements[0]);
+                    let rightAligned = (rightCard == null) ? true : (rightCardPlacements[0] == currentCardPlacements[1]);
+                    let bottomAligned = (bottomCard == null) ? true : (bottomCardPlacements[2] == currentCardPlacements[3]);
 
-				// For each direction (left, right, bottom), check if the card is actually connected in that direction
-				let leftConnected = (leftCard == null) ? false : (leftCardPlacements[1] == '1' && currentCardPlacements[0] == '1');
-				let rightConnected = (rightCard == null) ? false : (rightCardPlacements[0] == '1' && currentCardPlacements[1] == '1');
-				let bottomConnected = (bottomCard == null) ? false : (bottomCardPlacements[2] == '1' && currentCardPlacements[3] == '1');
+                    // For each direction (left, right, bottom), check if the card is actually connected in that direction
+                    let leftConnected = (leftCard == null) ? false : (leftCardPlacements[1] == '1' && currentCardPlacements[0] == '1');
+                    let rightConnected = (rightCard == null) ? false : (rightCardPlacements[0] == '1' && currentCardPlacements[1] == '1');
+                    let bottomConnected = (bottomCard == null) ? false : (bottomCardPlacements[2] == '1' && currentCardPlacements[3] == '1');
 
-				console.group(`Position (${this.scene.stage}, ${ix})`);
-				console.log(`| ${(leftCardPlacements[2] == '1' ? '^' : 'x')}   ${(currentCardPlacements[2] == '1' ? '^' : 'x')}   ${(rightCardPlacements[2] == '1' ? '^' : 'x')} |${(leftCard != null && cards[ix-1].hasWorkLate) ? ' Left Card Work Late' : (leftCard != null) ? ' Left Card Normal' : ' No Left Card'}\n|${(leftCardPlacements[0] == '1' ? '<' : 'x')}L${(leftCardPlacements[1] == '1' ? '>' : 'x')} ${(currentCardPlacements[0] == '1' ? '<' : 'x')}C${(currentCardPlacements[1] == '1' ? '>' : 'x')} ${(rightCardPlacements[0] == '1' ? '<' : 'x')}R${(rightCardPlacements[1] == '1' ? '>' : 'x')}|${(rightCard != null && cards[ix+1].hasWorkLate) ? ' Right Card Work Late' : (rightCard != null) ? ' Right Card Normal' : ' No Right Card'}\n| ${(leftCardPlacements[3] == '1' ? 'v' : 'x')}   ${(currentCardPlacements[3] == '1' ? 'v' : 'x')}   ${(rightCardPlacements[3] == '1' ? 'v' : 'x')} |${(bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ' Bottom Card Work Late' : (bottomCard != null) ? ' Bottom Card Normal' : ' No Bottom Card'}\n|     ${(bottomCardPlacements[2] == '1' ? '^' : 'x')}     |\n|    ${(bottomCardPlacements[0] == '1' ? '<' : 'x')}B${(bottomCardPlacements[1] == '1' ? '>' : 'x')}    |\n|     ${(bottomCardPlacements[3] == '1' ? 'v' : 'x')}     |`);
-				console.log(`Alignment - Left ${leftAligned}, Right ${rightAligned}, Bottom ${bottomAligned}`);
-				console.log(`Connectivity - Left ${leftConnected}, Right ${rightConnected}, Bottom ${bottomConnected}`);
-				console.groupEnd();
-				// If the card is placable in the current position, the user is not allowed to discard it
-				// Else we check the next placement
-				if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
-					isDiscardable = false;
-					break;
-				}
-			}
+                    console.group(`Position (${this.scene.stage}, ${ix})`);
+                    console.log(`| ${(leftCardPlacements[2] == '1' ? '^' : 'x')}   ${(currentCardPlacements[2] == '1' ? '^' : 'x')}   ${(rightCardPlacements[2] == '1' ? '^' : 'x')} |${(leftCard != null && cards[ix-1].hasWorkLate) ? ' Left Card Work Late' : (leftCard != null) ? ' Left Card Normal' : ' No Left Card'}\n|${(leftCardPlacements[0] == '1' ? '<' : 'x')}L${(leftCardPlacements[1] == '1' ? '>' : 'x')} ${(currentCardPlacements[0] == '1' ? '<' : 'x')}C${(currentCardPlacements[1] == '1' ? '>' : 'x')} ${(rightCardPlacements[0] == '1' ? '<' : 'x')}R${(rightCardPlacements[1] == '1' ? '>' : 'x')}|${(rightCard != null && cards[ix+1].hasWorkLate) ? ' Right Card Work Late' : (rightCard != null) ? ' Right Card Normal' : ' No Right Card'}\n| ${(leftCardPlacements[3] == '1' ? 'v' : 'x')}   ${(currentCardPlacements[3] == '1' ? 'v' : 'x')}   ${(rightCardPlacements[3] == '1' ? 'v' : 'x')} |${(bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ' Bottom Card Work Late' : (bottomCard != null) ? ' Bottom Card Normal' : ' No Bottom Card'}\n|     ${(bottomCardPlacements[2] == '1' ? '^' : 'x')}     |\n|    ${(bottomCardPlacements[0] == '1' ? '<' : 'x')}B${(bottomCardPlacements[1] == '1' ? '>' : 'x')}    |\n|     ${(bottomCardPlacements[3] == '1' ? 'v' : 'x')}     |`);
+                    console.log(`Alignment - Left ${leftAligned}, Right ${rightAligned}, Bottom ${bottomAligned}`);
+                    console.log(`Connectivity - Left ${leftConnected}, Right ${rightConnected}, Bottom ${bottomConnected}`);
+                    console.groupEnd();
+                    // If the card is placable in the current position, the user is not allowed to discard it
+                    // Else we check the next placement
+                    if (leftAligned && rightAligned && bottomAligned && (leftConnected || rightConnected || bottomConnected)) {
+                        isDiscardable = false;
+                        break;
+                    }
+                }
+            }
 
 
 			if (isDiscardable) {
@@ -471,68 +477,109 @@ function nextHandler(scene) {
 	buttonToggle(scene.toolbarNext.button, 0, false);
 	buttonToggle(scene.toolbarStart.button, 0, true);
 	
-	// making all the card components for team A invisible
-	for (let i = 0; i <= scene.stage; i++) {
-		for (let j = 0; j < variables.get("cards")[i].length; j++) {
-			variables.get("cards")[i][j].setVisible(false, true);
-		}
-	}
 	
-	if (scene.currentTeam == scene.numberOfTeams - 1) {		// move to next stage if all teams have played
-		if (scene.stage == 3) {
-			buttonToggle(scene.toolbarStart.button, 0, false);
-			// TODO: move to final screen scene (probably need to pass the teams array)
-			console.log("TODO: go to final screen");
-			scene.currentStageText.setText("Stage: MOVE TO FINAL SCREEN");
-			return;	//TODO: remove this once moved to final stage
-		} else {
-			scene.stage++;
-			scene.currentStageText.setText("Stage: " + (scene.stage + 1));
-			scene.currentTeam = 0;
-			scene.currentTeamText.setText("Team: 1");
-		}
+	// switching teams/stages
+	if (!scene.isEventRound && scene.stage != 0) {
+		moveToEventRound(scene);
 	} else {
-		scene.currentTeam++;
-		scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
-	}
-	
-	variables = scene.teams[scene.currentTeam];
-	// making new cards for team A the next stage (unless it's the first stage, in which case they were already made)
-	if (scene.stage != 0) {
-		// start with the same number of boxes as the previous stage (including boxes without cards)
-		let cards = variables.get("cards");
-		cards.push([]);
-		for (let i in cards[scene.stage-1]) {
-			let distance = cards[scene.stage-1][i].distanceFromMiddle
-			cards[scene.stage].push(new CardBox(scene, distance));
-			cards[scene.stage][i].placementBox.disableInteractive();
+		// making all the card components for team A invisible
+		for (let i = 0; i <= scene.stage; i++) {
+			for (let j = 0; j < variables.get("cards")[i].length; j++) {
+				variables.get("cards")[i][j].setVisible(false, true);
+			}
 		}
 		
-		// only start with add card boxes on the outer edges
-		var box = new AddCardBox(scene, variables.get("leftEdge") - 1)
-		box.setVisible(false, true);
-		variables.get("addCardBoxes").push(box);
-		box = new AddCardBox(scene, variables.get("rightEdge") + 1)
-		box.setVisible(false, true);
-		variables.get("addCardBoxes").push(box);
 		
-		
-		console.log(variables.get("cards")[scene.stage]);
-	}
-	
-	
-	// making all the card components for team B visible
-	for (let i = 0; i <= scene.stage; i++) {
-		for (let j = 0; j < variables.get("cards")[i].length; j++) {
-			variables.get("cards")[i][j].setVisible(true, false);
+		if ((scene.isEventRound || scene.stage == 0) && scene.currentTeam != scene.numberOfTeams - 1 && scene.stage != 3) {
+			moveToNextTeam(scene);
+		} else if ((scene.isEventRound || scene.stage == 0) && scene.currentTeam == scene.numberOfTeams - 1) {
+			moveToNextStage(scene);
 		}
+		
+		scene.currentStageText.setText("Stage: "+(scene.stage+1));
+		
+		
+		variables = scene.teams[scene.currentTeam];
+		// making new cards for team A the next stage (unless it's the first stage, in which case they were already made)
+		if (scene.stage != 0) {
+			// start with the same number of boxes as the previous stage (including boxes without cards)
+			let cards = variables.get("cards");
+			cards.push([]);
+			for (let i in cards[scene.stage-1]) {
+				let distance = cards[scene.stage-1][i].distanceFromMiddle
+				cards[scene.stage].push(new CardBox(scene, distance));
+				cards[scene.stage][i].placementBox.disableInteractive();
+			}
+			
+			// only start with add card boxes on the outer edges
+			var box = new AddCardBox(scene, variables.get("leftEdge") - 1)
+			box.setVisible(false, true);
+			variables.get("addCardBoxes").push(box);
+			box = new AddCardBox(scene, variables.get("rightEdge") + 1)
+			box.setVisible(false, true);
+			variables.get("addCardBoxes").push(box);
+			
+			
+			console.log(variables.get("cards")[scene.stage]);
+		}
+		
+		
+		// making all the card components for team B visible
+		for (let i = 0; i <= scene.stage; i++) {
+			for (let j = 0; j < variables.get("cards")[i].length; j++) {
+				variables.get("cards")[i][j].setVisible(true, false);
+			}
+		}
+		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
+			variables.get("addCardBoxes")[i].setVisible(true, false);
+		}
+		
+		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
+		scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
 	}
-	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
-		variables.get("addCardBoxes")[i].setVisible(true, false);
-	}
+}
+
+
+
+function moveToEventRound(scene) {
+	console.log("Moving to event round");
+	scene.isEventRound = true;
+	scene.currentStageText.setText("Stage: Events "+(scene.stage+1));
+	buttonToggle(scene.toolbarStart.button, 0, false)
+	scene.eventStack.setTexture("e"+scene.stage).setVisible(true).setInteractive();
+}
+
+function moveToNextTeam(scene) {
+	console.log("Moving to next team");
+	scene.isEventRound = false;
+	scene.eventCardsRemaining = scene.totalEventCards;
 	
-	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
-	scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
+	scene.currentTeam++;
+	scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
+	scene.eventBarPlay.setVisible(false);
+	scene.eventBarStore.setVisible(false);
+}
+
+function moveToNextStage(scene) {
+	console.log("Moving to next stage")
+	scene.isEventRound = false;
+	scene.eventCardsRemaining = scene.totalEventCards;
+	
+	scene.eventBarPlay.setVisible(false);
+	scene.eventBarStore.setVisible(false);
+	
+	if (scene.stage == 3) {
+		buttonToggle(scene.toolbarStart.button, 0, false);
+		// TODO: move to final screen scene (probably need to pass the teams array)
+		console.log("TODO: go to final screen");
+		scene.currentStageText.setText("Stage: MOVE TO FINAL SCREEN");
+		return;	//TODO: remove this once moved to final stage
+	} else {
+		scene.stage++;
+		scene.currentStageText.setText("Stage: " + (scene.stage + 1));
+		scene.currentTeam = 0;
+		scene.currentTeamText.setText("Team: 1");
+	}
 }
 
 
@@ -577,6 +624,7 @@ function startHandler(scene) {
 		}
 	}
 }
+
 
 
 /**
@@ -836,4 +884,4 @@ function resetHighlightIllegalPlacements(scene) {
 
 
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, getIllegalPlacements };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard };

@@ -1,5 +1,6 @@
 import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard.js";
-import { loadActivityCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
+import { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler } from "../event_cards/eventBoard.js";
+import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
 /**
  * The scene where the player plays the game
@@ -32,6 +33,11 @@ export default class playerView extends Phaser.Scene {
 		
 		//loading the work late tile image
 		this.load.image("workLate", "./assets/cards/worklate.png");
+		
+		//loading event card extra images
+		this.load.image('e1', './assets/cards/event-BACK-CONTEXT.png');
+        this.load.image('e2', './assets/cards/event-BACK-IMP.png');
+        this.load.image('e3', './assets/cards/event-BACK-WRITE-UP.png');
 	}
     
     create() {
@@ -52,16 +58,21 @@ export default class playerView extends Phaser.Scene {
 		
 		//// TEAMS ////
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-		this.numberOfTeams = 2;					// TODO: get this to recieve numberOfTeams from start menu!
+		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
 		
 		this.roundLength = 30;					// The maximum length of each round in seconds (TODO: get this from menu)
 		this.timer;
 		this.isTimerRunning = false;
 		
+		this.isEventRound = false;
+		this.totalEventCards = 3;							// TODO: get the number of event cards per round from menu
+		this.eventCardsRemaining = this.totalEventCards;	// The number of event cards drawn each round
+        this.previousCardBoxes = new Array();
+		
 		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
 		this.isPlayerHoldingWorkLate = false;	// Whether or not the player is currently holding a work late tile
-		
+        
 		this.teams = []
 		// creating a new map for each team - the map contains the variables for that team
 		for (let i = 0; i < this.numberOfTeams; i++) {
@@ -72,8 +83,10 @@ export default class playerView extends Phaser.Scene {
 				["leftEdge", 0],					// the position of the card furthest to the left
 				["rightEdge", 0],					// the position of the card furthest to the right
 				["cards", []],						// a 2D array of stages of card boxes, e.g. cards[0] will return the array of card boxes used in the first stage
+				["eventCards", []],					// a 1D array of event card ids that the team has in their inventory
 				["addCardBoxes", []],				// a 1D array of the current set of add card box buttons (not in order) - this is reset after every stage
-				["workLateTiles", totalWorkLate]	// the number of work late tiles the team has remaining in their inventory
+				["workLateTiles", totalWorkLate],	// the number of work late tiles the team has remaining in their inventory
+                ["currentEventCard", 0]             // id of event card player is holding
 			]);
 			this.teams.push(team);
 		}
@@ -119,7 +132,7 @@ export default class playerView extends Phaser.Scene {
 		this.currentTeamText = this.add.text(this.x, this.y*0.18, "Team: 1", {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
 		this.timerText = this.add.text(this.x*0.3, this.y*0.13, "Time Remaining: "+this.roundLength+"s", {color: "0x000000"}).setOrigin(0.5).setFontSize(20);
 		
-		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Player", nextHandler, undefined, undefined);		// button to move to next player/stage
+		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Round", nextHandler, undefined, undefined);		// button to move to next player/stage
 		this.toolbarStart = new ToolbarButton(this, 0.43, 0.12, "Start", startHandler, undefined, undefined);			// button to start the game
 		this.toolbarWorkLate = new ToolbarButton(this, 0.7, 0.12, "Work Late\nTiles: "+totalWorkLate, workLateHandler, undefined, undefined);	// button to use work late tiles
 		this.toolbarDiscard = new CardDiscardBox(this, 1.33, 1.875, 0.15, 0.1);	// button for discarding the currently held card (Only possible to discard cards that are impossible to play)
@@ -129,6 +142,14 @@ export default class playerView extends Phaser.Scene {
 		buttonToggle(this.toolbarWorkLate.button, 0, false);
 		buttonToggle(this.toolbarDiscard.button, 0, false);
 		buttonToggle(this.currentCardBox, 1, false);
+		
+		this.eventBarPlay = new EventBarButton(this, 1.5, 1, 0.1, "Play", playHandler, undefined, undefined);			// button to play the event card
+		this.eventBarStore = new EventBarButton(this, 1.3, 1, 0.1, "Store", storeHandler, undefined, undefined);		// button to store the event card
+		this.eventBarFinish = new EventBarButton(this, 1.5, 1, 0.1, "Finish", finishHandler, undefined, undefined);	// button to finish playing the event card
+		this.eventBarPlay.setVisible(false);
+		this.eventBarStore.setVisible(false);
+		this.eventBarFinish.setVisible(false);
+
 		
 		// creating a button to pick up a card from the stack
 		this.activityCards = [];
@@ -140,6 +161,64 @@ export default class playerView extends Phaser.Scene {
 				}
 			});
 		}
+		
+		
+		
+		//// EVENT CARDS ////
+		this.eventStack = this.add.image(this.x*1.81, this.y*1.55, 'e1').setScale(0.235).setInteractive().setVisible(false);
+		this.eventStack.on("pointerup", () => {
+			if (this.eventCardsRemaining <= 0) {
+				console.log("Error: no more event cards to be picked up this round");
+            } else if (this.teams[this.currentTeam].get("currentEventCard") == 0) {
+                try {
+					pickUpEventCard(this);
+					this.eventCardsRemaining--;
+                }
+                catch (error) {
+                    if (this.stage == 0) {
+                        console.log("Error: no event cards\nReason: First stage has no event cards");
+                    }
+                    else {
+                        console.log(error);
+                    }
+                }
+            }
+        });
+		
+		
+		//this.test = new EventCard(this);
+
+        
+        // tempButton causes image (when visible) to be interactive
+        //this.tempButton = this.add.rectangle(this.x*1.81, this.y*1.29, this.width, this.height).setScale(0.13, 0.08).setInteractive();
+        // temporary text for bug checking
+        //this.tempText = this.add.text(this.x*1.81, this.y*1.29, 'Play card', {color: "0x000000"}).setOrigin(0.5, 0.5).setFontSize(20);
+        // actions for event cards
+        /*this.tempButton.on("pointerover", () => {
+            if (this.currentEventBox == 0) {
+                this.tempText.setText('No card');
+            }
+            else {
+                this.tempText.setText('test');
+            }
+        });*/
+        /*this.tempButton.on("pointerout", () => {
+            if (this.currentEventBox == 0){
+                this.tempText.setText('Play card');
+            }
+        });
+        this.tempButton.on("pointerup", () => {
+            if(this.currentEventBox != 0) {
+                useEffect(this);
+            }
+        });*/
+		
+		this.eventCards = [];
+        for (let s = 1; s < 5; s++) {
+            loadEventCardStack(s, (ecards) => {
+                this.eventCards.push(shuffleCardStack(ecards));
+            });
+        }
 		
 		
 		
