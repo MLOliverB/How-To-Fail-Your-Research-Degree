@@ -136,6 +136,8 @@ function pickUpEventCard(scene) {
     let variables = scene.teams[scene.currentTeam];
     scene.previousCardArray = countIds(variables.get("cards"));
     console.log(scene.previousCardArray);
+    scene.completeEffect = false;
+    scene.blockedOut = false;
     
     console.log("Pick up an event card");
     if (variables.get("currentEventCard") == 0 && scene.isEventRound) {     // this check should be redundant but just in case...
@@ -606,7 +608,7 @@ function checkEffect(scene){
                     totalCount += parseInt(effect[3]);
                 }
                 else if(totalCount == 0) {
-                    console.log("card doesn't exist, no need to remove any");
+                    scene.ignored = true;
                 }
                 else if (totalCount < effect[3]) {
                     totalCount = 0;
@@ -617,7 +619,23 @@ function checkEffect(scene){
                 break;
             // add card
             case "p":
-                totalCount += parseInt(effect[3]);
+                if (effect[2][0] == "0") {
+                    if (previousCountOcc[0] == 0) {
+                        scene.ignored = true;
+                    }
+                    else {
+                        totalCount -= parseInt(effect[3]);
+                    }
+                }
+                else if (previousCountOcc[0] >= effect[3]) {
+                    totalCount -= parseInt(effect[3]);
+                }
+                else if (previousCountOcc[0] < effect[3]) {
+                    totalCount = 0;
+                }
+                else {
+                    totalCount += parseInt(effect[3]);
+                }
                 break;
             // stand in for card
             case "s":
@@ -626,23 +644,26 @@ function checkEffect(scene){
             // block out spaces
             case "o":
             case "b":
-                console.log("block out "+effect[3]+" spaces");
-                /*if (effect[2] == "0") {
-                    totalCount = previousCountOcc[0];
-                    totalCount += effect[3];
+                if (previousCountOcc[0] < effect[3]) {
+                    totalCount = 0;
+                }
+                else if (previousCountOcc[0] == 0) {
+                    scene.ignored = true;
                 }
                 else {
-                    totalCount -= effect[3];
-                }*/
+                    console.log("block out "+effect[3]+" spaces");
+                    totalCount = effect[3];
+                }
                 break;
             // ignore effects of card
             case "i":
                 console.log("ignore "+effect[2]);
+                scene.ignore = true;
                 break;
             // flip card
             case "f":
                 if (totalCount == 0){
-                    console.log("card doesn't exist, cannot flip any");
+                    scene.ignored = true;
                 }
                 else{
                     console.log("flip "+effect[2]);
@@ -675,46 +696,68 @@ function areRulesMatched(scene) {
     let wholeEffect = useEffect(scene);
     console.log(ideal);
     
-    // get current card array
-    for (var i = 0; i < wholeEffect.length; i++) {
-        var effect = wholeEffect[i];
-        // totalCount: current occurrences of selected card(s)
-        let totalCount = 0;
-        // get total occurrences for all selected card(s)
-        for (var x = 0; x < effect[2].length; x++) {
-            var temp = effect[2][i];
-            var index = currentArrayId.indexOf(temp);
-            // card doesn't exist
-            if(index == "-1") {
-                totalCount += 0;
-            }
-            // card is not specified
-            else if (temp == "0") {
-                totalCount += currentArrayOcc[0];
-            } 
-            // card is specified
-            else {
-                totalCount += currentArrayOcc[index];
-            }
-            console.log(totalCount);
-        }
-        console.log(totalCount);
-        // push totalCount and related cardIDs into current as 2D array
-        var tempArray = new Array();
-        tempArray.push(totalCount, effect[2]);
-        current.push(tempArray);
-    }
-    console.log(current);
-    
-    // compare ideal and current
-    if (ideal.equals(current)) {
-        console.log("correct changes");
+    if (scene.ignored) {
         return true;
     }
     else {
-        console.log("rules are not matched");
-        console.log("ideal: "+ideal + "\ncurrent: "+current);
-        return false;
+        // get current card array
+        for (var i = 0; i < wholeEffect.length; i++) {
+            var effect = wholeEffect[i];
+            // totalCount: current occurrences of selected card(s)
+            let totalCount = 0;
+            // get total occurrences for all selected card(s)
+            for (var x = 0; x < effect[2].length; x++) {
+                var temp = effect[2][i];
+                var index = currentArrayId.indexOf(temp);
+                // card doesn't exist
+                if(index == "-1") {
+                    totalCount += 0;
+                }
+                // card is not specified
+                else if (temp == "0") {
+                    totalCount += currentArrayOcc[0];
+                } 
+                // card is specified
+                else {
+                    totalCount += currentArrayOcc[index];
+                }
+                console.log(totalCount);
+            }
+            console.log(totalCount);
+            // push totalCount and related cardIDs into current as 2D array
+            var tempArray = new Array();
+            tempArray.push(totalCount, effect[2]);
+            current.push(tempArray);
+        }
+        console.log(current);
+        
+        if (scene.numberBlocked > 0) {
+            var booleanArr = new Array();
+            for (var i = 0; i < ideal.length; i++) {
+                if (scene.numberBlocked == ideal[i][0]) {
+                    booleanArr.push(true);
+                }
+                else {
+                    booleanArr.push(false);
+                }
+            }
+            if (!booleanArr.includes(false)) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        // compare ideal and current
+        else if (ideal.equals(current)) {
+            console.log("correct changes");
+            return true;
+        }
+        else {
+            console.log("rules are not matched");
+            console.log("ideal: "+ideal + "\ncurrent: "+current);
+            return false;
+        }
     }
 }
 
@@ -759,7 +802,21 @@ function booleanSave(scene) {
 
 
 function effectDiscard(scene) {
-    return true;
+    var variables = scene.teams[scene.currentTeam];
+    scene.previousCardArray = countIds(variables.get("cards"));
+    let wholeEffect = useEffect(scene);
+    let stage = new Array();
+    for (var i = 0; i < wholeEffect.length; i++) {
+        var temp = wholeEffect[i];
+        var x = temp[4];
+        stage.push(x);
+    }
+    if (variables.get("currentCard") != this.scene.activityCards[this.stage][i].id) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 
@@ -772,19 +829,25 @@ function playHandler(scene) {
 	console.log("Play the event card");
     var variables = scene.teams[scene.currentTeam];
     scene.previousCardArray = countIds(variables.get("cards"));
-    useEffect(scene);
+    let wholeEffect = useEffect(scene);
+    let stage = new Array();
+    for (var i = 0; i < wholeEffect.length; i++) {
+        var temp = wholeEffect[i];
+        var x = temp[4];
+        stage.push(x);
+    }
 
     // allow activity cards to be played (overrides illegal moves)
     buttonToggle(scene.toolbarDiscard.button, 0, true);
     buttonToggle(scene.currentCardBox, 1, true);
-
-    // all stages will become interactive and all card components visible
-    for (let i = 0; i < scene.stage+1; i++) {
+    
+    // stages will become interactive and all card components visible depending on stage specified
+    for (let i = 0; i <= scene.stage; i++) {
         for (let j = 0; j < variables.get("cards")[i].length; j++) {
             variables.get("cards")[i][j].setVisible(true, true);
         }
     }
-
+    
     for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
         variables.get("addCardBoxes")[i].setVisible(true, true);
     }
@@ -814,8 +877,6 @@ function storeHandler(scene) {
     // TODO: store card in inventory
 }
 
-
-
 /**
  * Runs when the finish event card button is clicked
  * Checks if the player correctly played the card
@@ -826,10 +887,12 @@ function finishHandler(scene) {
 	console.log("Checking if player correctly used event card effects");
     // check if rules are matched
 	if (areRulesMatched(scene)) {
+        scene.completeEffect = true;
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
 		buttonToggle(scene.toolbarDiscard.button, 0, false);
         buttonToggle(scene.currentCardBox, 1, false);
+        scene.blockedOut = true;
         
         // disabling all the card placement boxes
         for (let j = 0; j < scene.stage+1; j++) {
@@ -851,11 +914,17 @@ function finishHandler(scene) {
 		} else {
 			scene.eventStack.setVisible(false);
 			scene.eventBarFinish.setVisible(false);
-			buttonToggle(scene.toolbarNext.button, 0, true);
 		}
+        
+        if (scene.eventCardsRemaining == 0) {
+            buttonToggle(scene.toolbarNext.button, 0, true);
+        }
 	}
+    else {
+        scene.completeEffect = false;
+    }
 }
 
 
 
-export { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler, effectDiscard };
+export { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler, effectDiscard, useEffect };
