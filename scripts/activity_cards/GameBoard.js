@@ -15,6 +15,7 @@ class CardBox {
 		this.distanceFromMiddle = distanceFromMiddle;
 		this.cardId = 0;
 		this.hasWorkLate = false;
+		this.stage = this.scene.stage;
 		
 		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
@@ -59,6 +60,21 @@ class CardBox {
 		// a card can only be placed if the player is holding a card and the card box is empty
 		else if (isPlayerHoldingCard && this.cardId == 0) {
 			console.log("Place a card");
+			
+			if (this.scene.isEventRound) {	// need to check if this card box is in the same stage as the card during event round
+				let isSameStage = false;
+				for (let i = 0; i < this.scene.activityCards[this.stage].length; i++) {
+					if (variables.get("currentCard") == this.scene.activityCards[this.stage][i].id) {
+						isSameStage = true;
+						break;
+					}
+				}
+				if (!isSameStage) {
+					alert("Card must be placed on the correct stage");
+					return;
+				}
+			}
+			
 			this.cardId = variables.get("currentCard");
 			variables.set("currentCard", 0);
 			
@@ -546,6 +562,8 @@ function moveToEventRound(scene) {
 	scene.eventStack.setTexture("e"+scene.stage).setVisible(true).setInteractive();
 }
 
+
+
 function moveToNextTeam(scene) {
 	console.log("Moving to next team");
 	scene.isEventRound = false;
@@ -556,6 +574,8 @@ function moveToNextTeam(scene) {
 	scene.eventBarPlay.setVisible(false);
 	scene.eventBarStore.setVisible(false);
 }
+
+
 
 function moveToNextStage(scene) {
 	console.log("Moving to next stage")

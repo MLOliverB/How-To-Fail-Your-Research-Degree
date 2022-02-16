@@ -87,6 +87,8 @@ class EventBarButton {
 	}
 }
 
+
+
 function countIds(scene) {
     let variables = scene.teams[scene.currentTeam];
     // creating array for holding activity cards placed
@@ -129,6 +131,8 @@ function countIds(scene) {
     return arrayAll;
 }
 
+
+
 function pickUpEventCard(scene) {
     let variables = scene.teams[scene.currentTeam];
     let cardArray = countIds(scene);
@@ -147,6 +151,8 @@ function pickUpEventCard(scene) {
     buttonToggle(scene.toolbarNext.button, 0, true);
 }
 
+
+
 // function to get matching cardIDs from activity cards array and required cards
 // taken from: https://www.tutsmake.com/javascript-compare-two-arrays-for-matches/
 function arrayMatch(arr1, arr2) {
@@ -161,10 +167,14 @@ function arrayMatch(arr1, arr2) {
     return arr;  // Return the arr elements
 }
 
+
+
 // function for filtering same card IDs
 function matchCount(valToBeChecked, valChecked) {
     return valToBeChecked == valChecked;
 }
+
+
 
 // get count of all occurrences of each activity card ID
 // taken from: https://stackoverflow.com/questions/5667888/counting-the-occurrences-frequency-of-array-elements
@@ -181,6 +191,7 @@ function countCardOccurrences(scene){
     
     return occurrences;
 }
+
 
 
 function useEffect(scene) {
@@ -549,6 +560,8 @@ function useEffect(scene) {
     }
 }
 
+
+
 function checkEffect(action, adjacency, forAction, totalAmount){
     switch (action){
         // remove card
@@ -579,6 +592,8 @@ function checkEffect(action, adjacency, forAction, totalAmount){
             console.log("no action");
     }
 }
+
+
 
 /*
  * Check the save_condition of chosen card
@@ -619,9 +634,13 @@ function booleanSave(scene) {
     return false;
 }
 
+
+
 function effectDiscard(scene) {
     return true;
 }
+
+
 
 /**
  * Runs when the play event card button is clicked

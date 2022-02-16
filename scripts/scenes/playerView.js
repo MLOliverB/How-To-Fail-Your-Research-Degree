@@ -56,7 +56,7 @@ export default class playerView extends Phaser.Scene {
 		
 		
 		
-		//// TEAMS ////
+		//// VARIABLES ////
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
 		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
@@ -118,7 +118,7 @@ export default class playerView extends Phaser.Scene {
 			this.currentCardBox.setFillStyle(0xe76f51);
 		});
 		this.currentCardBox.on("pointerup", () => {
-			if (this.teams[this.currentTeam].get("currentCard") == 0) {
+			if (this.teams[this.currentTeam].get("currentCard") == 0 && !this.isEventRound) {
 				pickUpCard(this);
 				this.currentCardBox.setFillStyle(0xe76f51);
 			}
@@ -166,6 +166,7 @@ export default class playerView extends Phaser.Scene {
 		
 		//// EVENT CARDS ////
 		this.eventStack = this.add.image(this.x*1.81, this.y*1.55, 'e1').setScale(0.235).setInteractive().setVisible(false);
+		this.eventStack.depth = 10;
 		this.eventStack.on("pointerup", () => {
 			if (this.eventCardsRemaining <= 0) {
 				console.log("Error: no more event cards to be picked up this round");
