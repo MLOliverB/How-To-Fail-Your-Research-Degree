@@ -184,34 +184,7 @@ export default class playerView extends Phaser.Scene {
                 }
             }
         });
-		
-		
-		//this.test = new EventCard(this);
 
-        
-        // tempButton causes image (when visible) to be interactive
-        //this.tempButton = this.add.rectangle(this.x*1.81, this.y*1.29, this.width, this.height).setScale(0.13, 0.08).setInteractive();
-        // temporary text for bug checking
-        //this.tempText = this.add.text(this.x*1.81, this.y*1.29, 'Play card', {color: "0x000000"}).setOrigin(0.5, 0.5).setFontSize(20);
-        // actions for event cards
-        /*this.tempButton.on("pointerover", () => {
-            if (this.currentEventBox == 0) {
-                this.tempText.setText('No card');
-            }
-            else {
-                this.tempText.setText('test');
-            }
-        });*/
-        /*this.tempButton.on("pointerout", () => {
-            if (this.currentEventBox == 0){
-                this.tempText.setText('Play card');
-            }
-        });
-        this.tempButton.on("pointerup", () => {
-            if(this.currentEventBox != 0) {
-                useEffect(this);
-            }
-        });*/
 		
 		this.eventCards = [[], [], [], []];
         for (let s = 2; s < 5; s++) {
@@ -223,9 +196,6 @@ export default class playerView extends Phaser.Scene {
         }
 		
 		
-		
-		//// OTHER ////
-		this.isTimerRunning = false;
     }
     
     update() {
