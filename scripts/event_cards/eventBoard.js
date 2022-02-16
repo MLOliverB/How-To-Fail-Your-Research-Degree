@@ -355,7 +355,7 @@ function useEffect(scene) {
     }
 
     if (booleanRequirement(scene)) {    // if requirements are fulfilled, can use effect
-        /* 
+        /*
          * get effect(s) of chosen card
          */
         var chosenEffect = holdEventID.effect.toString();
@@ -377,7 +377,7 @@ function useEffect(scene) {
             // temp values
             var card;
             var stage;
-            /* 
+            /*
             check for action taken on card based on first letter:
             n = remove a card
             p = add a card
@@ -411,7 +411,7 @@ function useEffect(scene) {
                     console.log('none');
                     sAct.push("l");
             }
-            /* 
+            /*
             check the a:b:c :
             a = specific ID of card (0 = not a specific card, -(...) = non-adjacent cards)
             b = total number of cards to change
@@ -459,7 +459,7 @@ function useEffect(scene) {
         console.log(wholeEffect);
 
     } else {  // if requirements not fulfilled, go to else condition and use (if exists)
-        /* 
+        /*
          * get else condition of chosen card
          */
         var chosenElse = holdEventID.else_condition.toString();
@@ -471,7 +471,7 @@ function useEffect(scene) {
         }
         else{
             adjacency.push("null");
-            /* 
+            /*
             check for action taken on card based on first letter:
             n = remove a card
             p = add a card
@@ -510,7 +510,7 @@ function useEffect(scene) {
                     console.log("have no action");
                     sAct.push("l");
             }
-             /* 
+             /*
             check the a:b:c :
             a = specific ID of card (0 = not a specific card, -(...) = non-adjacent cards)
             b = number of cards to change
@@ -701,9 +701,9 @@ function finishHandler(scene) {
         }
         variables.set("addCardBoxes", [])
         
-		scene.eventStack.setTexture("e"+scene.stage);
+		variables.set("currentEventCard", 0);
 		if (scene.eventCardsRemaining > 0) {
-			variables.set("currentEventCard", 0);
+			scene.eventStack.setTexture("e"+scene.stage);
             scene.eventBarFinish.setVisible(false);
 		} else {
 			scene.eventStack.setVisible(false);
