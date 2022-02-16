@@ -68,7 +68,7 @@ export default class playerView extends Phaser.Scene {
 		this.isEventRound = false;
 		this.totalEventCards = 3;							// TODO: get the number of event cards per round from menu
 		this.eventCardsRemaining = this.totalEventCards;	// The number of event cards drawn each round
-        this.previousCardBoxes = new Array();
+        this.previousCardArray = new Array();
 		
 		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
 		this.isPlayerHoldingWorkLate = false;	// Whether or not the player is currently holding a work late tile
