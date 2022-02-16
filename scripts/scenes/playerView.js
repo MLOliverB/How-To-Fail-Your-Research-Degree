@@ -34,10 +34,16 @@ export default class playerView extends Phaser.Scene {
 		//loading the work late tile image
 		this.load.image("workLate", "./assets/cards/worklate.png");
 		
-		//loading event card extra images
+		//loading event card back images
 		this.load.image('e1', './assets/cards/event-BACK-CONTEXT.png');
         this.load.image('e2', './assets/cards/event-BACK-IMP.png');
         this.load.image('e3', './assets/cards/event-BACK-WRITE-UP.png');
+        
+        // loading activity card back images
+        this.load.image('a0', './assets/cards/BACK-act-plan.png');
+        this.load.image('a1', './assets/cards/BACK-act-context.png');
+        this.load.image('a2', './assets/cards/BACK-act-imp.png');
+        this.load.image('a3', './assets/cards/BACK-act-write-up.png');
 	}
     
     create() {
@@ -56,7 +62,7 @@ export default class playerView extends Phaser.Scene {
 		
 		
 		
-		//// TEAMS ////
+		//// VARIABLES ////
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
 		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
@@ -68,7 +74,12 @@ export default class playerView extends Phaser.Scene {
 		this.isEventRound = false;
 		this.totalEventCards = 3;							// TODO: get the number of event cards per round from menu
 		this.eventCardsRemaining = this.totalEventCards;	// The number of event cards drawn each round
-        this.previousCardBoxes = new Array();
+        this.previousCardArray = new Array();
+        this.blockedOut = false;
+        this.numberBlocked = 0;
+        this.ignored = false;
+        this.numberFlipped = 0;
+        this.completeEffect = false;
 		
 		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
 		this.isPlayerHoldingWorkLate = false;	// Whether or not the player is currently holding a work late tile
@@ -174,6 +185,7 @@ export default class playerView extends Phaser.Scene {
 		
 		//// EVENT CARDS ////
 		this.eventStack = this.add.image(this.x*1.81, this.y*1.55, 'e1').setScale(0.235).setInteractive().setVisible(false);
+		this.eventStack.depth = 10;
 		this.eventStack.on("pointerup", () => {
 			if (this.eventCardsRemaining <= 0) {
 				console.log("Error: no more event cards to be picked up this round");
