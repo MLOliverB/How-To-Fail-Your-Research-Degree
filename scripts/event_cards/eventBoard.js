@@ -3,36 +3,26 @@ import { buttonToggle, AddCardBox, CardBox, CardDiscardBox } from "../activity_c
 
 
 class EventCard {
-    constructor(scene) {
+	/**
+	 * Event cards which are in the inventory
+	 * @param {Integer} id The id of the card
+	 * @param {Integer} cardPosition The position of the card in the inventory (starts at 0)
+	 */
+    constructor(scene, id, cardPosition) {
         this.scene = scene;
-        this.eventBox = this.scene.add.rectangle(this.scene.x*1.81, this.scene.y*1.76, this.scene.width, this.scene.height, 0xe76f8d).setScale(0.1, 0.25).setAlpha(0);
-        this.eventBox.on("pointerover", () => {
-            this.eventBox.setPosition(this.scene.x*1.81, this.scene.y*1.45).setScale(0.13, 0.305);
-            this.eventBack.setPosition(this.scene.x*1.81, this.scene.y*1.45).setScale(0.2);
-        });
-        this.eventBox.on("pointerout", () => {
-            this.eventBox.setPosition(this.scene.x*1.81, this.scene.y*1.76).setScale(0.1, 0.204);
-            this.eventBack.setPosition(this.scene.x*1.81, this.scene.y*1.76).setScale(0.15);
-        });
-        this.eventBox.on("pointerup", () => {
-            if (this.scene.currentEvent == 0) {
-                try {
-                    pickUpEventCard(this.scene);
-                }
-                catch (error) {
-                    if (this.scene.stage == 0) {
-                        console.log("Error: no event cards\nReason: First stage has no event cards");
-                    }
-                    else {
-                        console.log(error);
-                    }
-                }
-            }
-        });
+		this.cardPosition = cardPosition;
+		this.id = id;
+        this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.1, this.id).setScale(0.235).setInteractive().setVisible(true);
+		this.card.on("pointerover", () => {
+			this.card.y = this.scene.y*1.55;
+		});
+		this.card.on("pointerout", () => {
+			this.card.y = this.scene.y*2.1;
+		});
         
 
-        this.currentEventText = this.scene.add.text(this.scene.x*2, this.scene.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1);
-        this.currentEventImage = this.scene.add.image(this.scene.x*2, this.scene.y*1.3, 70).setScale(0.25).setVisible(false);
+        //this.currentEventText = this.scene.add.text(this.scene.x*2, this.scene.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1);
+        //this.currentEventImage = this.scene.add.image(this.scene.x*2, this.scene.y*1.3, 70).setScale(0.25).setVisible(false);
         
         // effectCards: array of cards that needs to be changed due to effect
         let effectCards = [];

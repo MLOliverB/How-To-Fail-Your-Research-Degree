@@ -185,6 +185,13 @@ export default class playerView extends Phaser.Scene {
                 }
             }
         });
+		
+		new EventCard(this, 70, 0);
+		new EventCard(this, 71, 1);
+		new EventCard(this, 72, 2);
+		
+		//this.inventoryCardB = this.add.image(this.x*0.17 + 5 + 666*0.235, this.y*1.55, '70').setScale(0.235).setInteractive().setVisible(true);
+		//this.inventoryCardC = this.add.image(this.x*0.17, this.y*1.55, '70').setScale(0.235).setInteractive().setVisible(true);
 
 		
 		this.eventCards = [[], [], [], []];
