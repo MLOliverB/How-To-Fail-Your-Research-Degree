@@ -1,5 +1,5 @@
-import { loadActivityCard, loadEventCard } from "../cards-management.js";
-import { effectDiscard } from "../event_cards/eventBoard.js";
+import { loadActivityCard, loadEventCard, shuffleCardStack } from "../cards-management.js";
+import { effectDiscard, useEffect } from "../event_cards/eventBoard.js";
 
 
 /**
@@ -15,15 +15,26 @@ class CardBox {
 		this.distanceFromMiddle = distanceFromMiddle;
 		this.cardId = 0;
 		this.hasWorkLate = false;
-		this.stage = this.scene.stage;
+        this.stage = this.scene.stage;
+        this.testBlock = false;
 		
 		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
-		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
-		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
-		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
+		this.placementBox.on("pointerover", () => { 
+            if (this.scene.blockedOut && this.testBlock) { this.placementBox.setFillStyle(0x898989); }
+            else { this.placementBox.setFillStyle(0x6c95b7); }
+        });
+		this.placementBox.on("pointerout", () => { 
+            if (this.scene.blockedOut && this.testBlock) { this.placementBox.setFillStyle(0xafafaf); }
+            else { this.placementBox.setFillStyle(0xb1cfe0); }
+        });
+		this.placementBox.on("pointerup", () => { 
+            if (this.scene.blockedOut && this.testBlock) { this.placementBox.removeInteractive(); }
+            else { this.updateCardBox(); } 
+        });
 		this.cardText = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), 2).setVisible(false).setScale(0.2);
 		this.workLateImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "workLate").setVisible(false).setScale(0.17);
+        this.backImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), 2).setVisible(false).setScale(0.2);
 	}
 	
 	/**
@@ -31,7 +42,7 @@ class CardBox {
 	*/
 	updateCardBox() {
 		let variables = this.scene.teams[this.scene.currentTeam];
-		
+        
 		var isPlayerHoldingCard = true;
 		if (this.scene.teams[this.scene.currentTeam].get("currentCard") == 0) {
 			isPlayerHoldingCard = false;
@@ -95,6 +106,33 @@ class CardBox {
 			this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
 			this.cardImage.setVisible(false);
 		}
+        
+        // TODO: during event stage, card will be flipped if card box has a card, and blocked if not
+        else if (!isPlayerHoldingCard && this.scene.isEventRound) {
+            let wholeEffect = useEffect(this.scene);
+            let action = wholeEffect[0];
+            if (action.includes("f") && this.cardId != 0) {
+                this.cardText.setText("Flipped");
+                this.backImage.setVisible(true).setTexture("e"+this.scene.stage);
+                this.cardImage.setVisible(false);
+            }
+            else if ((action.includes("o") || action.includes("b")) && this.cardId == 0) {
+                if (!this.testBlock) {
+                    this.cardText.setText("Blocked Out");
+                    this.placementBox.setFillStyle(0xafafaf);
+                    this.testBlock = true;
+                    this.scene.numberBlocked += 1;
+                }
+                else {
+                    this.cardText.setText("Place Card");
+                    this.testBlock = false;
+                    this.scene.numberBlocked -= 1;
+                }
+            }
+            else if (scene.blockedOut) {
+                this.placementBox.disableInteractive();
+            }
+        }
 	}
 	
 	/**
@@ -765,11 +803,33 @@ function toggleTeamVisibility(scene, isVisible) {
 function pickUpCard(scene) {
 	console.log("Pick up a card");
 	let variables = scene.teams[scene.currentTeam];
-	if (variables.get("currentCard") == 0) {
-		variables.set("currentCard", scene.activityCards[scene.stage].pop().id);
-		scene.currentCardText.setText(variables.get("currentCard"));
-		scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
-	}
+    // during event round, will pick up specified cards
+    if (scene.isEventRound && variables.get("currentCard") == 0) {
+        console.log("test");
+        var wholeEffect = useEffect(scene);
+        for (var i = 0; i < wholeEffect.length; i++) {
+            var cardId = wholeEffect[i][2];
+            if ((wholeEffect[i][0].includes("p") || !scene.completeEffect) && !cardId.includes("0")) {
+                for (var j = 0; j < cardId.length; j++) {
+                    variables.set("currentCard", cardId[j]);
+                    scene.currentCardText.setText(variables.get("currentCard"));
+                    scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
+                }
+            }
+            else {
+                variables.set("currentCard", scene.activityCards[scene.stage].pop().id);
+                scene.currentCardText.setText(variables.get("currentCard"));
+                scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
+            }
+        }
+    }
+    else {
+        if (variables.get("currentCard") == 0) {
+            variables.set("currentCard", scene.activityCards[scene.stage].pop().id);
+            scene.currentCardText.setText(variables.get("currentCard"));
+            scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
+        }
+    }
 }
 
 
