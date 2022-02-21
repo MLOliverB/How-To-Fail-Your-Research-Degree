@@ -2,6 +2,11 @@ import { loadEventCard } from "../cards-management.js";
 import { buttonToggle, AddCardBox, CardBox, CardDiscardBox } from "../activity_cards/GameBoard.js";
 
 
+
+/**
+ * The cards which are used to represent an event card which is stored in inventory
+ * Invisible by default
+ */
 class EventCard {
 	/**
 	 * Event cards which are in the inventory
@@ -12,14 +17,32 @@ class EventCard {
         this.scene = scene;
 		this.cardPosition = cardPosition;
 		this.id = id;
-        this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.1, this.id).setScale(0.235).setInteractive().setVisible(true);
-		this.card.on("pointerover", () => {
-			this.card.y = this.scene.y*1.55;
+        this.isSelected = false;
+        this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, this.id).setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+        this.card.on("pointerup", () => {
+            if (this.isSelected) {
+			    this.card.y = this.scene.y*2.15;
+                this.isSelected = false;
+                this.playButton.setVisible(false);
+                this.playButtonText.setVisible(false);
+            } else {
+                this.card.y = this.scene.y*1.55;
+                this.isSelected = true;
+                this.playButton.setVisible(true);
+                this.playButtonText.setVisible(true);
+            }
 		});
-		this.card.on("pointerout", () => {
-			this.card.y = this.scene.y*2.1;
+        this.playButton = this.scene.add.rectangle(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), this.card.width, 200, 0xb1cfe0).setScale(0.235).setDepth(10).setAlpha(0.8).setInteractive().setVisible(false);
+        this.playButton.on("pointerover", () => {
+			this.playButton.setFillStyle(0x6c95b7);
 		});
-        
+		this.playButton.on("pointerout", () => {
+			this.playButton.setFillStyle(0xb1cfe0);
+		});
+        this.playButton.on("pointerup", () => {
+			this.playCard();
+		});
+        this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", {color: "0x000000"}).setOrigin(0.5).setDepth(10).setVisible(false);
 
         //this.currentEventText = this.scene.add.text(this.scene.x*2, this.scene.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1);
         //this.currentEventImage = this.scene.add.image(this.scene.x*2, this.scene.y*1.3, 70).setScale(0.25).setVisible(false);
@@ -28,6 +51,50 @@ class EventCard {
         let effectCards = [];
         // elseCards: array of cards that needs to be changed due to else_condition
         let elseCards = [];
+    }
+
+    
+    playCard() {
+        let variables = this.scene.teams[this.scene.currentTeam];
+        console.log("Play a card")
+        // stored card can only be played if the player is not currently in the middle of playing another card
+        if (variables.get("currentEventCard") == 0) {
+            variables.set("currentEventCard", this.id);
+            this.scene.eventStack.setTexture(variables.get("currentEventCard"));
+		    this.scene.eventBarPlay.setVisible(true);
+            if (booleanSave) {
+                this.scene.eventBarStore.setVisible(true);
+            } else {
+                this.scene.eventBarStore.setVisible(false);
+            }
+
+            this.id = 0;
+            this.card.setTexture("e1");
+        }
+    }
+
+
+    /**
+     * @param {boolean} isVisible Whether or not this should be visible
+     */
+    setVisible(isVisible) {
+        if (isVisible) {
+            this.card.setVisible(true);
+            if (this.isSelected) {
+                this.playButton.setVisible(true);
+                this.playButtonText.setVisible(true);
+            }
+        } else {
+            this.card.setVisible(false);
+            this.playButton.setVisible(false);
+            this.playButtonText.setVisible(false);
+        }
+    }
+
+
+    switchCard(id) {
+        this.id = id;
+        this.card.setTexture(id);
     }
 }
 
@@ -76,6 +143,7 @@ class EventBarButton {
 		this.buttonText.setVisible(isVisible);
 	}
 }
+
 
 
 /*
@@ -134,10 +202,11 @@ function pickUpEventCard(scene) {
         variables.set("currentEventCard", scene.eventCards[scene.stage].pop().id);
         scene.eventStack.setTexture(variables.get("currentEventCard"));
 		scene.eventBarPlay.setVisible(true);
-        if(booleanSave){
+        if (booleanSave) {
             scene.eventBarStore.setVisible(true);
+        } else {
+            scene.eventBarStore.setVisible(false);
         }
-        scene.eventBarStore.setVisible(false);
         console.log(variables.get("currentEventCard"));
     }
     buttonToggle(scene.toolbarNext.button, 0, true);
@@ -185,6 +254,7 @@ function countCardOccurrences(array){
 }
 
 
+
 /*
  * check if both arrays are equal
  * taken from: https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
@@ -218,6 +288,7 @@ Array.prototype.equals = function (array) {
 }
 // Hide method from for-in loops
 Object.defineProperty(Array.prototype, "equals", {enumerable: false});
+
 
 
 /*
@@ -673,6 +744,8 @@ function checkEffect(scene){
     return ideal;
 }
 
+
+
 /*
  * compare ideal card array with current card array to see if cards are changed correctly
  */
@@ -750,6 +823,8 @@ function areRulesMatched(scene) {
         }
     }
 }
+
+
 
 /*
  * Check the save_condition of chosen card
@@ -867,6 +942,8 @@ function storeHandler(scene) {
     // TODO: store card in inventory
 }
 
+
+
 /**
  * Runs when the finish event card button is clicked
  * Checks if the player correctly played the card
@@ -917,4 +994,38 @@ function finishHandler(scene) {
 
 
 
-export { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler, effectDiscard, useEffect };
+/**
+ * Called when inventory button is pressed to open/close the inventory
+ */
+function inventoryHandler(scene) {
+    console.log("Inventory toggle")
+    let variables = scene.teams[scene.currentTeam];
+    let cards = variables.get("eventCards");
+    if (scene.isInventoryOpen) {    // if inventory is open then close it
+        closeInventory(scene);
+    } else {
+        scene.isInventoryOpen = true;
+        for (let i = 0; i < cards.length; i++) {
+            cards[i].setVisible(true);
+            scene.eventBarInventory.buttonText.setText("Close Inventory");
+        }
+    }
+}
+
+
+
+/**
+ * Closes the event card inventory
+ */
+ function closeInventory(scene) {
+	let cards = scene.teams[scene.currentTeam].get("eventCards");
+    scene.isInventoryOpen = false;
+	for (let i = 0; i < cards.length; i++) {
+		cards[i].setVisible(false);
+		scene.eventBarInventory.buttonText.setText("Open Inventory");
+	}
+}
+
+
+
+export { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler, inventoryHandler, closeInventory, effectDiscard, useEffect };

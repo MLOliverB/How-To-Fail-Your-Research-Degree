@@ -1,5 +1,5 @@
 import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard.js";
-import { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler } from "../event_cards/eventBoard.js";
+import { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler, inventoryHandler } from "../event_cards/eventBoard.js";
 import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
 /**
@@ -80,6 +80,7 @@ export default class playerView extends Phaser.Scene {
         this.ignored = false;
         this.numberFlipped = 0;
         this.completeEffect = false;
+		this.isInventoryOpen = false;
 		
 		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
 		this.isPlayerHoldingWorkLate = false;	// Whether or not the player is currently holding a work late tile
@@ -94,7 +95,7 @@ export default class playerView extends Phaser.Scene {
 				["leftEdge", 0],					// the position of the card furthest to the left
 				["rightEdge", 0],					// the position of the card furthest to the right
 				["cards", []],						// a 2D array of stages of card boxes, e.g. cards[0] will return the array of card boxes used in the first stage
-				["eventCards", []],					// a 1D array of event card ids that the team has in their inventory
+				["eventCards", [new EventCard(this, 70, 0)]],					// a 1D array of event card ids that the team has in their inventory
 				["addCardBoxes", []],				// a 1D array of the current set of add card box buttons (not in order) - this is reset after every stage
 				["workLateTiles", totalWorkLate],	// the number of work late tiles the team has remaining in their inventory
                 ["currentEventCard", 0]             // id of event card player is holding
@@ -154,12 +155,14 @@ export default class playerView extends Phaser.Scene {
 		buttonToggle(this.toolbarDiscard.button, 0, false);
 		buttonToggle(this.currentCardBox, 1, false);
 		
-		this.eventBarPlay = new EventBarButton(this, 1.5, 1, 0.1, "Play", playHandler, undefined, undefined);			// button to play the event card
-		this.eventBarStore = new EventBarButton(this, 1.3, 1, 0.1, "Store", storeHandler, undefined, undefined);		// button to store the event card
-		this.eventBarFinish = new EventBarButton(this, 1.5, 1, 0.1, "Finish", finishHandler, undefined, undefined);	// button to finish playing the event card
+		this.eventBarPlay = new EventBarButton(this, 1.5, 1, 0.1, "Play", playHandler, undefined, undefined);						// button to play the event card
+		this.eventBarStore = new EventBarButton(this, 1.3, 1, 0.1, "Store", storeHandler, undefined, undefined);					// button to store the event card
+		this.eventBarFinish = new EventBarButton(this, 1.5, 1, 0.1, "Finish", finishHandler, undefined, undefined);					// button to finish playing the event card
+		this.eventBarInventory = new EventBarButton(this, 0.67, 1, 0.15, "Open Inventory", inventoryHandler, undefined, undefined); 	// button to open/close the event card inventory
 		this.eventBarPlay.setVisible(false);
 		this.eventBarStore.setVisible(false);
 		this.eventBarFinish.setVisible(false);
+		this.eventBarInventory.setVisible(false);
 
 		
 		// creating a button to pick up a card from the stack
@@ -177,7 +180,7 @@ export default class playerView extends Phaser.Scene {
 		
 		//// EVENT CARDS ////
 		this.eventStack = this.add.image(this.x*1.81, this.y*1.55, 'e1').setScale(0.235).setInteractive().setVisible(false);
-		this.eventStack.depth = 10;
+		this.eventStack.setDepth(20);
 		this.eventStack.on("pointerup", () => {
 			if (this.eventCardsRemaining <= 0) {
 				console.log("Error: no more event cards to be picked up this round");
@@ -196,13 +199,6 @@ export default class playerView extends Phaser.Scene {
                 }
             }
         });
-		
-		new EventCard(this, 70, 0);
-		new EventCard(this, 71, 1);
-		new EventCard(this, 72, 2);
-		
-		//this.inventoryCardB = this.add.image(this.x*0.17 + 5 + 666*0.235, this.y*1.55, '70').setScale(0.235).setInteractive().setVisible(true);
-		//this.inventoryCardC = this.add.image(this.x*0.17, this.y*1.55, '70').setScale(0.235).setInteractive().setVisible(true);
 
 		
 		this.eventCards = [[], [], [], []];

@@ -1,5 +1,5 @@
 import { loadActivityCard, loadEventCard, shuffleCardStack } from "../cards-management.js";
-import { effectDiscard, useEffect } from "../event_cards/eventBoard.js";
+import { closeInventory, effectDiscard, useEffect } from "../event_cards/eventBoard.js";
 
 
 /**
@@ -598,6 +598,7 @@ function moveToEventRound(scene) {
 	scene.currentStageText.setText("Stage: Events "+(scene.stage+1));
 	buttonToggle(scene.toolbarStart.button, 0, false)
 	scene.eventStack.setTexture("e"+scene.stage).setVisible(true).setInteractive();
+	scene.eventBarInventory.setVisible(true);
 }
 
 
@@ -611,6 +612,9 @@ function moveToNextTeam(scene) {
 	scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
 	scene.eventBarPlay.setVisible(false);
 	scene.eventBarStore.setVisible(false);
+	scene.eventBarInventory.setVisible(false);
+
+	if (scene.isInventoryOpen) closeInventory(scene);
 }
 
 
@@ -622,6 +626,7 @@ function moveToNextStage(scene) {
 	
 	scene.eventBarPlay.setVisible(false);
 	scene.eventBarStore.setVisible(false);
+	scene.eventBarInventory.setVisible(false);
 	
 	if (scene.stage == 3) {
 		buttonToggle(scene.toolbarStart.button, 0, false);
@@ -635,6 +640,8 @@ function moveToNextStage(scene) {
 		scene.currentTeam = 0;
 		scene.currentTeamText.setText("Team: 1");
 	}
+
+	if (scene.isInventoryOpen) closeInventory(scene);
 }
 
 
