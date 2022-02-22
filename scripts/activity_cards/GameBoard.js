@@ -129,7 +129,7 @@ class CardBox {
                     this.scene.numberBlocked -= 1;
                 }
             }
-            else if (scene.blockedOut) {
+            else if (this.scene.blockedOut) {
                 this.placementBox.disableInteractive();
             }
         }
@@ -592,6 +592,9 @@ function nextHandler(scene) {
 
 
 
+/**
+ * Updates everything required to change to the event round
+ */
 function moveToEventRound(scene) {
 	console.log("Moving to event round");
 	scene.isEventRound = true;
@@ -599,10 +602,14 @@ function moveToEventRound(scene) {
 	buttonToggle(scene.toolbarStart.button, 0, false)
 	scene.eventStack.setTexture("e"+scene.stage).setVisible(true).setInteractive();
 	scene.eventBarInventory.setVisible(true);
+	if (scene.numberOfTeams > 1) scene.toolbarNext.buttonText.setText("Next Team");
 }
 
 
 
+/**
+ * Updates everything required to change to the next team
+ */
 function moveToNextTeam(scene) {
 	console.log("Moving to next team");
 	scene.isEventRound = false;
@@ -613,12 +620,15 @@ function moveToNextTeam(scene) {
 	scene.eventBarPlay.setVisible(false);
 	scene.eventBarStore.setVisible(false);
 	scene.eventBarInventory.setVisible(false);
-
+	if (scene.stage != 0) scene.toolbarNext.buttonText.setText("Next Round");
 	if (scene.isInventoryOpen) closeInventory(scene);
 }
 
 
 
+/**
+ * Updates everything required to change to the next stage
+ */
 function moveToNextStage(scene) {
 	console.log("Moving to next stage")
 	scene.isEventRound = false;
@@ -640,7 +650,7 @@ function moveToNextStage(scene) {
 		scene.currentTeam = 0;
 		scene.currentTeamText.setText("Team: 1");
 	}
-
+	scene.toolbarNext.buttonText.setText("Next Round");
 	if (scene.isInventoryOpen) closeInventory(scene);
 }
 

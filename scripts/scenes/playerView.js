@@ -1,4 +1,4 @@
-import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard.js";
+import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/gameBoard.js";
 import { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler, inventoryHandler } from "../event_cards/eventBoard.js";
 import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
@@ -64,7 +64,7 @@ export default class playerView extends Phaser.Scene {
 		
 		//// VARIABLES ////
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
+		this.numberOfTeams = 2;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
 		
 		this.roundLength = 30;					// The maximum length of each round in seconds (TODO: get this from menu)
@@ -95,11 +95,12 @@ export default class playerView extends Phaser.Scene {
 				["leftEdge", 0],					// the position of the card furthest to the left
 				["rightEdge", 0],					// the position of the card furthest to the right
 				["cards", []],						// a 2D array of stages of card boxes, e.g. cards[0] will return the array of card boxes used in the first stage
-				["eventCards", [new EventCard(this, 70, 0)]],					// a 1D array of event card ids that the team has in their inventory
+				["eventCards", []],					// a 1D array of event card ids that the team has in their inventory
 				["addCardBoxes", []],				// a 1D array of the current set of add card box buttons (not in order) - this is reset after every stage
 				["workLateTiles", totalWorkLate],	// the number of work late tiles the team has remaining in their inventory
                 ["currentEventCard", 0]             // id of event card player is holding
 			]);
+			team.set("eventCards", [new EventCard(this, 0, 0), new EventCard(this, 0, 1), new EventCard(this, 0, 2)]);
 			this.teams.push(team);
 		}
 		this.currentTeam = -1;
@@ -144,11 +145,12 @@ export default class playerView extends Phaser.Scene {
 		this.currentTeamText = this.add.text(this.x, this.y*0.18, "Team: 1", {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
 		this.timerText = this.add.text(this.x*0.3, this.y*0.13, "Time Remaining: "+this.roundLength+"s", {color: "0x000000"}).setOrigin(0.5).setFontSize(20);
 		
-		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Round", nextHandler, undefined, undefined);		// button to move to next player/stage
+		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Team", nextHandler, undefined, undefined);		// button to move to next player/stage
 		this.toolbarStart = new ToolbarButton(this, 0.43, 0.12, "Start", startHandler, undefined, undefined);			// button to start the game
 		this.toolbarWorkLate = new ToolbarButton(this, 0.7, 0.12, "Work Late\nTiles: "+totalWorkLate, workLateHandler, undefined, undefined);	// button to use work late tiles
 		this.toolbarDiscard = new CardDiscardBox(this, 1.33, 1.875, 0.15, 0.1);	// button for discarding the currently held card (Only possible to discard cards that are impossible to play)
-		
+		if (this.numberOfTeams == 0) this.toolbarNext.buttonText.setText("Next Round");
+
 		buttonToggle(this.toolbarNext.button, 0, false);
 		buttonToggle(this.toolbarStart.button, 0, false);
 		buttonToggle(this.toolbarWorkLate.button, 0, false);
@@ -204,7 +206,7 @@ export default class playerView extends Phaser.Scene {
 		this.eventCards = [[], [], [], []];
         for (let s = 2; s < 5; s++) {
             loadEventCardStack(s, (ecards) => {
-				console.log(ecards)
+				//console.log(ecards)
 				let ix = ecards[0].stage - 1;
                 this.eventCards[ix] = shuffleCardStack(ecards);
             });

@@ -1,5 +1,5 @@
 import { loadEventCard } from "../cards-management.js";
-import { buttonToggle, AddCardBox, CardBox, CardDiscardBox } from "../activity_cards/GameBoard.js";
+import { buttonToggle, AddCardBox, CardBox, CardDiscardBox } from "../activity_cards/gameBoard.js";
 
 
 
@@ -10,7 +10,7 @@ import { buttonToggle, AddCardBox, CardBox, CardDiscardBox } from "../activity_c
 class EventCard {
 	/**
 	 * Event cards which are in the inventory
-	 * @param {Integer} id The id of the card
+	 * @param {Integer} id The id of the card 
 	 * @param {Integer} cardPosition The position of the card in the inventory (starts at 0)
 	 */
     constructor(scene, id, cardPosition) {
@@ -18,7 +18,11 @@ class EventCard {
 		this.cardPosition = cardPosition;
 		this.id = id;
         this.isSelected = false;
-        this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, this.id).setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+        if (this.id == 0) {
+            this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, "e1").setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+        } else {
+            this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, this.id).setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+        }
         this.card.on("pointerup", () => {
             if (this.isSelected) {
 			    this.card.y = this.scene.y*2.15;
@@ -69,7 +73,7 @@ class EventCard {
             }
 
             this.id = 0;
-            this.card.setTexture("e1");
+            this.setVisible(false);
         }
     }
 
@@ -78,7 +82,7 @@ class EventCard {
      * @param {boolean} isVisible Whether or not this should be visible
      */
     setVisible(isVisible) {
-        if (isVisible) {
+        if (isVisible && this.id != 0) {
             this.card.setVisible(true);
             if (this.isSelected) {
                 this.playButton.setVisible(true);
@@ -146,8 +150,10 @@ class EventBarButton {
 
 
 
-/*
- * get all card IDs from gameboard
+/**
+ * Get all card IDs from gameboard
+ * @param {Array(CardBox)} array The 2D array of cards of the current team
+ * @returns A 1D array of card IDs of the current team
  */
 function countIds(array) {
     // first row
@@ -190,6 +196,10 @@ function countIds(array) {
 
 
 
+/**
+ * Picks up an event card from the top of the stack
+ * Card id is returned in "currentEventCard" in the current team's variables
+ */
 function pickUpEventCard(scene) {
     let variables = scene.teams[scene.currentTeam];
     scene.previousCardArray = countIds(variables.get("cards"));
@@ -209,13 +219,17 @@ function pickUpEventCard(scene) {
         }
         console.log(variables.get("currentEventCard"));
     }
-    buttonToggle(scene.toolbarNext.button, 0, true);
 }
 
 
 
-// function to get matching cardIDs from activity cards array and required cards
-// taken from: https://www.tutsmake.com/javascript-compare-two-arrays-for-matches/
+/**
+ * Get matching cardIDs from activity cards array and required cards
+ * taken from: https://www.tutsmake.com/javascript-compare-two-arrays-for-matches/
+ * @param {Array(cardId)} arr1 
+ * @param {Array(cardId)} arr2 
+ * @returns A 1D array of cardId objects which were in both input arrays
+ */
 function arrayMatch(arr1, arr2) {
     var arr = new Array();  // Array to contain match elements
         for(var i=0 ; i<arr1.length ; ++i) {
@@ -230,15 +244,24 @@ function arrayMatch(arr1, arr2) {
 
 
 
-// function for filtering same card IDs
+/**
+ * function for filtering same card IDs
+ * @param {*} valToBeChecked 
+ * @param {*} valChecked 
+ * @returns Boolean of if the two values are equal
+ */
 function matchCount(valToBeChecked, valChecked) {
     return valToBeChecked == valChecked;
 }
 
 
 
-// get count of all occurrences of each activity card ID
-// taken from: https://stackoverflow.com/questions/5667888/counting-the-occurrences-frequency-of-array-elements
+/**
+ * Get count of all occurrences of each activity card ID
+ * taken from: https://stackoverflow.com/questions/5667888/counting-the-occurrences-frequency-of-array-elements
+ * @param {*} array 
+ * @returns 
+ */
 function countCardOccurrences(array){
     var arrayAll = array;
     const occurrences = arrayAll.reduce(function (acc, curr) {
@@ -255,7 +278,7 @@ function countCardOccurrences(array){
 
 
 
-/*
+/**
  * check if both arrays are equal
  * taken from: https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
  */
@@ -291,7 +314,7 @@ Object.defineProperty(Array.prototype, "equals", {enumerable: false});
 
 
 
-/*
+/**
  * get effects based on requirements
  */
 function useEffect(scene) {
@@ -620,6 +643,11 @@ function useEffect(scene) {
 
 
 
+/**
+ * ?
+ * @param {*} scene 
+ * @returns 
+ */
 function checkEffect(scene){
     /*
      * wholeEffect[0]: action (e.g. n = remove, p = add, ...)
@@ -746,7 +774,7 @@ function checkEffect(scene){
 
 
 
-/*
+/**
  * compare ideal card array with current card array to see if cards are changed correctly
  */
 function areRulesMatched(scene) {
@@ -826,7 +854,7 @@ function areRulesMatched(scene) {
 
 
 
-/*
+/**
  * Check the save_condition of chosen card
  */
 function booleanSave(scene) {
@@ -866,6 +894,11 @@ function booleanSave(scene) {
 
 
 
+/**
+ * ?
+ * @param {*} scene 
+ * @returns 
+ */
 function effectDiscard(scene) {
     var variables = scene.teams[scene.currentTeam];
     scene.previousCardArray = countIds(variables.get("cards"));
@@ -939,7 +972,31 @@ function playHandler(scene) {
  */
 function storeHandler(scene) {
     console.log("Store the event card in inventory");
-    // TODO: store card in inventory
+    let variables = scene.teams[scene.currentTeam];
+    let cards = variables.get("eventCards");
+    let stored = false;
+    for (let i = 0; i < cards.length; i++) {
+        cards[i].setVisible(true);
+        if (cards[i].id == 0) {
+            cards[i].switchCard(variables.get("currentEventCard"));
+            variables.set("currentEventCard", 0);
+            if (scene.isInventoryOpen) {
+                cards[i].setVisible(true);
+            }
+            console.log("ID: "+cards[i].id);
+            scene.eventStack.setTexture("e"+scene.stage);
+            stored = true;
+            break;
+        }
+    }
+
+    if (!stored) {
+        console.log("Error: No card storage slots remaining because this code sucks");
+    } else {
+        scene.eventBarStore.setVisible(false);
+        scene.eventBarPlay.setVisible(false);
+        endCard(scene);
+    }
 }
 
 
@@ -975,20 +1032,29 @@ function finishHandler(scene) {
         variables.set("addCardBoxes", [])
         
 		variables.set("currentEventCard", 0);
-		if (scene.eventCardsRemaining > 0) {
-			scene.eventStack.setTexture("e"+scene.stage);
-            scene.eventBarFinish.setVisible(false);
-		} else {
-			scene.eventStack.setVisible(false);
-			scene.eventBarFinish.setVisible(false);
-		}
-        
-        if (scene.eventCardsRemaining == 0) {
-            buttonToggle(scene.toolbarNext.button, 0, true);
-        }
+		endCard(scene);
 	}
     else {
         scene.completeEffect = false;
+    }
+}
+
+
+
+/**
+ * Function which checks if more event cards can be drawn after the previous event card is played/stored
+ */
+function endCard(scene) {
+    if (scene.eventCardsRemaining > 0) {
+        scene.eventStack.setTexture("e"+scene.stage);
+        scene.eventBarFinish.setVisible(false);
+    } else {
+        scene.eventStack.setVisible(false);
+        scene.eventBarFinish.setVisible(false);
+    }
+    
+    if (scene.eventCardsRemaining == 0) {
+        buttonToggle(scene.toolbarNext.button, 0, true);
     }
 }
 
