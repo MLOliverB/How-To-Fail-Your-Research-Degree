@@ -47,9 +47,6 @@ class EventCard {
 			this.playCard();
 		});
         this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", {color: "0x000000"}).setOrigin(0.5).setDepth(10).setVisible(false);
-
-        //this.currentEventText = this.scene.add.text(this.scene.x*2, this.scene.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1);
-        //this.currentEventImage = this.scene.add.image(this.scene.x*2, this.scene.y*1.3, 70).setScale(0.25).setVisible(false);
         
         // effectCards: array of cards that needs to be changed due to effect
         let effectCards = [];
@@ -976,7 +973,6 @@ function storeHandler(scene) {
     let cards = variables.get("eventCards");
     let stored = false;
     for (let i = 0; i < cards.length; i++) {
-        cards[i].setVisible(true);
         if (cards[i].id == 0) {
             cards[i].switchCard(variables.get("currentEventCard"));
             variables.set("currentEventCard", 0);

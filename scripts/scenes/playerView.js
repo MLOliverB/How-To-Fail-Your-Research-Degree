@@ -1,4 +1,4 @@
-import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/gameBoard.js";
+import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/gameBoard.js";
 import { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler, inventoryHandler } from "../event_cards/eventBoard.js";
 import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
@@ -64,7 +64,7 @@ export default class playerView extends Phaser.Scene {
 		
 		//// VARIABLES ////
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-		this.numberOfTeams = 2;					// TODO: get this to recieve numberOfTeams from start menu!
+		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
 		
 		this.roundLength = 30;					// The maximum length of each round in seconds (TODO: get this from menu)
@@ -81,6 +81,8 @@ export default class playerView extends Phaser.Scene {
         this.numberFlipped = 0;
         this.completeEffect = false;
 		this.isInventoryOpen = false;
+
+		this.isFacilitatorModeActive = false;
 		
 		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
 		this.isPlayerHoldingWorkLate = false;	// Whether or not the player is currently holding a work late tile
@@ -165,6 +167,8 @@ export default class playerView extends Phaser.Scene {
 		this.eventBarStore.setVisible(false);
 		this.eventBarFinish.setVisible(false);
 		this.eventBarInventory.setVisible(false);
+
+		this.facilitatorModeButton = new FacilitatorModeButton(this);
 
 		
 		// creating a button to pick up a card from the stack
