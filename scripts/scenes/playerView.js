@@ -64,7 +64,7 @@ export default class playerView extends Phaser.Scene {
 		
 		//// VARIABLES ////
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-		this.numberOfTeams = 2;					// TODO: get this to recieve numberOfTeams from start menu!
+		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
 		
 		this.roundLength = 30;					// The maximum length of each round in seconds (TODO: get this from menu)
@@ -74,11 +74,11 @@ export default class playerView extends Phaser.Scene {
 		this.isEventRound = false;
 		this.totalEventCards = 3;							// TODO: get the number of event cards per round from menu
 		this.eventCardsRemaining = this.totalEventCards;	// The number of event cards drawn each round
-        this.previousCardArray = new Array();
+        this.previousCardArray = new Array();               // previous event card array before making changes
         this.blockedOut = false;
-        this.numberBlocked = 0;
+        this.numberBlocked = 0;                             // number of card box(es) blocked out
         this.ignored = false;
-        this.numberFlipped = 0;
+        this.numberFlipped = 0;                             // number of activity card(s) flipped
         this.completeEffect = false;
 		this.isInventoryOpen = false;
 		
