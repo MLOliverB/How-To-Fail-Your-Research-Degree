@@ -1,5 +1,5 @@
 import { loadEventCard } from "../cards-management.js";
-import { buttonToggle, AddCardBox, CardBox, CardDiscardBox } from "../activity_cards/gameBoard.js";
+import { buttonToggle, AddCardBox, CardBox, CardDiscardBox, displayCardInfo } from "../activity_cards/gameBoard.js";
 
 
 
@@ -24,7 +24,9 @@ class EventCard {
             this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, this.id).setScale(0.235).setDepth(10).setInteractive().setVisible(false);
         }
         this.card.on("pointerup", () => {
-            if (this.isSelected) {
+            if (this.scene.isFacilitatorModeActive) {
+                if (this.id != 0) { displayCardInfo(this.scene, this.id) }
+            } else if (this.isSelected) {
 			    this.card.y = this.scene.y*2.15;
                 this.isSelected = false;
                 this.playButton.setVisible(false);
@@ -47,9 +49,6 @@ class EventCard {
 			this.playCard();
 		});
         this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", {color: "0x000000"}).setOrigin(0.5).setDepth(10).setVisible(false);
-
-        //this.currentEventText = this.scene.add.text(this.scene.x*2, this.scene.y*1.76, '.', {color: "0x000000"}).setOrigin(0.5, 1.2).setFontSize(1);
-        //this.currentEventImage = this.scene.add.image(this.scene.x*2, this.scene.y*1.3, 70).setScale(0.25).setVisible(false);
         
         // effectCards: array of cards that needs to be changed due to effect
         let effectCards = [];
@@ -64,6 +63,9 @@ class EventCard {
         // stored card can only be played if the player is not currently in the middle of playing another card
         if (variables.get("currentEventCard") == 0) {
             variables.set("currentEventCard", this.id);
+            if (this.scene.eventCardsRemaining == 0) {
+                this.scene.eventStack.setVisible(true);
+            }
             this.scene.eventStack.setTexture(variables.get("currentEventCard"));
 		    this.scene.eventBarPlay.setVisible(true);
             if (booleanSave) {
@@ -1004,7 +1006,6 @@ function storeHandler(scene) {
     let cards = variables.get("eventCards");
     let stored = false;
     for (let i = 0; i < cards.length; i++) {
-        cards[i].setVisible(true);
         if (cards[i].id == 0) {
             cards[i].switchCard(variables.get("currentEventCard"));
             variables.set("currentEventCard", 0);

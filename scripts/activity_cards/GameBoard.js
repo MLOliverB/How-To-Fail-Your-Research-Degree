@@ -9,7 +9,7 @@ class CardBox {
 	/**
 	 * @param {Phaser.Scene} scene The scene which this box should be displayed on
 	 * @param {number} distanceFromMiddle The distance from the middle of the array that this card is (0 = middle, <0 = left, >0 = right)
-	*/
+	 */
 	constructor(scene, distanceFromMiddle) {
 		this.scene = scene;
 		this.distanceFromMiddle = distanceFromMiddle;
@@ -18,7 +18,15 @@ class CardBox {
         this.stage = this.scene.stage;
         this.testBlock = false;
 		
-		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
+		let xPos;
+		if (this.scene.stage == 0) {
+			xPos = this.scene.x*(1+0.28*this.distanceFromMiddle);
+		} else {
+			xPos = this.scene.x*(1+0.225*this.distanceFromMiddle);
+		}
+		let yPos = this.scene.y*(1.33-(0.31*(this.scene.stage)));
+
+		this.placementBox = this.scene.add.rectangle(xPos, yPos, this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		this.placementBox.on("pointerover", () => { 
             if (this.scene.blockedOut && this.testBlock) { this.placementBox.setFillStyle(0x898989); }
             else { this.placementBox.setFillStyle(0x6c95b7); }
@@ -28,18 +36,21 @@ class CardBox {
             else { this.placementBox.setFillStyle(0xb1cfe0); }
         });
 		this.placementBox.on("pointerup", () => { 
-            if (this.scene.blockedOut && this.testBlock) { this.placementBox.removeInteractive(); }
+			if (this.scene.isFacilitatorModeActive) { 
+				if (this.cardId != 0) { displayCardInfo(this.scene, this.cardId) }
+			}
+            else if (this.scene.blockedOut && this.testBlock) { this.placementBox.removeInteractive(); }
             else { this.updateCardBox(); } 
         });
-		this.cardText = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
-		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), 2).setVisible(false).setScale(0.2);
-		this.workLateImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "workLate").setVisible(false).setScale(0.17);
-        this.backImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), 2).setVisible(false).setScale(0.2);
+		this.cardText = this.scene.add.text(xPos, yPos, "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.cardImage = this.scene.add.image(xPos, yPos, 2).setVisible(false).setScale(0.2);
+		this.workLateImage = this.scene.add.image(xPos, yPos, "workLate").setVisible(false).setScale(0.17);
+        this.backImage = this.scene.add.image(xPos, yPos, 2).setVisible(false).setScale(0.2);
 	}
 	
 	/**
 	 * Either places a card or moves a card when a card box is clicked
-	*/
+	 */
 	updateCardBox() {
 		let variables = this.scene.teams[this.scene.currentTeam];
         
@@ -167,6 +178,26 @@ class CardBox {
 			}
 		}
 	}
+
+	/**
+	 * Removes the gap between card boxes on stage 0
+	 */
+	removeGap() {
+		let shift = this.scene.x*0.14*0.39*Math.abs(this.distanceFromMiddle);
+		if (this.distanceFromMiddle > 0) {
+			this.placementBox.x -= shift;
+			this.cardText.x -= shift;
+			this.cardImage.x -= shift;
+			this.workLateImage.x -= shift;
+			this.backImage.x -= shift;
+		} else if (this.distanceFromMiddle < 0) {
+			this.placementBox.x += shift;
+			this.cardText.x += shift;
+			this.cardImage.x += shift;
+			this.workLateImage.x += shift;
+			this.backImage.x += shift;
+		}
+	}
 }
 
 
@@ -189,12 +220,25 @@ class AddCardBox {
 		if (this.distanceFromMiddle > 0) {
 			distanceMultiplier--;
 		}
+
+		let xPos;
+		if (this.scene.stage == 0) {
+			xPos = this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier);
+		} else {
+			if (this.distanceFromMiddle < 0) {
+				xPos = this.scene.x+this.scene.x*(0.085+0.225*distanceMultiplier);
+			} else {
+				xPos = this.scene.x+this.scene.x*(0.14+0.225*distanceMultiplier);
+			}
+			
+		}
+		let yPos = this.scene.y*(1.33-(0.31*(this.scene.stage)));
 		
-		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
+		this.buttonBox = this.scene.add.rectangle(xPos, yPos, this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
 		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(0x6c95b7);});
 		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(0xb1cfe0);});
 		this.buttonBox.on("pointerup", () => this.addBox());
-		this.boxText = this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
+		this.boxText = this.scene.add.text(xPos, yPos, '+', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
 	/**
@@ -489,6 +533,89 @@ class ToolbarButton {
 
 
 /**
+ * A button which toggles facilitator mode on/off
+ * Disabled by default
+ */
+class FacilitatorModeButton {
+	constructor(scene) {
+		this.scene = scene
+
+		this.button = this.scene.add.rectangle(this.scene.x*1.69, this.scene.y*0.12, this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.27, 0.07).setInteractive();
+		this.button.on("pointerover", () => { this.button.setFillStyle(0x6c95b7); });
+		this.button.on("pointerout", () => { this.button.setFillStyle(0xb1cfe0); });
+		this.button.on("pointerup", () => { this.toggleFacilitatorMode(); });
+		this.buttonText = this.scene.add.text(this.scene.x*1.69, this.scene.y*0.12, "Activate Facilitator Mode", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+
+		buttonToggle(this.button, 0, false);
+	}
+
+
+	toggleFacilitatorMode() {
+		if (this.scene.isFacilitatorModeActive) {
+			this.disableMode();
+		} else {
+			this.enableMode();
+		}
+	}
+
+
+	disableMode() {
+		let variables = this.scene.teams[this.scene.currentTeam];
+
+		console.log("Deactivating facilitator mode");
+		this.scene.isFacilitatorModeActive = false;
+		this.buttonText.setText("Activate Facilitator Mode");
+
+		// setting cards to be unclickable
+		let cards = variables.get("cards");
+		for (let i = 0; i < cards.length; i++) {
+			for (let j = 0; j < cards[i].length; j++) {
+				cards[i][j].placementBox.disableInteractive();
+			}
+		}
+
+		if (this.scene.isEventRound) {
+			buttonToggle(this.scene.eventBarPlay.button, 0, true);
+			buttonToggle(this.scene.eventBarStore.button, 0, true);
+		}
+	}
+
+
+	enableMode() {
+		let variables = this.scene.teams[this.scene.currentTeam];
+
+		console.log("Activating facilitator mode");
+		this.scene.isFacilitatorModeActive = true;
+		this.buttonText.setText("Deactivate Facilitator Mode");
+
+		// setting cards to be clickable
+		let cards = variables.get("cards");
+		for (let i = 0; i < cards.length; i++) {
+			for (let j = 0; j < cards[i].length; j++) {
+				cards[i][j].placementBox.setInteractive();
+			}
+		}
+
+		if (this.scene.isEventRound) {
+			let ecards = variables.get("eventCards");
+			for (let i = 0; i < ecards.length; i++) {
+				if (ecards[i].id != 0) {
+					ecards[i].card.setInteractive();
+				}
+			}
+			this.scene.eventStack.setInteractive();
+		}
+
+		if (this.scene.isEventRound) {
+			buttonToggle(this.scene.eventBarPlay.button, 0, false);
+			buttonToggle(this.scene.eventBarStore.button, 0, false);
+		}
+	}
+}
+
+
+
+/**
  * Buttons turn grey when disabled
  * @param {Phaser.rectangle} button The button rectangle object which is to be enabled/disabled
  * @param {Integer} type The type of button (0 = ToolbarButton/CardDiscardBox, 1 = Pick up card button)
@@ -515,6 +642,17 @@ function buttonToggle(button, type, enable) {
 			button.setFillStyle(0x939393);
 		}
 	}
+}
+
+
+
+/**
+ * Displays facilitator information about a card with the given id
+ * @param {int} id 
+ */
+function displayCardInfo(scene, id) {
+	let card = scene.cardMap.get(id);
+	alert(card.title+"\n"+card.description);
 }
 
 
@@ -603,6 +741,7 @@ function moveToEventRound(scene) {
 	scene.eventStack.setTexture("e"+scene.stage).setVisible(true).setInteractive();
 	scene.eventBarInventory.setVisible(true);
 	if (scene.numberOfTeams > 1) scene.toolbarNext.buttonText.setText("Next Team");
+	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
 }
 
 
@@ -614,6 +753,8 @@ function moveToNextTeam(scene) {
 	console.log("Moving to next team");
 	scene.isEventRound = false;
 	scene.eventCardsRemaining = scene.totalEventCards;
+
+	if (scene.stage == 0) squashFirstStage(scene);
 	
 	scene.currentTeam++;
 	scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
@@ -622,6 +763,7 @@ function moveToNextTeam(scene) {
 	scene.eventBarInventory.setVisible(false);
 	if (scene.stage != 0) scene.toolbarNext.buttonText.setText("Next Round");
 	if (scene.isInventoryOpen) closeInventory(scene);
+	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
 }
 
 
@@ -637,6 +779,8 @@ function moveToNextStage(scene) {
 	scene.eventBarPlay.setVisible(false);
 	scene.eventBarStore.setVisible(false);
 	scene.eventBarInventory.setVisible(false);
+
+	if (scene.stage == 0) squashFirstStage(scene);
 	
 	if (scene.stage == 3) {
 		buttonToggle(scene.toolbarStart.button, 0, false);
@@ -652,6 +796,21 @@ function moveToNextStage(scene) {
 	}
 	scene.toolbarNext.buttonText.setText("Next Round");
 	if (scene.isInventoryOpen) closeInventory(scene);
+	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
+}
+
+
+
+/**
+ * Removes the gaps between CardBox objects after the first stage
+ */
+function squashFirstStage(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	let cards = variables.get("cards")[0];
+
+	for (let i = 0; i < cards.length; i++) {
+		cards[i].removeGap();
+	}
 }
 
 
@@ -679,6 +838,10 @@ function startHandler(scene) {
 		buttonToggle(scene.toolbarWorkLate.button, 0, true);
 		buttonToggle(scene.toolbarDiscard.button, 0, true);
 		buttonToggle(scene.currentCardBox, 1, true);
+		buttonToggle(scene.facilitatorModeButton.button, 0, false);
+		if (scene.isFacilitatorModeActive) {
+			scene.facilitatorModeButton.toggleFacilitatorMode();
+		}
 		
 		// making all the card components visible
 		for (let i = 0; i < scene.stage; i++) {
@@ -706,6 +869,7 @@ function startHandler(scene) {
 function timerUpdater(scene) {
 	let timeRemaining = scene.timer.getOverallRemainingSeconds();
 	if (timeRemaining == 0) {
+		scene.timerText.setText("Time Remaining: 0s");
 		stopHandler(scene);
 	} else {
 		scene.timerText.setText("Time Remaining: "+timeRemaining+"s");
@@ -735,6 +899,8 @@ function stopHandler(scene) {
 	buttonToggle(scene.toolbarWorkLate.button, 0, false);
 	buttonToggle(scene.toolbarDiscard.button, 0, false);
 	buttonToggle(scene.currentCardBox, 1, false);
+	buttonToggle(scene.facilitatorModeButton.button, 0, true);
+
 	
 	// returning unused work late tiles
 	if (scene.isPlayerHoldingWorkLate) {
@@ -969,4 +1135,4 @@ function getIllegalPlacements(scene) {
 
 
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, displayCardInfo };
