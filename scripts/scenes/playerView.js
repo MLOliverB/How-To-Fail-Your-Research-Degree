@@ -1,4 +1,4 @@
-import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/gameBoard.js";
+import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, displayCardInfo } from "../activity_cards/gameBoard.js";
 import { EventCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, finishHandler, inventoryHandler } from "../event_cards/eventBoard.js";
 import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
@@ -188,7 +188,10 @@ export default class playerView extends Phaser.Scene {
 		this.eventStack = this.add.image(this.x*1.81, this.y*1.55, 'e1').setScale(0.235).setInteractive().setVisible(false);
 		this.eventStack.setDepth(20);
 		this.eventStack.on("pointerup", () => {
-			if (this.eventCardsRemaining <= 0) {
+			if (this.isFacilitatorModeActive) {
+				let id = this.teams[this.currentTeam].get("currentEventCard");
+				if (id != 0) { displayCardInfo(this, id) }
+			} else if (this.eventCardsRemaining <= 0) {
 				console.log("Error: no more event cards to be picked up this round");
             } else if (this.teams[this.currentTeam].get("currentEventCard") == 0) {
                 try {

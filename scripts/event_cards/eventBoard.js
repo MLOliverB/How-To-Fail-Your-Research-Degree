@@ -1,5 +1,5 @@
 import { loadEventCard } from "../cards-management.js";
-import { buttonToggle, AddCardBox, CardBox, CardDiscardBox } from "../activity_cards/gameBoard.js";
+import { buttonToggle, AddCardBox, CardBox, CardDiscardBox, displayCardInfo } from "../activity_cards/gameBoard.js";
 
 
 
@@ -24,7 +24,9 @@ class EventCard {
             this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, this.id).setScale(0.235).setDepth(10).setInteractive().setVisible(false);
         }
         this.card.on("pointerup", () => {
-            if (this.isSelected) {
+            if (this.scene.isFacilitatorModeActive) {
+                if (this.id != 0) { displayCardInfo(this.scene, this.id) }
+            } else if (this.isSelected) {
 			    this.card.y = this.scene.y*2.15;
                 this.isSelected = false;
                 this.playButton.setVisible(false);
@@ -61,6 +63,9 @@ class EventCard {
         // stored card can only be played if the player is not currently in the middle of playing another card
         if (variables.get("currentEventCard") == 0) {
             variables.set("currentEventCard", this.id);
+            if (this.scene.eventCardsRemaining == 0) {
+                this.scene.eventStack.setVisible(true);
+            }
             this.scene.eventStack.setTexture(variables.get("currentEventCard"));
 		    this.scene.eventBarPlay.setVisible(true);
             if (booleanSave) {

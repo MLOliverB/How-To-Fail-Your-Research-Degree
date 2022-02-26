@@ -36,7 +36,10 @@ class CardBox {
             else { this.placementBox.setFillStyle(0xb1cfe0); }
         });
 		this.placementBox.on("pointerup", () => { 
-            if (this.scene.blockedOut && this.testBlock) { this.placementBox.removeInteractive(); }
+			if (this.scene.isFacilitatorModeActive) { 
+				if (this.cardId != 0) { displayCardInfo(this.scene, this.cardId) }
+			}
+            else if (this.scene.blockedOut && this.testBlock) { this.placementBox.removeInteractive(); }
             else { this.updateCardBox(); } 
         });
 		this.cardText = this.scene.add.text(xPos, yPos, "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
@@ -531,6 +534,7 @@ class ToolbarButton {
 
 /**
  * A button which toggles facilitator mode on/off
+ * Disabled by default
  */
 class FacilitatorModeButton {
 	constructor(scene) {
@@ -541,18 +545,70 @@ class FacilitatorModeButton {
 		this.button.on("pointerout", () => { this.button.setFillStyle(0xb1cfe0); });
 		this.button.on("pointerup", () => { this.toggleFacilitatorMode(); });
 		this.buttonText = this.scene.add.text(this.scene.x*1.69, this.scene.y*0.12, "Activate Facilitator Mode", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+
+		buttonToggle(this.button, 0, false);
 	}
 
 
 	toggleFacilitatorMode() {
 		if (this.scene.isFacilitatorModeActive) {
-			console.log("Deactivating facilitator mode");
-			this.scene.isFacilitatorModeActive = false;
-			this.buttonText.setText("Activate Facilitator Mode");
+			this.disableMode();
 		} else {
-			console.log("Activating facilitator mode");
-			this.scene.isFacilitatorModeActive = true;
-			this.buttonText.setText("Deactivate Facilitator Mode");
+			this.enableMode();
+		}
+	}
+
+
+	disableMode() {
+		let variables = this.scene.teams[this.scene.currentTeam];
+
+		console.log("Deactivating facilitator mode");
+		this.scene.isFacilitatorModeActive = false;
+		this.buttonText.setText("Activate Facilitator Mode");
+
+		// setting cards to be unclickable
+		let cards = variables.get("cards");
+		for (let i = 0; i < cards.length; i++) {
+			for (let j = 0; j < cards[i].length; j++) {
+				cards[i][j].placementBox.disableInteractive();
+			}
+		}
+
+		if (this.scene.isEventRound) {
+			buttonToggle(this.scene.eventBarPlay.button, 0, true);
+			buttonToggle(this.scene.eventBarStore.button, 0, true);
+		}
+	}
+
+
+	enableMode() {
+		let variables = this.scene.teams[this.scene.currentTeam];
+
+		console.log("Activating facilitator mode");
+		this.scene.isFacilitatorModeActive = true;
+		this.buttonText.setText("Deactivate Facilitator Mode");
+
+		// setting cards to be clickable
+		let cards = variables.get("cards");
+		for (let i = 0; i < cards.length; i++) {
+			for (let j = 0; j < cards[i].length; j++) {
+				cards[i][j].placementBox.setInteractive();
+			}
+		}
+
+		if (this.scene.isEventRound) {
+			let ecards = variables.get("eventCards");
+			for (let i = 0; i < ecards.length; i++) {
+				if (ecards[i].id != 0) {
+					ecards[i].card.setInteractive();
+				}
+			}
+			this.scene.eventStack.setInteractive();
+		}
+
+		if (this.scene.isEventRound) {
+			buttonToggle(this.scene.eventBarPlay.button, 0, false);
+			buttonToggle(this.scene.eventBarStore.button, 0, false);
 		}
 	}
 }
@@ -586,6 +642,17 @@ function buttonToggle(button, type, enable) {
 			button.setFillStyle(0x939393);
 		}
 	}
+}
+
+
+
+/**
+ * Displays facilitator information about a card with the given id
+ * @param {int} id 
+ */
+function displayCardInfo(scene, id) {
+	let card = scene.cardMap.get(id);
+	alert(card.title+"\n"+card.description);
 }
 
 
@@ -674,6 +741,7 @@ function moveToEventRound(scene) {
 	scene.eventStack.setTexture("e"+scene.stage).setVisible(true).setInteractive();
 	scene.eventBarInventory.setVisible(true);
 	if (scene.numberOfTeams > 1) scene.toolbarNext.buttonText.setText("Next Team");
+	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
 }
 
 
@@ -695,6 +763,7 @@ function moveToNextTeam(scene) {
 	scene.eventBarInventory.setVisible(false);
 	if (scene.stage != 0) scene.toolbarNext.buttonText.setText("Next Round");
 	if (scene.isInventoryOpen) closeInventory(scene);
+	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
 }
 
 
@@ -727,6 +796,7 @@ function moveToNextStage(scene) {
 	}
 	scene.toolbarNext.buttonText.setText("Next Round");
 	if (scene.isInventoryOpen) closeInventory(scene);
+	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
 }
 
 
@@ -768,6 +838,10 @@ function startHandler(scene) {
 		buttonToggle(scene.toolbarWorkLate.button, 0, true);
 		buttonToggle(scene.toolbarDiscard.button, 0, true);
 		buttonToggle(scene.currentCardBox, 1, true);
+		buttonToggle(scene.facilitatorModeButton.button, 0, false);
+		if (scene.isFacilitatorModeActive) {
+			scene.facilitatorModeButton.toggleFacilitatorMode();
+		}
 		
 		// making all the card components visible
 		for (let i = 0; i < scene.stage; i++) {
@@ -795,6 +869,7 @@ function startHandler(scene) {
 function timerUpdater(scene) {
 	let timeRemaining = scene.timer.getOverallRemainingSeconds();
 	if (timeRemaining == 0) {
+		scene.timerText.setText("Time Remaining: 0s");
 		stopHandler(scene);
 	} else {
 		scene.timerText.setText("Time Remaining: "+timeRemaining+"s");
@@ -824,6 +899,8 @@ function stopHandler(scene) {
 	buttonToggle(scene.toolbarWorkLate.button, 0, false);
 	buttonToggle(scene.toolbarDiscard.button, 0, false);
 	buttonToggle(scene.currentCardBox, 1, false);
+	buttonToggle(scene.facilitatorModeButton.button, 0, true);
+
 	
 	// returning unused work late tiles
 	if (scene.isPlayerHoldingWorkLate) {
@@ -1058,4 +1135,4 @@ function getIllegalPlacements(scene) {
 
 
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, displayCardInfo };
