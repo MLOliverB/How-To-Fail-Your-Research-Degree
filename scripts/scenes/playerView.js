@@ -66,6 +66,8 @@ export default class playerView extends Phaser.Scene {
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
 		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
+
+		this.lastPlayedCard;					// The CardBox object of the activity card which was most recently played in a stage
 		
 		this.roundLength = 30;					// The maximum length of each round in seconds (TODO: get this from menu)
 		this.timer;

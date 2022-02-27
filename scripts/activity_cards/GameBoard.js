@@ -104,6 +104,14 @@ class CardBox {
 			this.scene.currentCardText.setText("+");
 			this.scene.currentCardImage.setVisible(false);
 			this.cardImage.setVisible(true).setTexture(this.cardId);
+
+			// only the most recently placed card can be picked up on any round other than 0
+			if (this.scene.stage != 0) {
+				if (this.scene.lastPlayedCard != undefined) {
+					this.scene.lastPlayedCard.placementBox.disableInteractive();
+				}
+				this.scene.lastPlayedCard = this;
+			}
 		}
 		
 		// a card can only be picked up if the player is not holding a card and the card box has a card
@@ -116,6 +124,11 @@ class CardBox {
 			this.scene.currentCardText.setText(variables.get("currentCard"));
 			this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
 			this.cardImage.setVisible(false);
+
+			// this box can still be played and is removed from the "queue" for disabling
+			if (this.scene.stage != 0) {
+				this.scene.lastPlayedCard = undefined;
+			}
 		}
         
         // TODO: during event stage, card will be flipped if card box has a card, and blocked if not
@@ -149,7 +162,7 @@ class CardBox {
 	/**
 	 * Toggles the visibility of this card object. Also toggles the interactivity since you shouldn't be able to interact with an invisible object.
 	 * @param {Boolean} isVisible Whether the card should be set to visible
-	 * @param {Voolean} isInteractiveToggle Whether the card interactivity should be toggled
+	 * @param {Boolean} isInteractiveToggle Whether the card should be interactive
 	 */
 	setVisible(isVisible, isInteractiveToggle) {
 		if (isVisible) {
@@ -513,6 +526,7 @@ class ToolbarButton {
 		this.scene = scene;
 		
 		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*1.875, this.scene.width, this.scene.height, 0xb1cfe0).setScale(width, 0.10).setInteractive();
+		this.button.disabled = false;
 		if (onOver != undefined) {
 			this.button.on("pointerover", () => { onOver(this.scene) });
 		} else {
@@ -521,10 +535,12 @@ class ToolbarButton {
 		if (onOut!= undefined) {
 			this.button.on("pointerout", () => { onOut(this.scene) });
 		} else {
-			this.button.on("pointerout", () => { this.button.setFillStyle(0xb1cfe0); });
+			this.button.on("pointerout", () => {
+				if (this.button.disabled == false) { this.button.setFillStyle(0xb1cfe0); }
+			});
 		}
 		if (onClick != undefined) {
-			this.button.on("pointerup", () => { onClick(this.scene) });
+			this.button.on("pointerup", () => { onClick(this.scene); });
 		}
 		this.buttonText = this.scene.add.text(this.scene.x*x, this.scene.y*1.875, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 	}
@@ -635,9 +651,11 @@ function buttonToggle(button, type, enable) {
 		if (enable == true) {	// enabling the button
 			button.setInteractive();
 			button.setFillStyle(0xb1cfe0);
+			button.disabled = false;
 		} else {	// disabling the button
 			button.disableInteractive();
 			button.setFillStyle(0x939393);
+			button.disabled = true;
 		}
 	}
 	// Pick up card button
@@ -724,7 +742,10 @@ function nextHandler(scene) {
 		// making all the card components for team B visible
 		for (let i = 0; i <= scene.stage; i++) {
 			for (let j = 0; j < variables.get("cards")[i].length; j++) {
-				variables.get("cards")[i][j].setVisible(true, false);
+				var card = variables.get("cards")[i][j];
+				if (card.cardId != 0) {
+					card.setVisible(true, false);
+				}
 			}
 		}
 		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
@@ -750,6 +771,7 @@ function moveToEventRound(scene) {
 	scene.eventBarInventory.setVisible(true);
 	if (scene.numberOfTeams > 1) scene.toolbarNext.buttonText.setText("Next Team");
 	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
+	removeUnusedCardBoxes(scene);
 }
 
 
@@ -762,7 +784,10 @@ function moveToNextTeam(scene) {
 	scene.isEventRound = false;
 	scene.eventCardsRemaining = scene.totalEventCards;
 
-	if (scene.stage == 0) squashFirstStage(scene);
+	if (scene.stage == 0) {
+		squashFirstStage(scene);
+		removeUnusedCardBoxes(scene);	// this will have been run at the start of the event round in other stages
+	}
 	
 	scene.currentTeam++;
 	scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
@@ -788,7 +813,10 @@ function moveToNextStage(scene) {
 	scene.eventBarStore.setVisible(false);
 	scene.eventBarInventory.setVisible(false);
 
-	if (scene.stage == 0) squashFirstStage(scene);
+	if (scene.stage == 0) {
+		squashFirstStage(scene);
+		removeUnusedCardBoxes(scene);	// this will have been run at the start of the event round in other stages
+	}
 	
 	if (scene.stage == 3) {
 		buttonToggle(scene.toolbarStart.button, 0, false);
@@ -818,6 +846,23 @@ function squashFirstStage(scene) {
 
 	for (let i = 0; i < cards.length; i++) {
 		cards[i].removeGap();
+	}
+}
+
+
+
+/**
+ * Removes any CardBox objects which weren't used in the previous stage
+ * (doesn't actually remove them, just sets them to be invisible)
+ */
+function removeUnusedCardBoxes(scene) {
+	console.log("AJWdifoajsifo")
+	let cards = scene.teams[scene.currentTeam].get("cards")[scene.stage];
+	console.log(cards)
+	for (let i = 0; i < cards.length; i++) {
+		if (cards[i].cardId == 0) {
+			cards[i].setVisible(false, false);
+		}
 	}
 }
 
@@ -854,7 +899,10 @@ function startHandler(scene) {
 		// making all the card components visible
 		for (let i = 0; i < scene.stage; i++) {
 			for (let j = 0; j < variables.get("cards")[i].length; j++) {
-				variables.get("cards")[i][j].setVisible(true, false);
+				let card = variables.get("cards")[i][j];
+				if (card.cardId != 0 || card.stage == scene.stage) {
+					card.setVisible(true, false);	// don't make unused boxes from previous stages visible
+				}
 			}
 		}
 		// only the newest stage should be interactive
