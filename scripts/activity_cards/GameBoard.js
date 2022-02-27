@@ -567,7 +567,7 @@ class FacilitatorModeButton {
 		this.buttonText.setText("Activate Facilitator Mode");
 
 		// setting cards to be unclickable
-		let cards = variables.get("cards");
+		var cards = variables.get("cards");
 		for (let i = 0; i < cards.length; i++) {
 			for (let j = 0; j < cards[i].length; j++) {
 				cards[i][j].placementBox.disableInteractive();
@@ -577,6 +577,10 @@ class FacilitatorModeButton {
 		if (this.scene.isEventRound) {
 			buttonToggle(this.scene.eventBarPlay.button, 0, true);
 			buttonToggle(this.scene.eventBarStore.button, 0, true);
+			var cards = variables.get("eventCards");
+			for (let i = 0; i < cards.length; i++) {
+				buttonToggle(cards[i].playButton, 0, true);
+			}
 		}
 	}
 
@@ -589,7 +593,7 @@ class FacilitatorModeButton {
 		this.buttonText.setText("Deactivate Facilitator Mode");
 
 		// setting cards to be clickable
-		let cards = variables.get("cards");
+		var cards = variables.get("cards");
 		for (let i = 0; i < cards.length; i++) {
 			for (let j = 0; j < cards[i].length; j++) {
 				cards[i][j].placementBox.setInteractive();
@@ -609,6 +613,10 @@ class FacilitatorModeButton {
 		if (this.scene.isEventRound) {
 			buttonToggle(this.scene.eventBarPlay.button, 0, false);
 			buttonToggle(this.scene.eventBarStore.button, 0, false);
+			var cards = variables.get("eventCards");
+			for (let i = 0; i < cards.length; i++) {
+				buttonToggle(cards[i].playButton, 0, false);
+			}
 		}
 	}
 }
