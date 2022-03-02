@@ -804,7 +804,7 @@ function checkEffect(scene){
                     }
                 }
                 else {                                          // have required cardID
-                    if(totalCount == 0) {                       // card doesn't exist
+                    if(totalCount == 0 || effect[4] != scene.stage) { // card doesn't exist or card doesn't belong to this stage
                         scene.ignored = true;                   // ignore effect
                     }
                     else if (totalCount < effect[3]) {          // card < required
@@ -904,7 +904,7 @@ function areRulesMatched(scene) {
     let matched = false;
     
     if (scene.ignored) {
-        matched = true;
+        return true;
     }
     else {
         // get current card array
@@ -930,6 +930,7 @@ function areRulesMatched(scene) {
                 // card is specified
                 else {
                     totalCount += currentArrayOcc[index];
+                    console.log(currentArrayOcc[index], typeof(currentArrayOcc[index]));
                 }
                 console.log(totalCount);
             }
