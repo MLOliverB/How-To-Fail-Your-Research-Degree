@@ -659,7 +659,7 @@ class FacilitatorModeButton {
 /**
  * Buttons turn grey when disabled
  * @param {Phaser.rectangle} button The button rectangle object which is to be enabled/disabled
- * @param {Integer} type The type of button (0 = ToolbarButton/CardDiscardBox, 1 = Pick up card button)
+ * @param {Integer} type The type of button (0 = ToolbarButton/CardDiscardBox, 1 = Pick up card button, 2 = Activity inventory)
  * @param {Boolean} enable true = enable the button, false = disable the button
  */
 function buttonToggle(button, type, enable) {
@@ -685,6 +685,16 @@ function buttonToggle(button, type, enable) {
 			button.setFillStyle(0x939393);
 		}
 	}
+    // Activity inventory
+    else if (type == 2) {
+        if (enable == true) {   // enabling the button
+            button.setInteractive();
+            button.setFillStyle(0xb1cfe0);
+        } else {    // disabling the button
+            button.disableInteractive();
+			button.setFillStyle(0x939393);
+        }
+    }
 }
 
 
@@ -708,6 +718,7 @@ function nextHandler(scene) {
 	
 	buttonToggle(scene.toolbarNext.button, 0, false);
 	buttonToggle(scene.toolbarStart.button, 0, true);
+    buttonToggle(scene.eventBarActInventory.button, 2, false);
 	
 	
 	// switching teams/stages
@@ -783,7 +794,9 @@ function moveToEventRound(scene) {
 	console.log("Moving to event round");
 	scene.isEventRound = true;
 	scene.currentStageText.setText("Stage: Events "+(scene.stage+1));
-	buttonToggle(scene.toolbarStart.button, 0, false)
+	buttonToggle(scene.toolbarStart.button, 0, false);
+    buttonToggle(scene.eventBarActInventory.button, 2, true);
+    buttonToggle(scene.eventBarActStore.button, 2, true);
 	scene.eventStack.setTexture("e"+scene.stage).setVisible(true).setInteractive();
 	scene.eventBarInventory.setVisible(true);
 	if (scene.numberOfTeams > 1) scene.toolbarNext.buttonText.setText("Next Team");
@@ -829,6 +842,7 @@ function moveToNextStage(scene) {
 	scene.eventBarPlay.setVisible(false);
 	scene.eventBarStore.setVisible(false);
 	scene.eventBarInventory.setVisible(false);
+    scene.teams[scene.currentTeam].set("addCardBoxes", []);	//cleared since the old add card buttons will not be needed again
 
 	if (scene.stage == 0) {
 		squashFirstStage(scene);
@@ -908,6 +922,8 @@ function startHandler(scene) {
 		buttonToggle(scene.toolbarNext.button, 0, false);
 		buttonToggle(scene.toolbarWorkLate.button, 0, true);
 		buttonToggle(scene.toolbarDiscard.button, 0, true);
+        buttonToggle(scene.eventBarActInventory.button, 2, true);
+        buttonToggle(scene.eventBarActStore.button, 2, true);
 		buttonToggle(scene.currentCardBox, 1, true);
 		buttonToggle(scene.facilitatorModeButton.button, 0, false);
 		if (scene.isFacilitatorModeActive) {
@@ -972,6 +988,8 @@ function stopHandler(scene) {
 	buttonToggle(scene.toolbarStart.button, 0, false);
 	buttonToggle(scene.toolbarWorkLate.button, 0, false);
 	buttonToggle(scene.toolbarDiscard.button, 0, false);
+    buttonToggle(scene.eventBarActInventory.button, 2, false);
+    buttonToggle(scene.eventBarActStore.button, 2, false);
 	buttonToggle(scene.currentCardBox, 1, false);
 	buttonToggle(scene.facilitatorModeButton.button, 0, true);
 
@@ -992,7 +1010,6 @@ function stopHandler(scene) {
 	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
 		variables.get("addCardBoxes")[i].setVisible(false, true);
 	}
-	variables.set("addCardBoxes", [])	//cleared since the old add card buttons will not be needed again
 }
 
 
@@ -1102,7 +1119,7 @@ function pickUpCard(scene) {
 	let variables = scene.teams[scene.currentTeam];
     // during event round, will pick up specified cards
     if (scene.isEventRound && variables.get("currentCard") == 0) {
-        console.log("test");
+        console.log("ID: "+variables.get("currentCard").id);
         var wholeEffect = useEffect(scene);
         for (var i = 0; i < wholeEffect.length; i++) {
             var cardId = wholeEffect[i][2];
