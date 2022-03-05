@@ -1,5 +1,4 @@
-import { loadActivityCard, loadEventCard, shuffleCardStack } from "../cards-management.js";
-import { closeInventory, effectDiscard, useEffect } from "../event_cards/eventBoard.js";
+import { closeInventory, useEffect } from "../event_cards/eventBoard.js";
 
 
 /**
@@ -69,6 +68,7 @@ class CardBox {
 			}
 			this.hasWorkLate = false;
 			this.workLateImage.setVisible(false);
+			workLateCardEnabler(this.scene);
 		}
 		
 		// a work late tile can only be placed if the player is holding a work late tile and there is a card in the card box (and there isn't already a work late tile)
@@ -77,6 +77,7 @@ class CardBox {
 			this.workLateImage.setVisible(true);
 			this.scene.isPlayerHoldingWorkLate = false;
 			this.scene.workLateImage.setVisible(false);
+			workLateCardDisabler(this.scene);
 		}
 		
 		// a card can only be placed if the player is holding a card and the card box is empty
@@ -169,7 +170,7 @@ class CardBox {
 			if (isInteractiveToggle) {
 				this.placementBox.setVisible(true).setInteractive();
 			} else {
-				this.placementBox.setVisible(true);
+				this.placementBox.setVisible(true).disableInteractive();
 			}
 			this.cardText.setVisible(true);
 			if (this.cardId != 0) {		// image should not be displayed if there is no card
@@ -282,10 +283,12 @@ class AddCardBox {
 			variables.set("middlePosition", variables.get("middlePosition") + 1);
 			
 			
-			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the start of the array
+			// the distanceFromMiddle and workLate values of card boxes don't need to be updated if we only add at the start of the array
 			if (position != 0) {
 				let previousCardId = 0;
+				let previousWorkLate = false;
 				for (let i = position; i >= 0; i--) {
+					// updating cardId
 					let currentCardId = cards[i].cardId;
 					cards[i].cardId = previousCardId;
 					if (previousCardId == 0) {
@@ -296,6 +299,12 @@ class AddCardBox {
 						cards[i].cardText.text = previousCardId;
 					}
 					previousCardId = currentCardId;
+
+					//updating workLate
+					let currentWorkLate = cards[i].hasWorkLate;
+					cards[i].hasWorkLate = previousWorkLate;
+					cards[i].workLateImage.setVisible(cards[i].hasWorkLate);
+					previousWorkLate = currentWorkLate;
 				}
 			}
 		} else {
@@ -308,10 +317,12 @@ class AddCardBox {
 			let position = variables.get("middlePosition")+this.distanceFromMiddle;
 			cards.push(newBox);		//adding empty box to end of the array, the card ids will be shifted later
 			
-			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the end of the array
+			// the distanceFromMiddle and workLate values of card boxes don't need to be updated if we only add at the end of the array
 			if (position != cards.length-1) {
 				let previousCardId = 0;
+				let previousWorkLate = false;
 				for (let i = position; i < cards.length; i++) {
+					// updating cardId
 					let currentCardId = cards[i].cardId;
 					cards[i].cardId = previousCardId
 					cards[i].cardText.text = previousCardId;
@@ -323,6 +334,12 @@ class AddCardBox {
 						cards[i].cardText.text = previousCardId;
 					}
 					previousCardId = currentCardId;
+
+					//updating workLate
+					let currentWorkLate = cards[i].hasWorkLate;
+					cards[i].hasWorkLate = previousWorkLate;
+					cards[i].workLateImage.setVisible(cards[i].hasWorkLate);
+					previousWorkLate = currentWorkLate;
 				}
 			}
 		}
@@ -745,12 +762,12 @@ function nextHandler(scene) {
 				var card = variables.get("cards")[i][j];
 				if (card.cardId != 0) {
 					card.setVisible(true, false);
+				} else if (scene.stage == 0) {
+					card.setVisible(true, false);
 				}
 			}
 		}
-		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
-			variables.get("addCardBoxes")[i].setVisible(true, false);
-		}
+		
 		
 		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
 		scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
@@ -819,11 +836,13 @@ function moveToNextStage(scene) {
 	}
 	
 	if (scene.stage == 3) {
+		// moving to review stage
 		buttonToggle(scene.toolbarStart.button, 0, false);
-		// TODO: move to final screen scene (probably need to pass the teams array)
-		console.log("TODO: go to final screen");
-		scene.currentStageText.setText("Stage: MOVE TO FINAL SCREEN");
-		return;	//TODO: remove this once moved to final stage
+		let cards = [];
+		for (let i = 0; i < scene.numberOfTeams; i++) {
+			cards.push(scene.teams[i].get("cards"));
+		}
+		scene.scene.start("review", [cards, scene.numberOfTeams, scene.cardMap]);
 	} else {
 		scene.stage++;
 		scene.currentStageText.setText("Stage: " + (scene.stage + 1));
@@ -856,7 +875,6 @@ function squashFirstStage(scene) {
  * (doesn't actually remove them, just sets them to be invisible)
  */
 function removeUnusedCardBoxes(scene) {
-	console.log("AJWdifoajsifo")
 	let cards = scene.teams[scene.currentTeam].get("cards")[scene.stage];
 	console.log(cards)
 	for (let i = 0; i < cards.length; i++) {
@@ -990,12 +1008,52 @@ function workLateHandler(scene) {
 		returnWorkLate(scene);
 		scene.isPlayerHoldingWorkLate = false;
 		scene.workLateImage.setVisible(false);
+		workLateCardDisabler(scene)
+
 	} else if (variables.get("workLateTiles") > 0) {	// can only pick up a tile if there are still any in inventory
 		let variables = scene.teams[scene.currentTeam];
 		scene.isPlayerHoldingWorkLate = true;
 		scene.workLateImage.setVisible(true);
 		variables.set("workLateTiles", variables.get("workLateTiles") - 1);
 		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
+		workLateCardEnabler(scene);
+	}
+}
+
+
+
+/**
+ * Making all cards on the current stage clickable
+ * Designed to be used after picking up a work late tile
+ * @param {*} scene 
+ */
+function workLateCardEnabler(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	if (scene.stage != 0) {
+		let cards = variables.get("cards")[scene.stage]
+		for (let i = 0; i < cards.length; i++) {
+			cards[i].placementBox.setInteractive();
+		}
+	}
+}
+
+
+
+/**
+ * Making all card boxes with cards inside unclickable unless it's the most recent one
+ * Designed to be used after placing a work late tile
+ * @param {*} scene 
+ */
+function workLateCardDisabler(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	if (scene.stage != 0) {
+		let cards = variables.get("cards")[scene.stage]
+		for (let i = 0; i < cards.length; i++) {
+			console.log(cards[i])
+			if (cards[i].cardId != 0 && cards[i] != scene.lastPlayedCard) {
+				cards[i].placementBox.disableInteractive();
+			}
+		}
 	}
 }
 

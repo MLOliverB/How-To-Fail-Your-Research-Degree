@@ -1,4 +1,4 @@
-import { buttonToggle, ToolbarButton } from "../activity_cards/gameBoard.js";
+import { buttonToggle, ToolbarButton, displayCardInfo } from "../activity_cards/gameBoard.js";
 
 export default class review extends Phaser.Scene {
     constructor() {
@@ -13,12 +13,11 @@ export default class review extends Phaser.Scene {
 
         this.teams = data[0];
         this.numberOfTeams = data[1];
+        this.cardMap = data[2];
         this.currentTeam = 0;
-        console.log(this.teams);
-        console.log(this.numberOfTeams);
 
-        //new Menu(this);
-        new BoardViewer(this)
+        new Menu(this);
+        //new BoardViewer(this)
     }
 }
 
@@ -59,6 +58,28 @@ class BoardViewer {
         buttonToggle(scene.label.button, 0, false);
         scene.left = new TriangleButton(scene, 0.83, 1);
         scene.right = new TriangleButton(scene, 1.17, 0);
+
+        // remaking all the cards onto this scene (the ones passed as data only appear on playerView scene)
+        let teamsTemp = [];     // this will be replacing scene.teams after processing
+        for (let i = 0; i < scene.numberOfTeams; i++) {                 // each team
+            let team = [];
+            for (let j = 0; j < scene.teams[i].length; j++) {           // each stage
+                for (let k = 0; k < scene.teams[i][j].length; k++) {    // each card
+                    if (scene.teams[i][j][k].cardId != 0) {
+                        team.push(new ReviewCardBox(scene, scene.teams[i][j][k].cardId, scene.teams[i][j][k].distanceFromMiddle, scene.teams[i][j][k].stage, scene.teams[i][j][k].hasWorkLate));
+                    }
+                    //team.push(new ReviewCardBox(scene, scene.teams[i][j][k].cardId, scene.teams[i][j][k].distanceFromMiddle, scene.teams[i][j][k].stage, scene.teams[i][j][k].hasWorkLate));
+                }
+            }
+            teamsTemp.push(team);
+        }
+
+        scene.teams = teamsTemp;
+        
+        // hiding all teams other than the first team
+        for (let i = 1; i < scene.numberOfTeams; i++) {
+            teamToggle(scene, i, false);
+        }
     }
 }
 
@@ -108,7 +129,7 @@ class TriangleButton {
      */
     moveTeam(direction) {
         // unloading current team
-
+        teamToggle(this.scene, this.scene.currentTeam, false);
 
 
         // updating variables/buttons to move to next team
@@ -133,6 +154,37 @@ class TriangleButton {
 
 
         // loading the current team
+        teamToggle(this.scene, this.scene.currentTeam, true);
+    }
+}
+
+
+
+/**
+ * A class which appears the same as CardBox but is stuck in facilitator mode
+ */
+class ReviewCardBox {
+    /**
+     * @param {Phaser.Scene} scene The scene to render this on
+     * @param {Integer} id The id of this card
+     * @param {Integer} distanceFromMiddle The distance the card is from the middle
+     * @param {Integer} stage The stage the card is in
+     * @param {Boolean} hasWorkLate Whether this card has a work late tile on it
+     */
+    constructor(scene, id, distanceFromMiddle, stage, hasWorkLate) {
+        this.hasWorkLate = hasWorkLate;
+
+        let xPos = scene.x*(1+0.225*distanceFromMiddle);
+		let yPos = scene.y*(1.33-(0.31*stage));
+
+        this.placementBox = scene.add.rectangle(xPos, yPos, scene.width, scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
+        this.placementBox.on("pointerup", () => { displayCardInfo(scene, id) });
+        this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
+		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
+        this.cardImage = scene.add.image(xPos, yPos, id).setScale(0.2);
+        if (hasWorkLate) {
+            this.workLateImage = scene.add.image(xPos, yPos, "workLate").setScale(0.17);
+        }
     }
 }
 
@@ -145,18 +197,9 @@ class TriangleButton {
  * @param {Boolean} isVisible Whether the team should be visible
  */
 function teamToggle(scene, team, isVisible) {
-    console.log("hi")
-    let cards = scene.teams[scene.currentTeam].get("cards")[team];
+    let cards = scene.teams[team];
     for (let i = 0; i < cards.length; i++) {
-        console.log(cards[i])
-        /*
-        if (cards[i].cardId != 0) {
-            cards[i].setVisible(true, false);
-        }
-        */
-       
         cards[i].placementBox.setVisible(isVisible);
-        cards[i].cardText.setVisible(isVisible);
         cards[i].cardImage.setVisible(isVisible);
         if (cards[i].hasWorkLate) {
             cards[i].workLateImage.setVisible(isVisible);
