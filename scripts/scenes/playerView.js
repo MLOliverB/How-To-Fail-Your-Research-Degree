@@ -66,6 +66,8 @@ export default class playerView extends Phaser.Scene {
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
 		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
 		this.currentTeam = -1;
+
+		this.lastPlayedCard;					// The CardBox object of the activity card which was most recently played in a stage
 		
 		this.roundLength = 30;					// The maximum length of each round in seconds (TODO: get this from menu)
 		this.timer;
@@ -156,6 +158,23 @@ export default class playerView extends Phaser.Scene {
 		this.toolbarWorkLate = new ToolbarButton(this, 0.7, 0.12, "Work Late\nTiles: "+totalWorkLate, workLateHandler, undefined, undefined);	// button to use work late tiles
 		this.toolbarDiscard = new CardDiscardBox(this, 1.33, 1.875, 0.15, 0.1);	// button for discarding the currently held card (Only possible to discard cards that are impossible to play)
 		if (this.numberOfTeams == 0) this.toolbarNext.buttonText.setText("Next Round");
+
+
+		// Button for skipping to review mode - only enable while testing for quick access
+		/*
+		this.review = this.add.rectangle(this.x*1.69, this.y*0.3, this.width, this.height, 0xb1cfe0).setScale(0.27, 0.07).setInteractive();
+		this.review.on("pointerover", () => { this.review.setFillStyle(0x6c95b7); });
+		this.review.on("pointerout", () => { this.review.setFillStyle(0xb1cfe0); });
+		this.review.on("pointerup", () => {
+			let cards = [];
+			for (let i = 0; i < this.numberOfTeams; i++) {
+				cards.push(this.teams[i].get("cards"));
+			}
+			this.scene.start("review", [cards, this.numberOfTeams, this.cardMap]);
+		});
+		this.reviewText = this.add.text(this.x*1.69, this.y*0.3, "Review Mode", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		*/
+
 
 		buttonToggle(this.toolbarNext.button, 0, false);
 		buttonToggle(this.toolbarStart.button, 0, false);

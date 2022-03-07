@@ -25,6 +25,7 @@
             import options from "./scripts/scenes/options.js";
             import numberOfTeams from "./scripts/scenes/numberOfTeams.js";
             import playerView from "./scripts/scenes/playerView.js";
+            import review from "./scripts/scenes/review.js";
             
             const config = {
                 type: Phaser.AUTO,
@@ -32,8 +33,8 @@
                 height: 540,
                 backgroundColor: '#a9e3ff',
                 //while testing, only include the scene(s) you're currently working on in the [] below to instantly skip to that scene
-                //scene: [mainMenu, options, numberOfTeams, playerView]
-                scene: [playerView]
+                //scene: [mainMenu, options, numberOfTeams, playerView, review]
+                scene: [playerView, review]
             };
 
             const game = new Phaser.Game(config);

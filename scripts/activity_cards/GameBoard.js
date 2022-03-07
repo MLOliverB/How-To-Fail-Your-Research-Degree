@@ -1,5 +1,4 @@
-import { loadActivityCard, loadEventCard, shuffleCardStack } from "../cards-management.js";
-import { closeInventory, effectDiscard, useEffect } from "../event_cards/eventBoard.js";
+import { closeInventory, useEffect } from "../event_cards/eventBoard.js";
 
 
 /**
@@ -69,6 +68,7 @@ class CardBox {
 			}
 			this.hasWorkLate = false;
 			this.workLateImage.setVisible(false);
+			workLateCardEnabler(this.scene);
 		}
 		
 		// a work late tile can only be placed if the player is holding a work late tile and there is a card in the card box (and there isn't already a work late tile)
@@ -77,6 +77,7 @@ class CardBox {
 			this.workLateImage.setVisible(true);
 			this.scene.isPlayerHoldingWorkLate = false;
 			this.scene.workLateImage.setVisible(false);
+			workLateCardDisabler(this.scene);
 		}
 		
 		// a card can only be placed if the player is holding a card and the card box is empty
@@ -104,6 +105,14 @@ class CardBox {
 			this.scene.currentCardText.setText("+");
 			this.scene.currentCardImage.setVisible(false);
 			this.cardImage.setVisible(true).setTexture(this.cardId);
+
+			// only the most recently placed card can be picked up on any round other than 0
+			if (this.scene.stage != 0) {
+				if (this.scene.lastPlayedCard != undefined) {
+					this.scene.lastPlayedCard.placementBox.disableInteractive();
+				}
+				this.scene.lastPlayedCard = this;
+			}
 		}
 		
 		// a card can only be picked up if the player is not holding a card and the card box has a card
@@ -116,6 +125,11 @@ class CardBox {
 			this.scene.currentCardText.setText(variables.get("currentCard"));
 			this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
 			this.cardImage.setVisible(false);
+
+			// this box can still be played and is removed from the "queue" for disabling
+			if (this.scene.stage != 0) {
+				this.scene.lastPlayedCard = undefined;
+			}
 		}
         
         // TODO: during event stage, card will be flipped if card box has a card, and blocked if not
@@ -149,14 +163,14 @@ class CardBox {
 	/**
 	 * Toggles the visibility of this card object. Also toggles the interactivity since you shouldn't be able to interact with an invisible object.
 	 * @param {Boolean} isVisible Whether the card should be set to visible
-	 * @param {Voolean} isInteractiveToggle Whether the card interactivity should be toggled
+	 * @param {Boolean} isInteractiveToggle Whether the card should be interactive
 	 */
 	setVisible(isVisible, isInteractiveToggle) {
 		if (isVisible) {
 			if (isInteractiveToggle) {
 				this.placementBox.setVisible(true).setInteractive();
 			} else {
-				this.placementBox.setVisible(true);
+				this.placementBox.setVisible(true).disableInteractive();
 			}
 			this.cardText.setVisible(true);
 			if (this.cardId != 0) {		// image should not be displayed if there is no card
@@ -269,10 +283,12 @@ class AddCardBox {
 			variables.set("middlePosition", variables.get("middlePosition") + 1);
 			
 			
-			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the start of the array
+			// the distanceFromMiddle and workLate values of card boxes don't need to be updated if we only add at the start of the array
 			if (position != 0) {
 				let previousCardId = 0;
+				let previousWorkLate = false;
 				for (let i = position; i >= 0; i--) {
+					// updating cardId
 					let currentCardId = cards[i].cardId;
 					cards[i].cardId = previousCardId;
 					if (previousCardId == 0) {
@@ -283,6 +299,12 @@ class AddCardBox {
 						cards[i].cardText.text = previousCardId;
 					}
 					previousCardId = currentCardId;
+
+					//updating workLate
+					let currentWorkLate = cards[i].hasWorkLate;
+					cards[i].hasWorkLate = previousWorkLate;
+					cards[i].workLateImage.setVisible(cards[i].hasWorkLate);
+					previousWorkLate = currentWorkLate;
 				}
 			}
 		} else {
@@ -295,10 +317,12 @@ class AddCardBox {
 			let position = variables.get("middlePosition")+this.distanceFromMiddle;
 			cards.push(newBox);		//adding empty box to end of the array, the card ids will be shifted later
 			
-			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the end of the array
+			// the distanceFromMiddle and workLate values of card boxes don't need to be updated if we only add at the end of the array
 			if (position != cards.length-1) {
 				let previousCardId = 0;
+				let previousWorkLate = false;
 				for (let i = position; i < cards.length; i++) {
+					// updating cardId
 					let currentCardId = cards[i].cardId;
 					cards[i].cardId = previousCardId
 					cards[i].cardText.text = previousCardId;
@@ -310,6 +334,12 @@ class AddCardBox {
 						cards[i].cardText.text = previousCardId;
 					}
 					previousCardId = currentCardId;
+
+					//updating workLate
+					let currentWorkLate = cards[i].hasWorkLate;
+					cards[i].hasWorkLate = previousWorkLate;
+					cards[i].workLateImage.setVisible(cards[i].hasWorkLate);
+					previousWorkLate = currentWorkLate;
 				}
 			}
 		}
@@ -513,6 +543,7 @@ class ToolbarButton {
 		this.scene = scene;
 		
 		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*1.875, this.scene.width, this.scene.height, 0xb1cfe0).setScale(width, 0.10).setInteractive();
+		this.button.disabled = false;
 		if (onOver != undefined) {
 			this.button.on("pointerover", () => { onOver(this.scene) });
 		} else {
@@ -521,10 +552,12 @@ class ToolbarButton {
 		if (onOut!= undefined) {
 			this.button.on("pointerout", () => { onOut(this.scene) });
 		} else {
-			this.button.on("pointerout", () => { this.button.setFillStyle(0xb1cfe0); });
+			this.button.on("pointerout", () => {
+				if (this.button.disabled == false) { this.button.setFillStyle(0xb1cfe0); }
+			});
 		}
 		if (onClick != undefined) {
-			this.button.on("pointerup", () => { onClick(this.scene) });
+			this.button.on("pointerup", () => { onClick(this.scene); });
 		}
 		this.buttonText = this.scene.add.text(this.scene.x*x, this.scene.y*1.875, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 	}
@@ -635,9 +668,11 @@ function buttonToggle(button, type, enable) {
 		if (enable == true) {	// enabling the button
 			button.setInteractive();
 			button.setFillStyle(0xb1cfe0);
+			button.disabled = false;
 		} else {	// disabling the button
 			button.disableInteractive();
 			button.setFillStyle(0x939393);
+			button.disabled = true;
 		}
 	}
 	// Pick up card button
@@ -735,12 +770,15 @@ function nextHandler(scene) {
 		// making all the card components for team B visible
 		for (let i = 0; i <= scene.stage; i++) {
 			for (let j = 0; j < variables.get("cards")[i].length; j++) {
-				variables.get("cards")[i][j].setVisible(true, false);
+				var card = variables.get("cards")[i][j];
+				if (card.cardId != 0) {
+					card.setVisible(true, false);
+				} else if (scene.stage == 0) {
+					card.setVisible(true, false);
+				}
 			}
 		}
-		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
-			variables.get("addCardBoxes")[i].setVisible(true, false);
-		}
+		
 		
 		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
 		scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
@@ -763,6 +801,7 @@ function moveToEventRound(scene) {
 	scene.eventBarInventory.setVisible(true);
 	if (scene.numberOfTeams > 1) scene.toolbarNext.buttonText.setText("Next Team");
 	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
+	removeUnusedCardBoxes(scene);
 }
 
 
@@ -775,7 +814,10 @@ function moveToNextTeam(scene) {
 	scene.isEventRound = false;
 	scene.eventCardsRemaining = scene.totalEventCards;
 
-	if (scene.stage == 0) squashFirstStage(scene);
+	if (scene.stage == 0) {
+		squashFirstStage(scene);
+		removeUnusedCardBoxes(scene);	// this will have been run at the start of the event round in other stages
+	}
 	
 	scene.currentTeam++;
 	scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
@@ -803,15 +845,18 @@ function moveToNextStage(scene) {
     scene.teams[scene.currentTeam].set("addCardBoxes", []);	//cleared since the old add card buttons will not be needed again
 
 	if (scene.stage == 0) {
-        squashFirstStage(scene);
-    }
+		squashFirstStage(scene);
+		removeUnusedCardBoxes(scene);	// this will have been run at the start of the event round in other stages
+	}
 	
 	if (scene.stage == 3) {
+		// moving to review stage
 		buttonToggle(scene.toolbarStart.button, 0, false);
-		// TODO: move to final screen scene (probably need to pass the teams array)
-		console.log("TODO: go to final screen");
-		scene.currentStageText.setText("Stage: MOVE TO FINAL SCREEN");
-		return;	//TODO: remove this once moved to final stage
+		let cards = [];
+		for (let i = 0; i < scene.numberOfTeams; i++) {
+			cards.push(scene.teams[i].get("cards"));
+		}
+		scene.scene.start("review", [cards, scene.numberOfTeams, scene.cardMap]);
 	} else {
 		scene.stage++;
 		scene.currentStageText.setText("Stage: " + (scene.stage + 1));
@@ -834,6 +879,22 @@ function squashFirstStage(scene) {
 
 	for (let i = 0; i < cards.length; i++) {
 		cards[i].removeGap();
+	}
+}
+
+
+
+/**
+ * Removes any CardBox objects which weren't used in the previous stage
+ * (doesn't actually remove them, just sets them to be invisible)
+ */
+function removeUnusedCardBoxes(scene) {
+	let cards = scene.teams[scene.currentTeam].get("cards")[scene.stage];
+	console.log(cards)
+	for (let i = 0; i < cards.length; i++) {
+		if (cards[i].cardId == 0) {
+			cards[i].setVisible(false, false);
+		}
 	}
 }
 
@@ -872,7 +933,10 @@ function startHandler(scene) {
 		// making all the card components visible
 		for (let i = 0; i < scene.stage; i++) {
 			for (let j = 0; j < variables.get("cards")[i].length; j++) {
-				variables.get("cards")[i][j].setVisible(true, false);
+				let card = variables.get("cards")[i][j];
+				if (card.cardId != 0 || card.stage == scene.stage) {
+					card.setVisible(true, false);	// don't make unused boxes from previous stages visible
+				}
 			}
 		}
 		// only the newest stage should be interactive
@@ -961,12 +1025,52 @@ function workLateHandler(scene) {
 		returnWorkLate(scene);
 		scene.isPlayerHoldingWorkLate = false;
 		scene.workLateImage.setVisible(false);
+		workLateCardDisabler(scene)
+
 	} else if (variables.get("workLateTiles") > 0) {	// can only pick up a tile if there are still any in inventory
 		let variables = scene.teams[scene.currentTeam];
 		scene.isPlayerHoldingWorkLate = true;
 		scene.workLateImage.setVisible(true);
 		variables.set("workLateTiles", variables.get("workLateTiles") - 1);
 		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
+		workLateCardEnabler(scene);
+	}
+}
+
+
+
+/**
+ * Making all cards on the current stage clickable
+ * Designed to be used after picking up a work late tile
+ * @param {*} scene 
+ */
+function workLateCardEnabler(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	if (scene.stage != 0) {
+		let cards = variables.get("cards")[scene.stage]
+		for (let i = 0; i < cards.length; i++) {
+			cards[i].placementBox.setInteractive();
+		}
+	}
+}
+
+
+
+/**
+ * Making all card boxes with cards inside unclickable unless it's the most recent one
+ * Designed to be used after placing a work late tile
+ * @param {*} scene 
+ */
+function workLateCardDisabler(scene) {
+	let variables = scene.teams[scene.currentTeam];
+	if (scene.stage != 0) {
+		let cards = variables.get("cards")[scene.stage]
+		for (let i = 0; i < cards.length; i++) {
+			console.log(cards[i])
+			if (cards[i].cardId != 0 && cards[i] != scene.lastPlayedCard) {
+				cards[i].placementBox.disableInteractive();
+			}
+		}
 	}
 }
 
