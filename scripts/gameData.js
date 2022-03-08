@@ -17,5 +17,6 @@ export default class GameData {
         this.roundLength = 30;              // The maximum length of each round in seconds (TODO: get this from menu)
         this.totalWorkLateTiles = 4         // The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
 
+        this.teams = [];           // 1D-array of scenes displaying the game boards of each team
     }
 }
