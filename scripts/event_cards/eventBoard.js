@@ -98,9 +98,10 @@ class EventCard {
     }
 
 
-    switchCard(id) {
+    switchCard(id, stage) {
         this.id = id;
         this.card.setTexture(id);
+        this.stage = stage;
     }
 }
 
@@ -123,15 +124,15 @@ class ActivityCard {
         this.stage = stage;
         this.isSelected = false;
         if (this.id == 0) {
-            this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, "a0").setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+            this.card = this.scene.add.image(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.85, "a0").setScale(0.235).setDepth(10).setInteractive().setVisible(false);
         } else {
-            this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, this.id).setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+            this.card = this.scene.add.image(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.85, this.id).setScale(0.235).setDepth(10).setInteractive().setVisible(false);
         }
         this.card.on("pointerup", () => {
             if (this.scene.isFacilitatorModeActive) {
                 if (this.id != 0) { displayCardInfo(this.scene, this.id) }
             } else if (this.isSelected) {
-			    this.card.y = this.scene.y*2.15;
+			    this.card.y = this.scene.y*1.85;
                 this.isSelected = false;
                 this.playButton.setVisible(false);
                 this.playButtonText.setVisible(false);
@@ -142,7 +143,7 @@ class ActivityCard {
                 this.playButtonText.setVisible(true);
             }
 		});
-        this.playButton = this.scene.add.rectangle(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), this.card.width, 200, 0xb1cfe0).setScale(0.235).setDepth(10).setAlpha(0.8).setInteractive().setVisible(false);
+        this.playButton = this.scene.add.rectangle(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), this.card.width, 200, 0xb1cfe0).setScale(0.235).setDepth(10).setAlpha(0.8).setInteractive().setVisible(false);
         this.playButton.on("pointerover", () => {
 			this.playButton.setFillStyle(0x6c95b7);
 		});
@@ -152,7 +153,7 @@ class ActivityCard {
         this.playButton.on("pointerup", () => {
 			this.playCard();
 		});
-        this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", {color: "0x000000"}).setOrigin(0.5).setDepth(10).setVisible(false);
+        this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", {color: "0x000000"}).setOrigin(0.5).setDepth(10).setVisible(false);
         
         // activityCards: array of cards that needs to be stored due to effect
         let activityCards = [];
@@ -165,6 +166,11 @@ class ActivityCard {
         // stored card can only be played if the player is not currently in the middle of playing another card and stage is correct
         if (variables.get("currentCard") == 0 && this.stage == this.scene.stage) {
             variables.set("currentCard", this.id);
+            this.scene.currentCardText.setText(variables.get("currentCard"));
+            this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
+            this.id = 0;
+            this.stage = null;
+            this.setVisible(false);
         }
     }
 
@@ -1106,6 +1112,7 @@ function playHandler(scene) {
     scene.eventBarStore.setVisible(false);
     scene.eventBarFinish.setVisible(true);
     scene.eventBarActStore.setVisible(true);
+    scene.eventBarFlip.setVisible(true);
     
 }
 
@@ -1190,10 +1197,12 @@ function finishHandler(scene) {
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
         scene.eventBarActStore.setVisible(false);
+        scene.eventBarFlip.setVisible(false);
 		buttonToggle(scene.toolbarDiscard.button, 0, false);
         buttonToggle(scene.currentCardBox, 1, false);
         buttonToggle(scene.eventBarActInventory.button, 2, false);
         scene.blockedOut = true;
+        scene.flipState = false;
         
         // disabling all the card placement boxes
         for (let j = 0; j < scene.stage+1; j++) {
@@ -1218,6 +1227,23 @@ function finishHandler(scene) {
     }
 }
 
+
+/**
+ * Function to flip cards when pressed
+ */
+function flipHandler(scene){
+    if (!scene.flipState) {
+        console.log("Cards can now be flipped");
+        scene.flipState = true;
+        scene.eventBarFlip.buttonText.setText("Add/Remove\nCards");
+    }
+    else {
+        console.log("Cards can now be added/removed");
+        scene.flipState = false;
+        scene.eventBarFlip.buttonText.setText("Flip Cards");
+    }
+    console.log("Current flipState: "+scene.flipState);
+}
 
 
 /**
@@ -1303,4 +1329,4 @@ function actInventoryHandler(scene) {
 
 
 
-export { EventCard, ActivityCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, activityStoreHandler, finishHandler, inventoryHandler, closeInventory, actInventoryHandler, closeActInventory, effectDiscard, useEffect };
+export { EventCard, ActivityCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, activityStoreHandler, finishHandler, inventoryHandler, closeInventory, actInventoryHandler, flipHandler, closeActInventory, effectDiscard, useEffect };

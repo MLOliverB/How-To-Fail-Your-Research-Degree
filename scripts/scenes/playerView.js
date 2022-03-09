@@ -1,5 +1,5 @@
 import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, displayCardInfo } from "../activity_cards/gameBoard.js";
-import { EventCard, ActivityCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, activityStoreHandler, finishHandler, inventoryHandler, actInventoryHandler } from "../event_cards/eventBoard.js";
+import { EventCard, ActivityCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, activityStoreHandler, finishHandler, inventoryHandler, actInventoryHandler, flipHandler } from "../event_cards/eventBoard.js";
 import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
 
 /**
@@ -80,6 +80,7 @@ export default class playerView extends Phaser.Scene {
         this.blockedOut = false;
         this.numberBlocked = 0;                             // number of card box(es) blocked out
         this.ignored = false;
+        this.flipState = false;                             // flip card on board if set to true
         this.numberFlipped = 0;                             // number of activity card(s) flipped
         this.completeEffect = false;
 		this.isInventoryOpen = false;
@@ -108,7 +109,7 @@ export default class playerView extends Phaser.Scene {
                 ["currentEventCard", 0]             // id of event card player is holding
 			]);
 			team.set("eventCards", [new EventCard(this, 0, 0), new EventCard(this, 0, 1), new EventCard(this, 0, 2)]);
-            team.set("activityCards", [new ActivityCard(this, 0, 0, 0), new ActivityCard(this, 0, 0, 1), new ActivityCard(this, 0, 0, 2)]);
+            team.set("activityCards", [new ActivityCard(this, 0, null, 0), new ActivityCard(this, 0, null, 1), new ActivityCard(this, 0, null, 2)]);
 			this.teams.push(team);
 		}
 		this.currentTeam = -1;
@@ -185,12 +186,14 @@ export default class playerView extends Phaser.Scene {
 		this.eventBarPlay = new EventBarButton(this, 1.5, 1, 0.1, "Play", playHandler, undefined, undefined);						// button to play the event card
 		this.eventBarStore = new EventBarButton(this, 1.3, 1, 0.1, "Store\nEvent", storeHandler, undefined, undefined);					// button to store the event card
 		this.eventBarFinish = new EventBarButton(this, 1.5, 1, 0.1, "Finish", finishHandler, undefined, undefined);					// button to finish playing the event card
+        this.eventBarFlip = new EventBarButton(this, 1.3, 1, 0.1, "Flip Cards", flipHandler, undefined, undefined);	                // button to cause cards to be flipped	
 		this.eventBarInventory = new EventBarButton(this, 0.7, 1, 0.12, "Event\nInventory", inventoryHandler, undefined, undefined); 	// button to open/close the event card inventory
         this.eventBarActStore = new EventBarButton(this, 0.43, 1, 0.12, "Store\nActivity", activityStoreHandler, undefined, undefined); // button to store activity card
         this.eventBarActInventory = new EventBarButton(this, 0.15, 1, 0.14, "Activity\nInventory", actInventoryHandler, undefined, undefined); // button to open/close activity card inventory
 		this.eventBarPlay.setVisible(false);
 		this.eventBarStore.setVisible(false);
 		this.eventBarFinish.setVisible(false);
+        this.eventBarFlip.setVisible(false);
 		this.eventBarInventory.setVisible(false);
         this.eventBarActStore.setVisible(true);
         this.eventBarActInventory.setVisible(true);

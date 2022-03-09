@@ -1,4 +1,4 @@
-import { closeInventory, useEffect } from "../event_cards/eventBoard.js";
+import { closeInventory, closeActInventory, useEffect } from "../event_cards/eventBoard.js";
 
 
 /**
@@ -16,6 +16,7 @@ class CardBox {
 		this.hasWorkLate = false;
         this.stage = this.scene.stage;
         this.testBlock = false;
+        this.flip = false;
 		
 		let xPos;
 		if (this.scene.stage == 0) {
@@ -36,7 +37,7 @@ class CardBox {
         });
 		this.placementBox.on("pointerup", () => { 
 			if (this.scene.isFacilitatorModeActive) { 
-				if (this.cardId != 0) { displayCardInfo(this.scene, this.cardId) }
+				if (this.cardId != 0 && !this.flip) { displayCardInfo(this.scene, this.cardId) }
 			}
             else if (this.scene.blockedOut && this.testBlock) { this.placementBox.removeInteractive(); }
             else { this.updateCardBox(); } 
@@ -44,7 +45,7 @@ class CardBox {
 		this.cardText = this.scene.add.text(xPos, yPos, "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 		this.cardImage = this.scene.add.image(xPos, yPos, 2).setVisible(false).setScale(0.2);
 		this.workLateImage = this.scene.add.image(xPos, yPos, "workLate").setVisible(false).setScale(0.17);
-        this.backImage = this.scene.add.image(xPos, yPos, 2).setVisible(false).setScale(0.2);
+        this.backImage = this.scene.add.image(xPos, yPos, "a"+this.scene.stage).setVisible(false).setScale(0.2);
 	}
 	
 	/**
@@ -79,8 +80,27 @@ class CardBox {
 			this.scene.workLateImage.setVisible(false);
 			workLateCardDisabler(this.scene);
 		}
+        
+        // flip card if flipState is set to true
+        else if (this.scene.flipState && this.cardId != 0) {
+            console.log("test");
+            if (this.flip) {
+                this.flip = false;
+                this.cardText.setText(this.cardId);
+                this.backImage.setVisible(false);
+                this.scene.numberFlipped -= 1;
+                console.log(this.scene.numberFlipped);
+            }
+            else {
+                this.flip = true;
+                this.cardText.setText("Flipped");
+                this.backImage.setVisible(true);
+                this.scene.numberFlipped += 1;
+                console.log(this.scene.numberFlipped);
+            }
+        }
 		
-		// a card can only be placed if the player is holding a card and the card box is empty
+		// a card can only be placed if the player is holding a card and the card box is empty 
 		else if (isPlayerHoldingCard && this.cardId == 0) {
 			console.log("Place a card");
 			
@@ -115,33 +135,42 @@ class CardBox {
 			}
 		}
 		
-		// a card can only be picked up if the player is not holding a card and the card box has a card
+		// a card can only be picked up if the player is not holding a card and the card box has a card 
 		else if (!isPlayerHoldingCard && this.cardId != 0) {
-			console.log("Pick up the card");
-			variables.set("currentCard", this.cardId);
-			this.cardId = 0;
-			
-			this.cardText.setText("Place Card");
-			this.scene.currentCardText.setText(variables.get("currentCard"));
-			this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
-			this.cardImage.setVisible(false);
+            console.log("Pick up the card");
+            variables.set("currentCard", this.cardId);
+            this.cardId = 0;
 
-			// this box can still be played and is removed from the "queue" for disabling
-			if (this.scene.stage != 0) {
-				this.scene.lastPlayedCard = undefined;
-			}
+            this.cardText.setText("Place Card");
+            this.scene.currentCardText.setText(variables.get("currentCard"));
+            this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
+            this.cardImage.setVisible(false);
+
+            // this box can still be played and is removed from the "queue" for disabling
+            if (this.scene.stage != 0) {
+                this.scene.lastPlayedCard = undefined;
+            }
 		}
         
         // TODO: during event stage, card will be flipped if card box has a card, and blocked if not
         else if (!isPlayerHoldingCard && this.scene.isEventRound) {
             let wholeEffect = useEffect(this.scene);
             let action = wholeEffect[0];
-            if (action.includes("f") && this.cardId != 0) {
-                this.cardText.setText("Flipped");
-                this.backImage.setVisible(true).setTexture("e"+this.scene.stage);
-                this.cardImage.setVisible(false);
+            if (this.scene.flipState && this.cardId != 0) {
+                if (!this.flip) {
+                    this.backImage.setVisible(true);
+                    this.cardImage.setVisible(false);
+                    this.scene.numberFlipped += 1;
+                    console.log(this.scene.numberFlipped);
+                }
+                else {
+                    this.backImage.setVisible(false);
+                    this.cardImage.setVisible(true);
+                    this.scene.numberFlipped -= 1;
+                    console.log(this.scene.numberFlipped);
+                }
             }
-            else if ((action.includes("o") || action.includes("b")) && this.cardId == 0) {
+            if ((action.includes("o") || action.includes("b")) && this.cardId == 0) {
                 if (!this.testBlock) {
                     this.cardText.setText("Blocked Out");
                     this.placementBox.setFillStyle(0xafafaf);
@@ -719,7 +748,7 @@ function nextHandler(scene) {
 	buttonToggle(scene.toolbarNext.button, 0, false);
 	buttonToggle(scene.toolbarStart.button, 0, true);
     buttonToggle(scene.eventBarActInventory.button, 2, false);
-	
+	if (scene.activityInventoryOpen) closeActInventory(scene);
 	
 	// switching teams/stages
 	if (!scene.isEventRound && scene.stage != 0) {
@@ -826,6 +855,7 @@ function moveToNextTeam(scene) {
 	scene.eventBarInventory.setVisible(false);
 	if (scene.stage != 0) scene.toolbarNext.buttonText.setText("Next Round");
 	if (scene.isInventoryOpen) closeInventory(scene);
+    if (scene.activityInventoryOpen) closeActInventory(scene);
 	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
 }
 
@@ -865,6 +895,7 @@ function moveToNextStage(scene) {
 	}
 	scene.toolbarNext.buttonText.setText("Next Round");
 	if (scene.isInventoryOpen) closeInventory(scene);
+    if (scene.activityInventoryOpen) closeActInventory(scene);
 	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
 }
 
@@ -1010,8 +1041,9 @@ function stopHandler(scene) {
 	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
 		variables.get("addCardBoxes")[i].setVisible(false, true);
 	}
+    
+    if (scene.activityInventoryOpen) closeActInventory(scene);
 }
-
 
 
 /**
