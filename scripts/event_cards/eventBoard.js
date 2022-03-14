@@ -1,5 +1,5 @@
 import { loadEventCard } from "../cards-management.js";
-import { buttonToggle, AddCardBox, CardBox, CardDiscardBox, displayCardInfo } from "../activity_cards/gameBoard.js";
+import { buttonToggle, AddCardBox, CardBox, CardDiscardBox, displayCardInfo, addUnusedCardBoxes } from "../activity_cards/gameBoard.js";
 
 
 
@@ -59,7 +59,8 @@ class EventCard {
     
     playCard() {
         let variables = this.scene.teams[this.scene.currentTeam];
-        console.log("Play a card")
+        console.log("Play a card");
+        let indexIgnore = variables.get("toIgnore").indexOf(variables.get("currentEventCard"));
         // stored card can only be played if the player is not currently in the middle of playing another card
         if (variables.get("currentEventCard") == 0) {
             variables.set("currentEventCard", this.id);
@@ -73,10 +74,15 @@ class EventCard {
             } else {
                 this.scene.eventBarStore.setVisible(false);
             }
-
-            this.id = 0;
-            this.setVisible(false);
         }
+        // stored card can be used to ignore the effect of the current event card
+        else if (indexIgnore != -1 && this.id == variables.get("ignoreEff")[indexIgnore]) {
+            console.log("Use this card to ignore current event card");
+            this.scene.ignored = true;
+        }
+        
+        this.id = 0;
+        this.setVisible(false);
     }
 
 
@@ -151,7 +157,7 @@ class ActivityCard {
 			this.playButton.setFillStyle(0xb1cfe0);
 		});
         this.playButton.on("pointerup", () => {
-			this.playCard();
+			this.actPlayCard();
 		});
         this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", {color: "0x000000"}).setOrigin(0.5).setDepth(10).setVisible(false);
         
@@ -160,17 +166,28 @@ class ActivityCard {
     }
 
     
-    playCard() {
+    actPlayCard() {
         let variables = this.scene.teams[this.scene.currentTeam];
-        console.log("Play a card")
+        console.log("Play a card");
         // stored card can only be played if the player is not currently in the middle of playing another card and stage is correct
-        if (variables.get("currentCard") == 0 && this.stage == this.scene.stage) {
+        console.log(variables.get("currentCard"), this.stage, this.scene.stage);
+        if (variables.get("currentCard") == 0 && this.stage-1 == this.scene.stage) {
             variables.set("currentCard", this.id);
             this.scene.currentCardText.setText(variables.get("currentCard"));
             this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
+            
             this.id = 0;
             this.stage = null;
             this.setVisible(false);
+            
+            // deactivate selection of card
+            this.card.y = this.scene.y*1.85;
+            this.isSelected = false;
+            this.playButton.setVisible(false);
+            this.playButtonText.setVisible(false);
+        }
+        else {
+            console.log("Cannot play card: Card stage is not the current stage");
         }
     }
 
@@ -289,17 +306,19 @@ function countIds(array) {
         arrayFourth.push(x);
     }
     // put all four rows into one array
-    var arrayAll = "";
-    arrayAll = arrayFirst.concat(arraySecond, arrayThird, arrayFourth);
+    var arrayAll = [];
+    arrayAll.push(arrayFirst, arraySecond, arrayThird, arrayFourth);
     // remove undefined elements
     for (var i = 0; i < arrayAll.length; i++) {
-        if (arrayAll[i] == undefined) {
-            arrayAll.splice(i, 1);
-            i--;
+        for (var j = 0; j < arrayAll[i].length; j++) {
+            if (arrayAll[i][j] == undefined) {
+                arrayAll[i].splice(j, 1);
+                j--;
+            }
         }
     }
-    console.log(arrayAll);
-    return arrayAll;
+    //console.log(arrayAll);
+    return (arrayAll);
 }
 
 
@@ -409,8 +428,9 @@ function useEffect(scene) {
     let holdEventID = scene.cardMap.get(variables.get("currentEventCard"));
     // all cards in array
     var arrayAll = scene.previousCardArray;
+    let arrayAll_concat = arrayAll[0].concat(arrayAll[1], arrayAll[2], arrayAll[3]);
     // array of all cards with its number of occurrences
-    let cardArray = countCardOccurrences(arrayAll);
+    let cardArray = countCardOccurrences(arrayAll_concat);
     const idArray = Object.keys(cardArray);
     const countArray = Object.values(cardArray);
     
@@ -528,7 +548,7 @@ function useEffect(scene) {
 
         // check if requirement is met
         var booleanArr = new Array();
-        console.log(toBeAbsent, toBePresent);
+        //console.log(toBeAbsent, toBePresent);
         if(toBeAbsent.length) {
             for (var i = 0; i < toBeAbsent.length; i++) {
                 var temp = toBeAbsent[i][0];
@@ -719,7 +739,7 @@ function useEffect(scene) {
             cardStage.push(stage);
         }
         else {
-            cardStage.push('Not stated');
+            cardStage.push(scene.stage+1);
         }
 
         console.log(`Title of event card: ${chosenTitle} \n
@@ -735,11 +755,10 @@ function useEffect(scene) {
         else {
             singleEffect.push(sAct, adjacency, forAction, totalAmount, cardStage);
         }
-        console.log(singleEffect);
+        //console.log(singleEffect);
         wholeEffect.push(singleEffect);
         console.log(wholeEffect);
     }
-    console.log(scene.previousCardArray);
     return wholeEffect;
 }
 
@@ -751,6 +770,9 @@ function useEffect(scene) {
  * @returns ideal total occurrence(s) of card(s) or empty space(s)
  */
 function checkEffect(scene){
+    let variables = scene.teams[scene.currentTeam];
+    // current event card in hand
+    let holdEventID = scene.cardMap.get(variables.get("currentEventCard"));
     /*
      * wholeEffect[i][0]: action (e.g. n = remove, p = add, ...)
      * wholeEffect[i][1]: adjacency
@@ -763,9 +785,33 @@ function checkEffect(scene){
     // previous: previous/original card array before making changes
     // previousCount: occurrences of each activity card before making changes
     let previous = scene.previousCardArray;
-    let previousCount = countCardOccurrences(previous);
+    let previous_concat = previous[0].concat(previous[1], previous[2], previous[3]);
+    let previousCount = countCardOccurrences(previous_concat);
     let previousCountId = Object.keys(previousCount);
     let previousCountOcc = Object.values(previousCount);
+    
+    // previousCountFull: occurrences of each activity card before making changes (without empty spaces)
+    let previousCountFull = previousCount;
+    delete previousCountFull["0"];
+    let previousCountFullOcc = Object.values(previousCountFull);
+    let previousTotalFull = previousCountFullOcc.reduce((a, b) => a + b, 0);
+    //console.log(previousCount, previousCountFull);
+    //console.log(previousTotalFull);
+    
+    // previousStage_1: occurrences of card from the first stage
+    // previousStage_2: occurrences of card from the second stage
+    // previousStage_3: occurrences of card from the third stage
+    // previousStage_4: occurrences of card from the forth stage
+    let previousStage_1 = previous[0];
+    let previousStage_2 = previous[1];
+    let previousStage_3 = previous[2];
+    let previousStage_4 = previous[3];
+    //console.log(previousStage_1, previousStage_2, previousStage_3, previousStage_4);
+    
+    let prev_1Count = countCardOccurrences(previousStage_1);
+    let prev_2Count = countCardOccurrences(previousStage_2);
+    let prev_3Count = countCardOccurrences(previousStage_3);
+    let prev_4Count = countCardOccurrences(previousStage_4);
     
     // ideal: end result of total occurrences after making changes
     let ideal = new Array();
@@ -778,100 +824,160 @@ function checkEffect(scene){
         // exceed: used in add cards -> empty spaces < required
         let exceed = 0;
         
+        // array that will be used depending on stage(s) shown on card
+        let stage_counts = [];
+        for (var y = 0; y < effect[4].length; y++) {
+            if (effect[4][y] == 1) {
+                for (var s = 0; s < prev_1Count; s++) {
+                    stage_counts.concat(prev_1Count[s]);
+                }
+            }
+            else if (effect[4][y] == 2) {
+                for (var s = 0; s < prev_2Count; s++) {
+                    stage_counts.concat(prev_2Count[s]);
+                }
+            }
+            else if (effect[4][y] == 3) {
+                for (var s = 0; s < prev_3Count; s++) {
+                    stage_counts.concat(prev_3Count[s]);
+                }
+            }
+            else if (effect[4][y] == 4) {
+                for (var s = 0; s < prev_4Count; s++) {
+                    stage_counts.concat(prev_4Count[s]);
+                }
+            }
+        }
+        
+        console.log(stage_counts);
+        
+        let stage_id = Object.keys(stage_counts);
+        let stage_occ = Object.values(stage_counts);
+        let stage_total = stage_occ.reduce((a, b) => a + b, 0);
+        console.log(stage_id, stage_occ, stage_total);
+        
         // get total occurrence(s) of cardID(s) 
         for (var x = 0; x < effect[2].length; x++) {
             var temp = effect[2][x];
-            var index = previousCountId.indexOf(temp);
-            if(index == "-1") {                                 // card doesn't exist
-                totalCount += 0;                                // occurrence = 0
+            var index = stage_id.indexOf(temp);
+            if(index == "-1") {                          // card doesn't exist
+                totalCount += 0;                         // occurrence = 0
             }
-            else if (temp == "0") {                             // card is not specified
-                totalCount += parseInt(previousCountOcc[0]);    // totalCount = empty space(s)
+            else if (temp == "0") {                      // card is not specified
+                totalCount += stage_total;               // totalCount = number of total cards of stated stages
             } 
-            else {                                              // card is specified
-                totalCount += previousCountOcc[index];          // totalCount = original occurrence
+            else {                                       // card is specified
+                totalCount += stage_occ[index];          // totalCount = original occurrence
             }
         }
         console.log("original: "+totalCount);
+        
+        // only used for remove and flip cards
+        let required = 0;
+        if (stage_total < parseInt(effect[3])){ // cards on board < required (certain stage)
+            required = stage_total;             // only remove number of cards from that stage
+        }
+        else {
+            required = parseInt(effect[3]);     // can remove required number of cards 
+        }
         
         // check action to change number of totalCount
         switch (effect[0]){
             // remove card
             case "n":
-                if (effect[2][0] == "0") {                      // no required cardID -> totalCount = number of empty spaces
-                    if (previousCountOcc[0] == 0) {             // no empty space
-                        totalCount = parseInt(effect[3]);       // empty spaces = required
+                if (effect[2][0] == "0") {                      // no required cardID -> totalCount = number of cards
+                    if (required == 0) {                        // no cards on board for stage
+                        scene.ignored = true;                   // ignore effect
                     }
-                    else if (previousCountOcc[0] == previous.length) { // no cards on board
-                        scene.ignored = true;                          // ignore effect
-                    }
-                    else {                                      // have empty spaces
-                        totalCount += parseInt(effect[3]);      // empty spaces increase by required
+                    else {                                      // have cards
+                        totalCount -= required;                 // number of cards reduce by required
                     }
                 }
                 else {                                          // have required cardID
-                    if(totalCount == 0 || effect[4] != scene.stage) { // card doesn't exist or card doesn't belong to this stage
+                    if(totalCount == 0) {                       // card doesn't exist 
                         scene.ignored = true;                   // ignore effect
                     }
-                    else if (totalCount < effect[3]) {          // card < required
+                    else if (totalCount < required) {           // card < required
                         totalCount = 0;                         // remove all occurrence(s) of card
                     }
                     else {                                      // card >= required
-                        totalCount -= parseInt(effect[3]);      // card occurrences reduce by required
+                        totalCount -= required;                 // card occurrences reduce by required
                     }
                 }
                 break;
             // add card
-            case "p":
-                if (effect[2][0] == "0") {                          // no required cardID -> totalCount = number of empty spaces
-                    if (previousCountOcc[0] >= effect[3]) {         // empty spaces >= required
-                        totalCount -= parseInt(effect[3]);          // empty spaces reduce by required
-                    }
-                    else {                                          // empty spaces < required or no empty space
-                        exceed = parseInt(effect[3]) - totalCount;  // amount of spaces needed to add
-                        totalCount = exceed + previous.length();    // totalCount = length of array increased by exceeded amount
-                    }
+            case "p":     
+                if (effect[2][0] == "0") {                      // no required cardID -> totalCount = number of cards
+                    totalCount = previous.length + parseInt(effect[3]);// card array increase by required amount
                 }
-                else {                                              // have required cardID
-                    totalCount += parseInt(effect[3]);              // occurrence increase by required amount
+                else {                                          // have required cardID
+                    totalCount += parseInt(effect[3]);          // number of card occurrence(s) increase by requirement
                 }
                 break;
             // stand in for card
             case "s":
                 console.log("stand in for "+effect[2]);
+                alert(`You can get ${scene.cardMap.get(effect[2]).title} from the stack and save in inventory for later use`);
+                scene.ignored = true;   // can save card in inventory for later use, so no changes needed to be done
                 break;
             // block out spaces
             case "o":
             case "b":
-                if (previousCountOcc[0] < effect[3]) {              // empty space < required
-                    totalCount = previousCountOcc[0];               // number of blocked = number of empty spaces
-                }
-                else if (previousCountOcc[0] == 0) {                // no empty space to block out
+                if (!effect[4].includes(scene.stage)) {             // stage to block out is not this stage
                     scene.ignored = true;                           // ignore effect
                 }
-                else {                                              // empty space >= required
+                else {                                              // stage to block out = this stage
                     console.log("block out "+effect[3]+" spaces");
-                    totalCount = effect[3];                         // blocked out spaces = required
+                    totalCount = parseInt(effect[3]);                         // blocked out spaces = required
                 }
                 break;
             // ignore effects of card
             case "i":
                 console.log("ignore "+effect[2]);
-                scene.ignored = true;              // ignore effect
+                scene.ignored = true;          // ignore effect 
+                
+                // push event card into array for later use (only works if stored in inventory)
+                let itemp = [];
+                if (variables.get("ignoreEff") != undefined) {
+                    itemp = variables.get("ignoreEff");
+                }
+                itemp.push(holdEventID);
+                variables.set("ignoreEff", itemp);
+                // push event card to be ignored into array for later use (if picked up the card)
+                if (variables.get("toIgnore") != undefined) {
+                    itemp = variables.get("toIgnore");
+                }
+                itemp.push(effect[2]);
+                variables.set("toIgnore", itemp);
                 break;
             // flip card
             case "f":
-                if (totalCount == 0) {
-                    scene.ignored = true;
+                if (effect[2][0] == "0") {                  // no required cardID --> totalCount = number of cards
+                    if (previousCountOcc[0] == previous.length) {      // no cards on board
+                        scene.ignored = true;                          // ignore effect
+                    }
+                    else {                                    // have cards on board
+                        totalCount = required;                // flipped cards = required
+                    }
                 }
-                else{
-                    console.log("flip "+effect[2]);
+                else {                                      // have required cardID 
+                    if (totalCount == 0) {                  // card to be flipped doesn't exist
+                        scene.ignored = true;               // ignore effect
+                    }
+                    else if (totalCount < required) {       // cards on board < required
+                        totalCount += 0;                    // flip all cards
+                    }
+                    else {                                  // card(s) on board >= required number 
+                        totalCount = required;              // number of cards to be flipped = required
+                    }
                 }
+                console.log("flip "+ effect[3] + "/" + totalCount + " cards");
+                
                 break;
             default:
                 console.log("no action");
         }
-        console.log("ideal: "+totalCount);
+        //console.log("ideal: "+totalCount);
         
         // push totalCount and related cardIDs into ideal as 2D array
         var tempArray = new Array();
@@ -894,16 +1000,32 @@ function areRulesMatched(scene) {
     
     // current array of cardIds
     let curArray = countIds(variables.get("cards"));
-    let currentArray = countCardOccurrences(curArray);
+    let curArray_concat = curArray[0].concat(curArray[1], curArray[2], curArray[3])
+    let currentArray = countCardOccurrences(curArray_concat);
     let currentArrayId = Object.keys(currentArray);
     let currentArrayOcc = Object.values(currentArray);
     
     // previous: previous/original card array before making changes
     // previousCount: occurrences of each activity card before making changes
     let previous = scene.previousCardArray;
-    let previousCount = countCardOccurrences(previous);
+    let previous_concat = previous[0].concat(previous[1], previous[2], previous[3]);
+    let previousCount = countCardOccurrences(previous_concat);
     let previousCountId = Object.keys(previousCount);
     let previousCountOcc = Object.values(previousCount);
+    
+    // currentStage_1: occurrences of card from the first stage
+    // currentStage_2: occurrences of card from the second stage
+    // currentStage_3: occurrences of card from the third stage
+    // currentStage_4: occurrences of card from the forth stage
+    let currentStage_1 = curArray[0];
+    let currentStage_2 = curArray[1];
+    let currentStage_3 = curArray[2];
+    let currentStage_4 = curArray[3];
+    
+    let cur_1Count = countCardOccurrences(currentStage_1);
+    let cur_2Count = countCardOccurrences(currentStage_2);
+    let cur_3Count = countCardOccurrences(currentStage_3);
+    let cur_4Count = countCardOccurrences(currentStage_4);
     
     let wholeEffect = useEffect(scene);
     console.log(ideal);
@@ -916,6 +1038,39 @@ function areRulesMatched(scene) {
         // get current card array
         for (var i = 0; i < wholeEffect.length; i++) {
             var effect = wholeEffect[i];
+            
+            // array that will be used depending on stage(s) shown on card
+            let stage_counts = [];
+            for (var y = 0; y < effect[4].length; y++) {
+                if (effect[4][y] == 1) {
+                    for (var s = 0; s < cur_1Count; s++) {
+                        stage_counts.push(cur_1Count[s]);
+                    }
+                }
+                if (effect[4][y] == 2) {
+                    for (var s = 0; s < cur_2Count; s++) {
+                        stage_counts.push(cur_2Count[s]);
+                    }
+                }
+                if (effect[4][y] == 3) {
+                    for (var s = 0; s < cur_3Count; s++) {
+                        stage_counts.push(cur_3Count[s]);
+                    }
+                }
+                if (effect[4][y] == 4) {
+                    for (var s = 0; s < cur_4Count; s++) {
+                        stage_counts.push(cur_4Count[s]);
+                    }
+                }
+            }
+            
+            console.log(stage_counts);
+
+            let stage_id = Object.keys(stage_counts);
+            let stage_occ = Object.values(stage_counts);
+            let stage_total = stage_occ.reduce((a, b) => a + b, 0);
+            console.log(stage_id, stage_occ, stage_total);
+            
             // totalCount: current occurrences of selected card(s)
             let totalCount = 0;
             // get total occurrences for all selected card(s)
@@ -928,17 +1083,24 @@ function areRulesMatched(scene) {
                 }
                 // card is not specified
                 else if (temp == "0") {
-                    if (effect[0] == "p" && previousCountOcc[0] < effect[3]) {// effect is to add cards without specified ids and empty spaces < required
-                        totalCount = curArray.length; // total count = length of current array to match with ideal length
+                    if (effect[0] == "p") {             // effect is to add cards without specified ids 
+                        totalCount += curArray.length;   // total count = length of current array 
                     }
-                    totalCount += currentArrayOcc[0];
+                    else if (effect[0] == "n") {        // effect is to remove cards
+                        totalCount += stage_total;       // total count = total number of cards on board currently
+                    }
+                    else if (effect[0] == "b" || effect[0] == "o") {    // effect is to block out spaces
+                        totalCount += scene.numberBlocked;
+                    }
+                    else if (effect[0] == "f") {        // effect is to flip cards
+                        totalCount += scene.numberFlipped;
+                    }
                 } 
                 // card is specified
                 else {
                     totalCount += currentArrayOcc[index];
-                    console.log(currentArrayOcc[index], typeof(currentArrayOcc[index]));
+                    console.log(currentArrayOcc[index]);
                 }
-                console.log(totalCount);
             }
             console.log(totalCount);
             // push totalCount and related cardIDs into current as 2D array
@@ -947,24 +1109,8 @@ function areRulesMatched(scene) {
             current.push(tempArray);
         }
         console.log(current);
-        
-        // check if there are blocked out spaces
-        if (scene.numberBlocked > 0) {
-            var booleanArr = new Array();
-            for (var i = 0; i < ideal.length; i++) {
-                if (scene.numberBlocked == ideal[i][0]) {
-                    booleanArr.push(true);
-                }
-                else {
-                    booleanArr.push(false);
-                }
-            }
-            if (!booleanArr.includes(false)) {
-                matched = true;
-            }
-            else {
-                matched = false;
-            }
+        if (scene.ignored) {
+            matched = true;
         }
         else {
             // compare ideal and current
@@ -1090,7 +1236,7 @@ function playHandler(scene) {
     for (var i = 0; i < wholeEffect.length; i++) {
         var temp = wholeEffect[i];
         var x = temp[4];
-        stage.push(x);
+        stage.push(x-1);
     }
 
     // allow activity cards to be played (overrides illegal moves)
@@ -1099,14 +1245,21 @@ function playHandler(scene) {
     
     // stages will become interactive and all card components visible depending on stage specified
     for (let i = 0; i <= scene.stage; i++) {
-        for (let j = 0; j < variables.get("cards")[i].length; j++) {
-            variables.get("cards")[i][j].setVisible(true, true);
+        if (stage.includes(i)) {
+            for (let j = 0; j < variables.get("cards")[i].length; j++) {
+                variables.get("cards")[i][j].setVisible(true, true);
+            }
         }
+        if (variables.get("cards")[i].cardId == 0) {
+			variables.get("cards")[i].setVisible(true, true);
+		}
     }
     
     for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
         variables.get("addCardBoxes")[i].setVisible(true, true);
     }
+    
+    addUnusedCardBoxes(scene);
     
     scene.eventBarPlay.setVisible(false);
     scene.eventBarStore.setVisible(false);
@@ -1158,11 +1311,12 @@ function activityStoreHandler(scene) {
     console.log("Store the activity card in inventory");
     let variables = scene.teams[scene.currentTeam];
     let cards = variables.get("activityCards");
-    console.log(scene.cardMap.get(variables.get("currentCard")).stage);
+    let currentCard = variables.get("currentCard");
+    console.log(currentCard.stage);
     let stored = false;
     for (let i = 0; i < cards.length; i++) {
         if (cards[i].id == 0) {
-            cards[i].switchCard(variables.get("currentCard"), scene.cardMap.get(variables.get("currentCard")).stage);
+            cards[i].switchCard(variables.get("currentCard"), currentCard.stage);
             variables.set("currentCard", 0);
             if (scene.activityInventoryOpen) {
                 cards[i].setVisible(true);
@@ -1196,13 +1350,14 @@ function finishHandler(scene) {
         scene.completeEffect = true;
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
-        scene.eventBarActStore.setVisible(false);
         scene.eventBarFlip.setVisible(false);
 		buttonToggle(scene.toolbarDiscard.button, 0, false);
         buttonToggle(scene.currentCardBox, 1, false);
         buttonToggle(scene.eventBarActInventory.button, 2, false);
+        buttonToggle(scene.eventBarActStore.button, 2, false);
         scene.blockedOut = true;
         scene.flipState = false;
+        scene.flipped = true;
         
         // disabling all the card placement boxes
         for (let j = 0; j < scene.stage+1; j++) {
@@ -1218,6 +1373,8 @@ function finishHandler(scene) {
         
         if (variables.get("currentCard") != 0) {
             variables.set("currentCard", 0);
+            scene.currentCardText.setText("+");
+            scene.currentCardImage.setVisible(false);
         }
 		variables.set("currentEventCard", 0);
 		endCard(scene);
@@ -1232,14 +1389,37 @@ function finishHandler(scene) {
  * Function to flip cards when pressed
  */
 function flipHandler(scene){
+    var variables = scene.teams[scene.currentTeam];
+    let wholeEffect = useEffect(scene);
+    let stage = new Array();
+    for (var i = 0; i < wholeEffect.length; i++) {
+        var temp = wholeEffect[i];
+        var x = temp[4];
+        stage.push(x-1);
+    }
+    
     if (!scene.flipState) {
+        // activate all placement boxes
         console.log("Cards can now be flipped");
         scene.flipState = true;
+        for (let i = 0; i <= scene.stage; i++) {
+            for (let j = 0; j < variables.get("cards")[i].length; j++) {
+                variables.get("cards")[i][j].setVisible(true, true);
+            }
+        }
         scene.eventBarFlip.buttonText.setText("Add/Remove\nCards");
     }
     else {
+        // only deactivate card boxes from not specified stage(s)
         console.log("Cards can now be added/removed");
         scene.flipState = false;
+        for (let i = 0; i <= scene.stage; i++) {
+            if (!stage.includes(i)) {
+                for (let j = 0; j < variables.get("cards")[i].length; j++) {
+                    variables.get("cards")[i][j].setVisible(true, false);
+                }
+            }
+        }
         scene.eventBarFlip.buttonText.setText("Flip Cards");
     }
     console.log("Current flipState: "+scene.flipState);

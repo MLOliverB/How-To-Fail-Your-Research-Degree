@@ -40,12 +40,13 @@ class CardBox {
 				if (this.cardId != 0 && !this.flip) { displayCardInfo(this.scene, this.cardId) }
 			}
             else if (this.scene.blockedOut && this.testBlock) { this.placementBox.removeInteractive(); }
+            else if (this.scene.flipped && this.flip) { this.placementBox.removeInteractive(); }
             else { this.updateCardBox(); } 
         });
 		this.cardText = this.scene.add.text(xPos, yPos, "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
 		this.cardImage = this.scene.add.image(xPos, yPos, 2).setVisible(false).setScale(0.2);
 		this.workLateImage = this.scene.add.image(xPos, yPos, "workLate").setVisible(false).setScale(0.17);
-        this.backImage = this.scene.add.image(xPos, yPos, "a"+this.scene.stage).setVisible(false).setScale(0.2);
+        this.backImage = this.scene.add.image(xPos, yPos, "a"+this.scene.stage).setVisible(false).setScale(0.17);
 	}
 	
 	/**
@@ -80,25 +81,6 @@ class CardBox {
 			this.scene.workLateImage.setVisible(false);
 			workLateCardDisabler(this.scene);
 		}
-        
-        // flip card if flipState is set to true
-        else if (this.scene.flipState && this.cardId != 0) {
-            console.log("test");
-            if (this.flip) {
-                this.flip = false;
-                this.cardText.setText(this.cardId);
-                this.backImage.setVisible(false);
-                this.scene.numberFlipped -= 1;
-                console.log(this.scene.numberFlipped);
-            }
-            else {
-                this.flip = true;
-                this.cardText.setText("Flipped");
-                this.backImage.setVisible(true);
-                this.scene.numberFlipped += 1;
-                console.log(this.scene.numberFlipped);
-            }
-        }
 		
 		// a card can only be placed if the player is holding a card and the card box is empty 
 		else if (isPlayerHoldingCard && this.cardId == 0) {
@@ -152,23 +134,29 @@ class CardBox {
             }
 		}
         
-        // TODO: during event stage, card will be flipped if card box has a card, and blocked if not
+        // during event stage, card will be flipped if card box has a card and flipState is set to true, and blocked if empty and allowed
         else if (!isPlayerHoldingCard && this.scene.isEventRound) {
             let wholeEffect = useEffect(this.scene);
             let action = wholeEffect[0];
             if (this.scene.flipState && this.cardId != 0) {
+                console.log("can flip card");
                 if (!this.flip) {
-                    this.backImage.setVisible(true);
+                    this.flip = true;
+                    this.cardText.setText("Flipped");
                     this.cardImage.setVisible(false);
+                    this.backImage.setVisible(true);
                     this.scene.numberFlipped += 1;
-                    console.log(this.scene.numberFlipped);
                 }
                 else {
-                    this.backImage.setVisible(false);
+                    this.flip = false;
+                    this.cardText.setText(this.cardId);
                     this.cardImage.setVisible(true);
+                    this.backImage.setVisible(false);
                     this.scene.numberFlipped -= 1;
-                    console.log(this.scene.numberFlipped);
                 }
+            }
+            else if (this.scene.flipped) {
+                this.placementBox.disableInteractive();
             }
             if ((action.includes("o") || action.includes("b")) && this.cardId == 0) {
                 if (!this.testBlock) {
@@ -831,6 +819,8 @@ function moveToEventRound(scene) {
 	if (scene.numberOfTeams > 1) scene.toolbarNext.buttonText.setText("Next Team");
 	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
 	removeUnusedCardBoxes(scene);
+    scene.blockedOut = false;
+    scene.flipped = false;
 }
 
 
@@ -857,6 +847,8 @@ function moveToNextTeam(scene) {
 	if (scene.isInventoryOpen) closeInventory(scene);
     if (scene.activityInventoryOpen) closeActInventory(scene);
 	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
+    scene.blockedOut = true;
+    scene.flipped = true;
 }
 
 
@@ -897,6 +889,8 @@ function moveToNextStage(scene) {
 	if (scene.isInventoryOpen) closeInventory(scene);
     if (scene.activityInventoryOpen) closeActInventory(scene);
 	if (scene.isFacilitatorModeActive) scene.facilitatorModeButton.disableMode();
+    scene.blockedOut = true;
+    scene.flipped = true;
 }
 
 
@@ -916,17 +910,41 @@ function squashFirstStage(scene) {
 
 
 /**
- * Removes any CardBox objects which weren't used in the previous stage
+ * deactivate any CardBox objects which weren't used in the previous stage
  * (doesn't actually remove them, just sets them to be invisible)
  */
 function removeUnusedCardBoxes(scene) {
-	let cards = scene.teams[scene.currentTeam].get("cards")[scene.stage];
+    let variables = scene.teams[scene.currentTeam];
+	let cards = variables.get("cards")[scene.stage];
+    let unused = variables.get("unusedCards");
+    if (unused==undefined) {
+        unused = [];
+    }
+    //console.log(unused)
 	console.log(cards)
 	for (let i = 0; i < cards.length; i++) {
 		if (cards[i].cardId == 0) {
-			cards[i].setVisible(false, false);
+            cards[i].setVisible(false, false);
+            unused.push(cards[i]);
 		}
 	}
+    variables.set("unusedCards", unused);
+}
+
+function addUnusedCardBoxes(scene) {
+    let cards = scene.teams[scene.currentTeam].get("cards")[scene.stage];
+    let unusedCards = scene.teams[scene.currentTeam].get("unusedCards");
+	console.log(unusedCards);
+	for (let i = 0; i < cards.length; i++) {
+        if (cards[i].cardId == 0) {
+            cards[i].setVisible(true, true);
+		}
+	}
+    for (let j = 0; j < unusedCards.length; j++) {
+        unusedCards[j].setVisible(true, true);
+    }
+    console.log(cards);
+    //unusedCards = [];
 }
 
 
@@ -1298,4 +1316,4 @@ function getIllegalPlacements(scene) {
 
 
 
-export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, displayCardInfo };
+export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, displayCardInfo, addUnusedCardBoxes };

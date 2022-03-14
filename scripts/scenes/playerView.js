@@ -80,8 +80,9 @@ export default class playerView extends Phaser.Scene {
         this.blockedOut = false;
         this.numberBlocked = 0;                             // number of card box(es) blocked out
         this.ignored = false;
-        this.flipState = false;                             // flip card on board if set to true
+        this.flipState = false;                             // can flip card on board if set to true
         this.numberFlipped = 0;                             // number of activity card(s) flipped
+        this.flipped = false;                               // flipped cards cannot be changed
         this.completeEffect = false;
 		this.isInventoryOpen = false;
         
@@ -106,7 +107,10 @@ export default class playerView extends Phaser.Scene {
                 ["activityCards", []],              // a 1D array of activity card ids that the team has in their inventory
 				["addCardBoxes", []],				// a 1D array of the current set of add card box buttons (not in order) - this is reset after every stage
 				["workLateTiles", totalWorkLate],	// the number of work late tiles the team has remaining in their inventory
-                ["currentEventCard", 0]             // id of event card player is holding
+                ["currentEventCard", 0],             // id of event card player is holding
+                ["ignoreEff", []],                   // a 1D array of event card ids that can be used to ignore other effect cards (toIgnore)
+                ["toIgnore", []],                    // a 1D array of event card ids that can be ignored by other effect cards (ignoreEff)
+                ["unusedCards", []]                  // a 1D array of card boxes that are unused/empty (save for event stage use)
 			]);
 			team.set("eventCards", [new EventCard(this, 0, 0), new EventCard(this, 0, 1), new EventCard(this, 0, 2)]);
             team.set("activityCards", [new ActivityCard(this, 0, null, 0), new ActivityCard(this, 0, null, 1), new ActivityCard(this, 0, null, 2)]);
