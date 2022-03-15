@@ -1,4 +1,5 @@
 import { closeInventory, closeActInventory, useEffect } from "../event_cards/eventBoard.js";
+import { colours, fonts } from "../theme.js";
 
 
 /**
@@ -26,14 +27,14 @@ class CardBox {
 		}
 		let yPos = this.scene.y*(1.33-(0.31*(this.scene.stage)));
 
-		this.placementBox = this.scene.add.rectangle(xPos, yPos, this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
-		this.placementBox.on("pointerover", () => { 
+		this.placementBox = this.scene.add.rectangle(xPos, yPos, this.scene.width, this.scene.height, colours.get("card")).setScale(0.108, 0.136).setInteractive();
+		this.placementBox.on("pointerover", () => {
             if (this.scene.blockedOut && this.testBlock) { this.placementBox.setFillStyle(0x898989); }
-            else { this.placementBox.setFillStyle(0x6c95b7); }
+            else { this.placementBox.setFillStyle(colours.get("cardHover")); }
         });
 		this.placementBox.on("pointerout", () => { 
             if (this.scene.blockedOut && this.testBlock) { this.placementBox.setFillStyle(0xafafaf); }
-            else { this.placementBox.setFillStyle(0xb1cfe0); }
+            else { this.placementBox.setFillStyle(colours.get("card")); }
         });
 		this.placementBox.on("pointerup", () => { 
 			if (this.scene.isFacilitatorModeActive) { 
@@ -43,7 +44,7 @@ class CardBox {
             else if (this.scene.flipped && this.flip) { this.placementBox.removeInteractive(); }
             else { this.updateCardBox(); } 
         });
-		this.cardText = this.scene.add.text(xPos, yPos, "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.cardText = this.scene.add.text(xPos, yPos, "Place Card", fonts.get("button")).setOrigin(0.5);
 		this.cardImage = this.scene.add.image(xPos, yPos, 2).setVisible(false).setScale(0.2);
 		this.workLateImage = this.scene.add.image(xPos, yPos, "workLate").setVisible(false).setScale(0.17);
         this.backImage = this.scene.add.image(xPos, yPos, "a"+this.scene.stage).setVisible(false).setScale(0.17);
@@ -265,11 +266,11 @@ class AddCardBox {
 		}
 		let yPos = this.scene.y*(1.33-(0.31*(this.scene.stage)));
 		
-		this.buttonBox = this.scene.add.rectangle(xPos, yPos, this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
-		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(0x6c95b7);});
-		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(0xb1cfe0);});
+		this.buttonBox = this.scene.add.rectangle(xPos, yPos, this.scene.width, this.scene.height, colours.get("card")).setScale(0.023, 0.136).setInteractive();
+		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(colours.get("cardHover"));});
+		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(colours.get("card"));});
 		this.buttonBox.on("pointerup", () => this.addBox());
-		this.boxText = this.scene.add.text(xPos, yPos, '+', {color: "0x000000"}).setOrigin(0.5);
+		this.boxText = this.scene.add.text(xPos, yPos, '+', fonts.get("button")).setOrigin(0.5);
 	}
 	
 	/**
@@ -410,14 +411,14 @@ class CardDiscardBox {
 	constructor(scene, relativeX, relativeY, relativeWidth, relativeHeight) {
 		this.scene = scene;
 		this.canBeDiscarded = false;
-		this.colorIdle = 0xb1cfe0
+		this.colorIdle = colours.get("button");
 		this.colorNoAction = 0x9cacb8;
 		this.colorAction = 0x6c95b7;
 		this.colorDiscarded = 0xf82f2f;
 
 		// Draw the Button and button text on the scene
 		this.button = this.scene.add.rectangle(this.scene.x * relativeX, this.scene.y * relativeY, this.scene.width * relativeWidth, this.scene.height * relativeHeight, this.colorIdle)
-		this.buttonText = this.scene.add.text(this.scene.x * relativeX, this.scene.y * relativeY, "Discard", {color: "0x000000"});
+		this.buttonText = this.scene.add.text(this.scene.x * relativeX, this.scene.y * relativeY, "Discard", fonts.get("button"));
 		this.buttonText.setOrigin(0.5);
 
 		// On hovering, we check whether the currently held card is playable
@@ -559,24 +560,24 @@ class ToolbarButton {
 	constructor(scene, x, width, label, onClick, onOver, onOut) {
 		this.scene = scene;
 		
-		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*1.875, this.scene.width, this.scene.height, 0xb1cfe0).setScale(width, 0.10).setInteractive();
+		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*1.875, this.scene.width, this.scene.height, colours.get("button")).setScale(width, 0.10).setInteractive();
 		this.button.disabled = false;
 		if (onOver != undefined) {
 			this.button.on("pointerover", () => { onOver(this.scene) });
 		} else {
-			this.button.on("pointerover", () => { this.button.setFillStyle(0x6c95b7); });
+			this.button.on("pointerover", () => { this.button.setFillStyle(colours.get("buttonHover")); });
 		}
 		if (onOut!= undefined) {
 			this.button.on("pointerout", () => { onOut(this.scene) });
 		} else {
 			this.button.on("pointerout", () => {
-				if (this.button.disabled == false) { this.button.setFillStyle(0xb1cfe0); }
+				if (this.button.disabled == false) { this.button.setFillStyle(colours.get("button")); }
 			});
 		}
 		if (onClick != undefined) {
 			this.button.on("pointerup", () => { onClick(this.scene); });
 		}
-		this.buttonText = this.scene.add.text(this.scene.x*x, this.scene.y*1.875, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.buttonText = this.scene.add.text(this.scene.x*x, this.scene.y*1.875, label, fonts.get("button")).setOrigin(0.5);
 	}
 }
 
@@ -590,13 +591,13 @@ class FacilitatorModeButton {
 	constructor(scene) {
 		this.scene = scene
 
-		this.button = this.scene.add.rectangle(this.scene.x*1.69, this.scene.y*0.12, this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.27, 0.07).setInteractive();
-		this.button.on("pointerover", () => { this.button.setFillStyle(0x6c95b7); });
-		this.button.on("pointerout", () => { this.button.setFillStyle(0xb1cfe0); });
+		this.button = this.scene.add.rectangle(this.scene.x*1.69, this.scene.y*0.12, this.scene.width, this.scene.height, colours.get("button")).setScale(0.27, 0.07).setInteractive();
+		this.button.on("pointerover", () => { this.button.setFillStyle(colours.get("buttonHover")); });
+		this.button.on("pointerout", () => { this.button.setFillStyle(colours.get("button")); });
 		this.button.on("pointerup", () => { this.toggleFacilitatorMode(); });
-		this.buttonText = this.scene.add.text(this.scene.x*1.69, this.scene.y*0.12, "Activate Facilitator Mode", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.buttonText = this.scene.add.text(this.scene.x*1.69, this.scene.y*0.12, "Activate Facilitator Mode", fonts.get("button")).setOrigin(0.5).setFontSize(20);
 
-		buttonToggle(this.button, 0, false);
+		buttonToggle(this, 0, false);
 	}
 
 
@@ -625,11 +626,11 @@ class FacilitatorModeButton {
 		}
 
 		if (this.scene.isEventRound) {
-			buttonToggle(this.scene.eventBarPlay.button, 0, true);
-			buttonToggle(this.scene.eventBarStore.button, 0, true);
+			buttonToggle(this.scene.eventBarPlay, 0, true);
+			buttonToggle(this.scene.eventBarStore, 0, true);
 			var cards = variables.get("eventCards");
 			for (let i = 0; i < cards.length; i++) {
-				buttonToggle(cards[i].playButton, 0, true);
+				buttonToggle(cards[i].playButton, 3, true);
 			}
 		}
 	}
@@ -661,11 +662,11 @@ class FacilitatorModeButton {
 		}
 
 		if (this.scene.isEventRound) {
-			buttonToggle(this.scene.eventBarPlay.button, 0, false);
-			buttonToggle(this.scene.eventBarStore.button, 0, false);
+			buttonToggle(this.scene.eventBarPlay, 0, false);
+			buttonToggle(this.scene.eventBarStore, 0, false);
 			var cards = variables.get("eventCards");
 			for (let i = 0; i < cards.length; i++) {
-				buttonToggle(cards[i].playButton, 0, false);
+				buttonToggle(cards[i].playButton, 3, false);
 			}
 		}
 	}
@@ -679,39 +680,56 @@ class FacilitatorModeButton {
  * @param {Integer} type The type of button (0 = ToolbarButton/CardDiscardBox, 1 = Pick up card button, 2 = Activity inventory)
  * @param {Boolean} enable true = enable the button, false = disable the button
  */
-function buttonToggle(button, type, enable) {
+function buttonToggle(buttonObject, type, enable) {
 	// ToolbarButton or CardDiscardBox
 	if (type == 0) {
+		let button = buttonObject.button;
 		if (enable == true) {	// enabling the button
 			button.setInteractive();
-			button.setFillStyle(0xb1cfe0);
+			button.setFillStyle(colours.get("button"));
 			button.disabled = false;
 		} else {	// disabling the button
 			button.disableInteractive();
-			button.setFillStyle(0x939393);
+			button.setFillStyle(colours.get("buttonDisabled"));
 			button.disabled = true;
 		}
 	}
 	// Pick up card button
 	else if (type == 1) {
+		let button = buttonObject;
 		if (enable == true) {	// enabling the button
 			button.setInteractive();
-			button.setFillStyle(0xe76f51);
+			button.setFillStyle(colours.get("cardStack"));
 		} else {	// disabling the button
 			button.disableInteractive();
-			button.setFillStyle(0x939393);
+			button.setFillStyle(colours.get("buttonDisabled"));
 		}
 	}
     // Activity inventory
     else if (type == 2) {
+		let button = buttonObject.button;
+		let text = buttonObject.buttonText;
         if (enable == true) {   // enabling the button
             button.setInteractive();
-            button.setFillStyle(0xb1cfe0);
+            button.setFillStyle(colours.get("buttonEvent"));
         } else {    // disabling the button
             button.disableInteractive();
-			button.setFillStyle(0x939393);
+			button.setFillStyle(colours.get("buttonDisabled"));
         }
     }
+	// CardBox + review arrows
+	else if (type == 3) {
+		let button = buttonObject.playButton;
+		if (enable == true) {	// enabling the button
+			button.setInteractive();
+			button.setFillStyle(colours.get("button"));
+			button.disabled = false;
+		} else {	// disabling the button
+			button.disableInteractive();
+			button.setFillStyle(colours.get("buttonDisabled"));
+			button.disabled = true;
+		}
+	}
 }
 
 
@@ -733,9 +751,9 @@ function displayCardInfo(scene, id) {
 function nextHandler(scene) {
 	let variables = scene.teams[scene.currentTeam];
 	
-	buttonToggle(scene.toolbarNext.button, 0, false);
-	buttonToggle(scene.toolbarStart.button, 0, true);
-    buttonToggle(scene.eventBarActInventory.button, 2, false);
+	buttonToggle(scene.toolbarNext, 0, false);
+	buttonToggle(scene.toolbarStart, 0, true);
+    buttonToggle(scene.eventBarActInventory, 2, false);
 	if (scene.activityInventoryOpen) closeActInventory(scene);
 	
 	// switching teams/stages
@@ -811,9 +829,9 @@ function moveToEventRound(scene) {
 	console.log("Moving to event round");
 	scene.isEventRound = true;
 	scene.currentStageText.setText("Stage: Events "+(scene.stage+1));
-	buttonToggle(scene.toolbarStart.button, 0, false);
-    buttonToggle(scene.eventBarActInventory.button, 2, true);
-    buttonToggle(scene.eventBarActStore.button, 2, true);
+	buttonToggle(scene.toolbarStart, 0, false);
+    buttonToggle(scene.eventBarActInventory, 2, true);
+    buttonToggle(scene.eventBarActStore, 2, true);
 	scene.eventStack.setTexture("e"+scene.stage).setVisible(true).setInteractive();
 	scene.eventBarInventory.setVisible(true);
 	if (scene.numberOfTeams > 1) scene.toolbarNext.buttonText.setText("Next Team");
@@ -873,7 +891,7 @@ function moveToNextStage(scene) {
 	
 	if (scene.stage == 3) {
 		// moving to review stage
-		buttonToggle(scene.toolbarStart.button, 0, false);
+		buttonToggle(scene.toolbarStart, 0, false);
 		let cards = [];
 		for (let i = 0; i < scene.numberOfTeams; i++) {
 			cards.push(scene.teams[i].get("cards"));
@@ -968,13 +986,13 @@ function startHandler(scene) {
 		
 		scene.toolbarStart.buttonText.setText("Stop Timer");
 		
-		buttonToggle(scene.toolbarNext.button, 0, false);
-		buttonToggle(scene.toolbarWorkLate.button, 0, true);
-		buttonToggle(scene.toolbarDiscard.button, 0, true);
-        buttonToggle(scene.eventBarActInventory.button, 2, true);
-        buttonToggle(scene.eventBarActStore.button, 2, true);
+		buttonToggle(scene.toolbarNext, 0, false);
+		buttonToggle(scene.toolbarWorkLate, 0, true);
+		buttonToggle(scene.toolbarDiscard, 0, true);
+        buttonToggle(scene.eventBarActInventory, 2, true);
+        buttonToggle(scene.eventBarActStore, 2, true);
 		buttonToggle(scene.currentCardBox, 1, true);
-		buttonToggle(scene.facilitatorModeButton.button, 0, false);
+		buttonToggle(scene.facilitatorModeButton, 0, false);
 		if (scene.isFacilitatorModeActive) {
 			scene.facilitatorModeButton.toggleFacilitatorMode();
 		}
@@ -1033,14 +1051,14 @@ function stopHandler(scene) {
 	scene.currentCardText.setText("+");
 	scene.currentCardImage.setVisible(false);
 	
-	buttonToggle(scene.toolbarNext.button, 0, true);
-	buttonToggle(scene.toolbarStart.button, 0, false);
-	buttonToggle(scene.toolbarWorkLate.button, 0, false);
-	buttonToggle(scene.toolbarDiscard.button, 0, false);
-    buttonToggle(scene.eventBarActInventory.button, 2, false);
-    buttonToggle(scene.eventBarActStore.button, 2, false);
+	buttonToggle(scene.toolbarNext, 0, true);
+	buttonToggle(scene.toolbarStart, 0, false);
+	buttonToggle(scene.toolbarWorkLate, 0, false);
+	buttonToggle(scene.toolbarDiscard, 0, false);
+    buttonToggle(scene.eventBarActInventory, 2, false);
+    buttonToggle(scene.eventBarActStore, 2, false);
 	buttonToggle(scene.currentCardBox, 1, false);
-	buttonToggle(scene.facilitatorModeButton.button, 0, true);
+	buttonToggle(scene.facilitatorModeButton, 0, true);
 
 	
 	// returning unused work late tiles

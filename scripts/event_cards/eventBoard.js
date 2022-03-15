@@ -1,5 +1,6 @@
 import { loadEventCard } from "../cards-management.js";
 import { buttonToggle, AddCardBox, CardBox, CardDiscardBox, displayCardInfo, addUnusedCardBoxes } from "../activity_cards/gameBoard.js";
+import { colours, fonts } from "../theme.js";
 
 
 
@@ -38,17 +39,17 @@ class EventCard {
                 this.playButtonText.setVisible(true);
             }
 		});
-        this.playButton = this.scene.add.rectangle(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), this.card.width, 200, 0xb1cfe0).setScale(0.235).setDepth(10).setAlpha(0.8).setInteractive().setVisible(false);
+        this.playButton = this.scene.add.rectangle(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), this.card.width, 200, colours.get("button")).setScale(0.235).setDepth(10).setAlpha(0.8).setInteractive().setVisible(false);
         this.playButton.on("pointerover", () => {
-			this.playButton.setFillStyle(0x6c95b7);
+			this.playButton.setFillStyle(colours.get("buttonHover"));
 		});
 		this.playButton.on("pointerout", () => {
-			this.playButton.setFillStyle(0xb1cfe0);
+			this.playButton.setFillStyle(colours.get("button"));
 		});
         this.playButton.on("pointerup", () => {
 			this.playCard();
 		});
-        this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", {color: "0x000000"}).setOrigin(0.5).setDepth(10).setVisible(false);
+        this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", fonts.get("buttonEvent")).setOrigin(0.5).setDepth(10).setVisible(false);
         
         // effectCards: array of cards that needs to be changed due to effect
         let effectCards = [];
@@ -149,17 +150,17 @@ class ActivityCard {
                 this.playButtonText.setVisible(true);
             }
 		});
-        this.playButton = this.scene.add.rectangle(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), this.card.width, 200, 0xb1cfe0).setScale(0.235).setDepth(10).setAlpha(0.8).setInteractive().setVisible(false);
+        this.playButton = this.scene.add.rectangle(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), this.card.width, 200, colours.get("button")).setScale(0.235).setDepth(10).setAlpha(0.8).setInteractive().setVisible(false);
         this.playButton.on("pointerover", () => {
-			this.playButton.setFillStyle(0x6c95b7);
+			this.playButton.setFillStyle(colours.get("buttonHover"));
 		});
 		this.playButton.on("pointerout", () => {
-			this.playButton.setFillStyle(0xb1cfe0);
+			this.playButton.setFillStyle(colours.get("button"));
 		});
         this.playButton.on("pointerup", () => {
 			this.actPlayCard();
 		});
-        this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", {color: "0x000000"}).setOrigin(0.5).setDepth(10).setVisible(false);
+        this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", fonts.get("button")).setOrigin(0.5).setDepth(10).setVisible(false);
         
         // activityCards: array of cards that needs to be stored due to effect
         let activityCards = [];
@@ -237,21 +238,21 @@ class EventBarButton {
 	constructor(scene, x, y, width, label, onClick, onOver, onOut) {
 		this.scene = scene;
 		
-		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*y*1.63, this.scene.width, this.scene.height, 0xb1cfe0).setScale(width, 0.07).setInteractive();
+		this.button = this.scene.add.rectangle(this.scene.x*x, this.scene.y*y*1.63, this.scene.width, this.scene.height, colours.get("buttonEvent")).setScale(width, 0.07).setInteractive();
 		if (onOver != undefined) {
 			this.button.on("pointerover", () => { onOver(this.scene) });
 		} else {
-			this.button.on("pointerover", () => { this.button.setFillStyle(0x6c95b7); });
+			this.button.on("pointerover", () => { this.button.setFillStyle(colours.get("buttonEventHover")); });
 		}
 		if (onOut!= undefined) {
 			this.button.on("pointerout", () => { onOut(this.scene) });
 		} else {
-			this.button.on("pointerout", () => { this.button.setFillStyle(0xb1cfe0); });
+			this.button.on("pointerout", () => { this.button.setFillStyle(colours.get("buttonEvent")); });
 		}
 		if (onClick != undefined) {
 			this.button.on("pointerup", () => { onClick(this.scene) });
 		}
-		this.buttonText = this.scene.add.text(this.scene.x*x, this.scene.y*y*1.63, label, {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.buttonText = this.scene.add.text(this.scene.x*x, this.scene.y*y*1.63, label, fonts.get("buttonEvent")).setOrigin(0.5);
 	}
 	
 	/*
