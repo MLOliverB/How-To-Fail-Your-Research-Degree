@@ -1,4 +1,8 @@
 import { buttonToggle, ToolbarButton, displayCardInfo } from "../activity_cards/gameBoard.js";
+import { colours, fonts } from "../theme.js";
+import { CenterButton } from "../menuButtons.js";
+
+
 
 export default class review extends Phaser.Scene {
     constructor() {
@@ -30,15 +34,10 @@ class Menu {
     constructor(scene) {
         this.scene = scene;
 
-        this.scene.add.rectangle(this.scene.x, this.scene.y, this.scene.width, this.scene.height, 0xffffff);
-        this.scene.add.text(this.scene.x, this.scene.y*0.2, "Game Over", {color: "0x000000"}).setOrigin(0.5).setFontSize(30);
+        this.scene.add.rectangle(this.scene.x, this.scene.y, this.scene.width, this.scene.height, colours.get("background"));
+        this.scene.add.text(this.scene.x, this.scene.y*0.7, "Game Over!", fonts.get("h1")).setOrigin(0.5);
 
-        this.next = this.scene.add.rectangle(this.scene.x, this.scene.y, this.scene.width*0.3, this.scene.height*0.1, 0x6c95b7).setInteractive();
-        this.next.on("pointerup", () => {
-            this.next.disableInteractive();     // redundant but just in case this button somehow gets clicked again...
-            new BoardViewer(this.scene);
-        });
-        this.scene.add.text(this.scene.x, this.scene.y, "Review the boards", {color: "0x000000"}).setOrigin(0.5);
+        this.next = new CenterButton(scene, 1.2, "Review the Boards", () => { new BoardViewer(scene); })
     }
 }
 
@@ -51,11 +50,10 @@ class Menu {
  */
 class BoardViewer {
     constructor(scene) {
-        scene.add.rectangle(scene.x, scene.y, scene.width, scene.height, 0xede0d4);    							// background
-		scene.add.rectangle(scene.x, scene.y*0.77, scene.width, scene.height, 0xf4a261).setScale(0.98, 0.75);	// playing board
-		scene.add.rectangle(scene.x, scene.y*1.95, scene.width, scene.height, 0x023047).setScale(1, 0.2);		// toolbar
+        scene.add.rectangle(scene.x, scene.y, scene.width, scene.height, colours.get("background"));    					// background
+		scene.add.rectangle(scene.x, scene.y*1.95, scene.width, scene.height, colours.get("toolbar")).setScale(1, 0.2);		// toolbar
         scene.label = new ToolbarButton(scene, 1, 0.1, "Team 1", undefined, undefined, undefined);
-        buttonToggle(scene.label.button, 0, false);
+        buttonToggle(scene.label, 0, false);
         scene.left = new TriangleButton(scene, 0.83, 1);
         scene.right = new TriangleButton(scene, 1.17, 0);
 
@@ -100,21 +98,21 @@ class TriangleButton {
         
         // triangle points right when moving forwards, and vice versa
         if (direction == 0) {
-            this.button = scene.add.triangle(scene.x*x, scene.y*1.875, 0, 100, 100, 50, 0, 0, 0xb1cfe0).setScale(0.54).setInteractive();
+            this.button = scene.add.triangle(scene.x*x, scene.y*1.875, 0, 100, 100, 50, 0, 0, colours.get("button")).setScale(0.54).setInteractive();
             if (scene.numberOfTeams == 1) {
-                buttonToggle(this.button, 0, false);
+                buttonToggle(this, 0, false);
                 this.disabled = true;
             }
         } else {
-            this.button = scene.add.triangle(scene.x*x, scene.y*1.875, 0, 50, 100, 100, 100, 0, 0xb1cfe0).setScale(0.54).setInteractive();
-            buttonToggle(this.button, 0, false);
+            this.button = scene.add.triangle(scene.x*x, scene.y*1.875, 0, 50, 100, 100, 100, 0, colours.get("button")).setScale(0.54).setInteractive();
+            buttonToggle(this, 0, false);
             this.disabled = true;
         }
         
-		this.button.on("pointerover", () => { this.button.setFillStyle(0x6c95b7); });
+		this.button.on("pointerover", () => { this.button.setFillStyle(colours.get("buttonHover")); });
 		this.button.on("pointerout", () => {
             if (!this.disabled) {
-                this.button.setFillStyle(0xb1cfe0);
+                this.button.setFillStyle(colours.get("button"));
             }
         });
 		this.button.on("pointerup", () => { this.moveTeam(direction) });
@@ -137,7 +135,7 @@ class TriangleButton {
             console.log("Next team")
             this.scene.currentTeam++;
             if (this.scene.currentTeam == this.scene.numberOfTeams-1) {
-                buttonToggle(this.scene.right.button, 0, false);
+                buttonToggle(this.scene.right, 0, false);
                 this.scene.right.disabled = true;
             }
             buttonToggle(this.scene.left.button, 0, true);
@@ -145,10 +143,10 @@ class TriangleButton {
             console.log("Previous team")
             this.scene.currentTeam--;
             if (this.scene.currentTeam == 0) {
-                buttonToggle(this.scene.left.button, 0, false);
+                buttonToggle(this.scene.left, 0, false);
                 this.scene.left.disabled = true;
             }
-            buttonToggle(this.scene.right.button, 0, true);
+            buttonToggle(this.scene.right, 0, true);
         }
         this.scene.label.buttonText.setText("Team " + (this.scene.currentTeam+1));
 
@@ -177,10 +175,10 @@ class ReviewCardBox {
         let xPos = scene.x*(1+0.225*distanceFromMiddle);
 		let yPos = scene.y*(1.33-(0.31*stage));
 
-        this.placementBox = scene.add.rectangle(xPos, yPos, scene.width, scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
+        this.placementBox = scene.add.rectangle(xPos, yPos, scene.width, scene.height, colours.get("card")).setScale(0.108, 0.136).setInteractive();
         this.placementBox.on("pointerup", () => { displayCardInfo(scene, id) });
-        this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
-		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
+        this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(colours.get("cardHover")); });
+		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(colours.get("card")); });
         this.cardImage = scene.add.image(xPos, yPos, id).setScale(0.2);
         if (hasWorkLate) {
             this.workLateImage = scene.add.image(xPos, yPos, "workLate").setScale(0.17);

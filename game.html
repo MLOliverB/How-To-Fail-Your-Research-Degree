@@ -8,6 +8,13 @@
         <title>How To Fail Your Research Degree</title>
         <!-- this is just a placeholder tab icon -->
         <link rel="icon" type="image/png" href="https://storage.googleapis.com/discordstreet/emojis/cunning.png">
+
+        <style media="screen" type="text/css">
+            @font-face {
+                font-family: 'Bahiana';
+                src: url("./assets/Bahiana/Bahiana-Regular.ttf");
+            }
+        </style>
         
         <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.1/sql-wasm.js"></script> <!-- Loads sql.js (used to interact with the local database) -->
@@ -20,6 +27,7 @@
     </head>
 
     <body>
+        <div style="font-family:Bahiana; position:absolute; left:-1000px; visibility:hidden;">.</div>
         <script type="module">
             import mainMenu from "./scripts/scenes/mainMenu.js";
             import options from "./scripts/scenes/options.js";
@@ -34,7 +42,7 @@
                 backgroundColor: '#a9e3ff',
                 //while testing, only include the scene(s) you're currently working on in the [] below to instantly skip to that scene
                 //scene: [mainMenu, options, numberOfTeams, playerView, review]
-                scene: [playerView, review]
+                scene: [mainMenu, options, numberOfTeams, playerView, review]
             };
 
             const game = new Phaser.Game(config);

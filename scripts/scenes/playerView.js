@@ -1,6 +1,7 @@
 import { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, displayCardInfo } from "../activity_cards/gameBoard.js";
 import { EventCard, ActivityCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, activityStoreHandler, finishHandler, inventoryHandler, actInventoryHandler, flipHandler } from "../event_cards/eventBoard.js";
 import { loadActivityCardStack, loadEventCardStack, loadAllCardsPromise, shuffleCardStack } from "../cards-management.js";
+import { colours, fonts } from "../theme.js";
 
 /**
  * The scene where the player plays the game
@@ -56,9 +57,8 @@ export default class playerView extends Phaser.Scene {
 		
 		/// GUI (part 1) ////
 		// gui is split up to prevent the background images from covering up the cards
-        this.add.rectangle(this.x, this.y, this.width, this.height, 0xede0d4);    							// background
-		this.add.rectangle(this.x, this.y*0.77, this.width, this.height, 0xf4a261).setScale(0.98, 0.75);	// playing board
-		this.add.rectangle(this.x, this.y*1.95, this.width, this.height, 0x023047).setScale(1, 0.2);		// toolbar
+        this.add.rectangle(this.x, this.y, this.width, this.height, colours.get("background"));    			// background
+		this.add.rectangle(this.x, this.y*1.95, this.width, this.height, colours.get("toolbar")).setScale(1, 0.2);		// toolbar
 		
 		
 		
@@ -134,29 +134,28 @@ export default class playerView extends Phaser.Scene {
 		
 		
 		//// GUI (part 2) ////
-		this.currentCardBox = this.add.rectangle(this.x, this.y*1.76, this.width, this.height, 0xe76f51).setScale(0.162, 0.204);	// card the player is holding
+		this.currentCardBox = this.add.rectangle(this.x, this.y*1.76, this.width, this.height, colours.get("cardStack")).setScale(0.162, 0.204);	// card the player is holding
 		this.currentCardBox.on("pointerover", () => {
 			if (this.teams[this.currentTeam].get("currentCard") == 0) {
-				this.currentCardBox.setFillStyle(0xb6563e);
+				this.currentCardBox.setFillStyle(colours.get("cardStackHover"));
 			}
 		});
 		this.currentCardBox.on("pointerout", () => {
-			this.currentCardBox.setFillStyle(0xe76f51);
+			this.currentCardBox.setFillStyle(colours.get("cardStack"));
 		});
 		this.currentCardBox.on("pointerup", () => {
 			if (this.teams[this.currentTeam].get("currentCard") == 0) {
 				pickUpCard(this);
-				this.currentCardBox.setFillStyle(0xe76f51);
 			}
 		});
-		this.currentCardText = this.add.text(this.x, this.y*1.76, "+", {color: "0x000000"}).setOrigin(0.5).setFontSize(32);	// text displayed on the box for the card the player is holding
+		this.currentCardText = this.add.text(this.x, this.y*1.76, "+", fonts.get("button")).setOrigin(0.5).setFontSize(50);	// text displayed on the box for the card the player is holding
 		this.currentCardImage = this.add.image(this.x, this.y*1.76, 2).setScale(0.3).setVisible(false);						// image displayed on the current card box
 		
 		this.workLateImage = this.add.image(this.x*0.7, this.y*1.63, "workLate").setScale(0.12).setVisible(false);				// image displayed of the work late tile
 		
-		this.currentStageText = this.add.text(this.x, this.y*0.09, "Stage: 1", {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
-		this.currentTeamText = this.add.text(this.x, this.y*0.18, "Team: 1", {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
-		this.timerText = this.add.text(this.x*0.3, this.y*0.13, "Time Remaining: "+this.roundLength+"s", {color: "0x000000"}).setOrigin(0.5).setFontSize(20);
+		this.currentStageText = this.add.text(this.x*0.05, this.y*0.04, "Stage: 1", fonts.get("button")).setFontSize(35);
+		this.currentTeamText = this.add.text(this.x*0.05, this.y*0.18, "Team: 1", fonts.get("button")).setFontSize(35);
+		this.timerText = this.add.text(this.x, this.y*0.13, "Time Remaining: "+this.roundLength+"s", fonts.get("button")).setOrigin(0.5).setFontSize(30);
 		
 		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Team", nextHandler, undefined, undefined);		// button to move to next player/stage
 		this.toolbarStart = new ToolbarButton(this, 0.43, 0.12, "Start", startHandler, undefined, undefined);			// button to start the game
@@ -166,7 +165,7 @@ export default class playerView extends Phaser.Scene {
 
 
 		// Button for skipping to review mode - only enable while testing for quick access
-		/*
+		
 		this.review = this.add.rectangle(this.x*1.69, this.y*0.3, this.width, this.height, 0xb1cfe0).setScale(0.27, 0.07).setInteractive();
 		this.review.on("pointerover", () => { this.review.setFillStyle(0x6c95b7); });
 		this.review.on("pointerout", () => { this.review.setFillStyle(0xb1cfe0); });
@@ -178,13 +177,13 @@ export default class playerView extends Phaser.Scene {
 			this.scene.start("review", [cards, this.numberOfTeams, this.cardMap]);
 		});
 		this.reviewText = this.add.text(this.x*1.69, this.y*0.3, "Review Mode", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
-		*/
+		
 
 
-		buttonToggle(this.toolbarNext.button, 0, false);
-		buttonToggle(this.toolbarStart.button, 0, false);
-		buttonToggle(this.toolbarWorkLate.button, 0, false);
-		buttonToggle(this.toolbarDiscard.button, 0, false);
+		buttonToggle(this.toolbarNext, 0, false);
+		buttonToggle(this.toolbarStart, 0, false);
+		buttonToggle(this.toolbarWorkLate, 0, false);
+		buttonToggle(this.toolbarDiscard, 0, false);
 		buttonToggle(this.currentCardBox, 1, false);
 		
 		this.eventBarPlay = new EventBarButton(this, 1.5, 1, 0.1, "Play", playHandler, undefined, undefined);						// button to play the event card
@@ -211,7 +210,7 @@ export default class playerView extends Phaser.Scene {
 			loadActivityCardStack(s, (cards) => {
 				this.activityCards.push(shuffleCardStack(cards));
 				if (s == 4) { // Once all stacks have been loaded, enable the game to be played (by pressing the timer start button)
-					buttonToggle(this.toolbarStart.button, 0, true);
+					buttonToggle(this.toolbarStart, 0, true);
 				}
 			});
 		}
