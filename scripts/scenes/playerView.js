@@ -165,7 +165,7 @@ export default class playerView extends Phaser.Scene {
 
 
 		// Button for skipping to review mode - only enable while testing for quick access
-		
+		/*
 		this.review = this.add.rectangle(this.x*1.69, this.y*0.3, this.width, this.height, 0xb1cfe0).setScale(0.27, 0.07).setInteractive();
 		this.review.on("pointerover", () => { this.review.setFillStyle(0x6c95b7); });
 		this.review.on("pointerout", () => { this.review.setFillStyle(0xb1cfe0); });
@@ -177,7 +177,7 @@ export default class playerView extends Phaser.Scene {
 			this.scene.start("review", [cards, this.numberOfTeams, this.cardMap]);
 		});
 		this.reviewText = this.add.text(this.x*1.69, this.y*0.3, "Review Mode", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
-		
+		*/
 
 
 		buttonToggle(this.toolbarNext, 0, false);
