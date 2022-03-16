@@ -740,7 +740,7 @@ function useEffect(scene) {
             cardStage.push(stage);
         }
         else {
-            cardStage.push(scene.stage+1);
+            cardStage.push(`"${scene.stage+1}"`);
         }
 
         console.log(`Title of event card: ${chosenTitle} \n
@@ -827,24 +827,33 @@ function checkEffect(scene){
         
         // array that will be used depending on stage(s) shown on card
         let stage_counts = [];
-        for (var y = 0; y < effect[4].length; y++) {
-            if (effect[4][y] == 1) {
-                for (var s = 0; s < prev_1Count; s++) {
+        let stages = [];
+        if (effect[4][0] != undefined) {
+            stages.concat(effect[4]);
+        }
+        else {
+            stages.concat(effect[4][0]);
+        }
+        
+        for (var y = 0; y < stages.length; y++) {
+            console.log(stages);
+            if (parseInt(stages[y]) == 1) {
+                for (var s = 0; s < prev_1Count.length; s++) {
                     stage_counts.concat(prev_1Count[s]);
                 }
             }
-            else if (effect[4][y] == 2) {
-                for (var s = 0; s < prev_2Count; s++) {
+            else if (parseInt(stages[y]) == 2) {
+                for (var s = 0; s < prev_2Count.length; s++) {
                     stage_counts.concat(prev_2Count[s]);
                 }
             }
-            else if (effect[4][y] == 3) {
-                for (var s = 0; s < prev_3Count; s++) {
+            else if (parseInt(stages[y]) == 3) {
+                for (var s = 0; s < prev_3Count.length; s++) {
                     stage_counts.concat(prev_3Count[s]);
                 }
             }
-            else if (effect[4][y] == 4) {
-                for (var s = 0; s < prev_4Count; s++) {
+            else if (parseInt(stages[y]) == 4) {
+                for (var s = 0; s < prev_4Count.length; s++) {
                     stage_counts.concat(prev_4Count[s]);
                 }
             }
@@ -918,7 +927,7 @@ function checkEffect(scene){
             // stand in for card
             case "s":
                 console.log("stand in for "+effect[2]);
-                alert(`You can get ${scene.cardMap.get(effect[2]).title} from the stack and save in inventory for later use`);
+                alert(`You can get ${scene.cardMap.get(variables.get(effect[2])).title} from the stack and save in inventory for later use`);
                 scene.ignored = true;   // can save card in inventory for later use, so no changes needed to be done
                 break;
             // block out spaces
@@ -1241,9 +1250,9 @@ function playHandler(scene) {
     }
 
     // allow activity cards to be played (overrides illegal moves)
-    buttonToggle(scene.toolbarDiscard.button, 0, true);
+    buttonToggle(scene.toolbarDiscard, 0, true);
     buttonToggle(scene.currentCardBox, 1, true);
-    
+	
     // stages will become interactive and all card components visible depending on stage specified
     for (let i = 0; i <= scene.stage; i++) {
         if (stage.includes(i)) {
@@ -1312,7 +1321,7 @@ function activityStoreHandler(scene) {
     console.log("Store the activity card in inventory");
     let variables = scene.teams[scene.currentTeam];
     let cards = variables.get("activityCards");
-    let currentCard = variables.get("currentCard");
+    let currentCard = scene.cardMap.get(variables.get("currentCard"));
     console.log(currentCard.stage);
     let stored = false;
     for (let i = 0; i < cards.length; i++) {
@@ -1352,10 +1361,10 @@ function finishHandler(scene) {
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
         scene.eventBarFlip.setVisible(false);
-		buttonToggle(scene.toolbarDiscard.button, 0, false);
+		buttonToggle(scene.toolbarDiscard, 0, false);
         buttonToggle(scene.currentCardBox, 1, false);
-        buttonToggle(scene.eventBarActInventory.button, 2, false);
-        buttonToggle(scene.eventBarActStore.button, 2, false);
+		buttonToggle(scene.eventBarActInventory, 2, false);
+        buttonToggle(scene.eventBarActStore, 2, false);
         scene.blockedOut = true;
         scene.flipState = false;
         scene.flipped = true;
@@ -1384,6 +1393,7 @@ function finishHandler(scene) {
     else {
         scene.completeEffect = false;
         scene.forceFinish += 1;
+        console.log(scene.forceFinish);
     }
 }
 
@@ -1442,7 +1452,7 @@ function endCard(scene) {
     }
     
     if (scene.eventCardsRemaining == 0) {
-        buttonToggle(scene.toolbarNext.button, 0, true);
+        buttonToggle(scene.toolbarNext, 0, true);
     }
 }
 

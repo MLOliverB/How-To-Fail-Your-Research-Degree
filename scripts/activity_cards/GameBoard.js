@@ -626,8 +626,10 @@ class FacilitatorModeButton {
 		}
 
 		if (this.scene.isEventRound) {
-			buttonToggle(this.scene.eventBarPlay, 0, true);
-			buttonToggle(this.scene.eventBarStore, 0, true);
+			buttonToggle(this.scene.eventBarPlay, 1, true);
+			buttonToggle(this.scene.eventBarStore, 1, true);
+            //buttonToggle(this.scene.eventBarFinish, 1, true);
+			//buttonToggle(this.scene.eventBarFlip, 1, true);
 			var cards = variables.get("eventCards");
 			for (let i = 0; i < cards.length; i++) {
 				buttonToggle(cards[i].playButton, 3, true);
@@ -662,8 +664,10 @@ class FacilitatorModeButton {
 		}
 
 		if (this.scene.isEventRound) {
-			buttonToggle(this.scene.eventBarPlay, 0, false);
-			buttonToggle(this.scene.eventBarStore, 0, false);
+			buttonToggle(this.scene.eventBarPlay, 1, false);
+			buttonToggle(this.scene.eventBarStore, 1, false);
+            //buttonToggle(this.scene.eventBarFinish, 1, false);
+			//buttonToggle(this.scene.eventBarFlip, 1, false);
 			var cards = variables.get("eventCards");
 			for (let i = 0; i < cards.length; i++) {
 				buttonToggle(cards[i].playButton, 3, false);
@@ -696,7 +700,7 @@ function buttonToggle(buttonObject, type, enable) {
 	}
 	// Pick up card button
 	else if (type == 1) {
-		let button = buttonObject.button;
+		let button = buttonObject;
 		if (enable == true) {	// enabling the button
 			button.setInteractive();
 			button.setFillStyle(colours.get("cardStack"));
