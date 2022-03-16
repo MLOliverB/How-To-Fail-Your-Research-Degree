@@ -285,8 +285,8 @@ function countIds(array) {
     if (array[3] == null) {var fourthCards = [0];}
     else{var fourthCards = array[3];}
 
-    var arrayFirst = new Array(); var arraySecond = new Array();
-    var arrayThird = new Array(); var arrayFourth = new Array();
+    var arrayFirst = []; var arraySecond = [];
+    var arrayThird = []; var arrayFourth = [];
     for (let i = 0; i < firstCards.length; i++) {
         var x = firstCards[i].cardId;
         if (x == "ï»¿1") {
@@ -355,8 +355,6 @@ function matchCount(valToBeChecked, valChecked) {
     return valToBeChecked == valChecked;
 }
 
-
-
 /**
  * Get count of all occurrences of each activity card ID
  * taken from: https://stackoverflow.com/questions/5667888/counting-the-occurrences-frequency-of-array-elements
@@ -369,10 +367,10 @@ function countCardOccurrences(array){
         return acc[curr] ? ++acc[curr] : acc[curr] = 1, acc }, {});
     console.log(occurrences);
     // array of ids and array of count
-    const ids = Object.keys(occurrences);
+    /*const ids = Object.keys(occurrences);
     const count = Object.values(occurrences);
     console.log(ids);
-    console.log(count);
+    console.log(count);*/
     
     return occurrences;
 }
@@ -740,7 +738,7 @@ function useEffect(scene) {
             cardStage.push(stage);
         }
         else {
-            cardStage.push(`"${scene.stage+1}"`);
+            cardStage.push(holdEventID.stage.toString());
         }
 
         console.log(`Title of event card: ${chosenTitle} \n
@@ -751,10 +749,10 @@ function useEffect(scene) {
                         Stages: ${cardStage}`);
         
         if (fulfilled) {
-            singleEffect.push(sAct[i], adjacency[i], forAction[i], totalAmount[i], cardStage[i]);
+            singleEffect.push(sAct[i], adjacency[i], forAction[i], totalAmount[i], cardStage[i], chosenTitle);
         }
         else {
-            singleEffect.push(sAct, adjacency, forAction, totalAmount, cardStage);
+            singleEffect.push(sAct, adjacency, forAction, totalAmount, cardStage, chosenTitle);
         }
         //console.log(singleEffect);
         wholeEffect.push(singleEffect);
@@ -780,6 +778,7 @@ function checkEffect(scene){
      * wholeEffect[i][2]: forAction, i.e. cardID(s) that needs to take action
      * wholeEffect[i][3]: totalAmount of cards/spaces to change
      * wholeEffect[i][4]: cardStage
+     * wholeEffect[i][5]: title of card
      */
     let wholeEffect = useEffect(scene);
     
@@ -820,64 +819,53 @@ function checkEffect(scene){
     for (var i = 0; i < wholeEffect.length; i++) {
         var effect = wholeEffect[i];
         
+        // array that will be used depending on stage(s) shown on card
+        let stage_counts = new Array();
+        
+        for (var y = 0; y < effect[4].length; y++) {
+            console.log(effect[4][y]);
+            let stage = parseInt(effect[4][y]);
+            if (stage === 1) {
+                stage_counts = stage_counts.concat(previousStage_1);
+            }
+            else if (stage === 2) {
+                stage_counts = stage_counts.concat(previousStage_2);
+            }
+            else if (stage === 3) {
+                stage_counts = stage_counts.concat(previousStage_3);
+            }
+            else if (stage === 4) {
+                stage_counts = stage_counts.concat(previousStage_4);
+            }
+        }
+        
+        let stage_depends = countCardOccurrences(stage_counts);
+        delete stage_depends["0"];
+        let stage_id = Object.keys(stage_depends);
+        let stage_occ = Object.values(stage_depends);
+        let stage_total = stage_occ.reduce((a, b) => a + b, 0);
+        console.log(stage_id, stage_occ, stage_total);
+        
         // totalCount: original occurrences of selected card(s)
         let totalCount = 0;
         // exceed: used in add cards -> empty spaces < required
         let exceed = 0;
         
-        // array that will be used depending on stage(s) shown on card
-        let stage_counts = [];
-        let stages = [];
-        if (effect[4][0] != undefined) {
-            stages.concat(effect[4]);
-        }
-        else {
-            stages.concat(effect[4][0]);
-        }
-        
-        for (var y = 0; y < stages.length; y++) {
-            console.log(stages);
-            if (parseInt(stages[y]) == 1) {
-                for (var s = 0; s < prev_1Count.length; s++) {
-                    stage_counts.concat(prev_1Count[s]);
-                }
-            }
-            else if (parseInt(stages[y]) == 2) {
-                for (var s = 0; s < prev_2Count.length; s++) {
-                    stage_counts.concat(prev_2Count[s]);
-                }
-            }
-            else if (parseInt(stages[y]) == 3) {
-                for (var s = 0; s < prev_3Count.length; s++) {
-                    stage_counts.concat(prev_3Count[s]);
-                }
-            }
-            else if (parseInt(stages[y]) == 4) {
-                for (var s = 0; s < prev_4Count.length; s++) {
-                    stage_counts.concat(prev_4Count[s]);
-                }
-            }
-        }
-        
-        console.log(stage_counts);
-        
-        let stage_id = Object.keys(stage_counts);
-        let stage_occ = Object.values(stage_counts);
-        let stage_total = stage_occ.reduce((a, b) => a + b, 0);
-        console.log(stage_id, stage_occ, stage_total);
-        
         // get total occurrence(s) of cardID(s) 
         for (var x = 0; x < effect[2].length; x++) {
-            var temp = effect[2][x];
+            var temp = parseInt(effect[2][x]);
             var index = stage_id.indexOf(temp);
-            if(index == "-1") {                          // card doesn't exist
-                totalCount += 0;                         // occurrence = 0
-            }
-            else if (temp == "0") {                      // card is not specified
-                totalCount += stage_total;               // totalCount = number of total cards of stated stages
+            console.log(temp, index);
+            if (temp == "0") {                          // card is not specified
+                totalCount += parseInt(stage_total);    // totalCount = number of total cards of stated stages
             } 
-            else {                                       // card is specified
-                totalCount += stage_occ[index];          // totalCount = original occurrence
+            else {                                      // card is specified
+                if (index == "-1") {                    // card doesn't exist
+                    totalCount += 0;                    // occurrence = 0
+                }
+                else {
+                    totalCount += stage_occ[index];     // totalCount = original occurrence
+                }
             }
         }
         console.log("original: "+totalCount);
@@ -927,7 +915,6 @@ function checkEffect(scene){
             // stand in for card
             case "s":
                 console.log("stand in for "+effect[2]);
-                alert(`You can get ${scene.cardMap.get(variables.get(effect[2])).title} from the stack and save in inventory for later use`);
                 scene.ignored = true;   // can save card in inventory for later use, so no changes needed to be done
                 break;
             // block out spaces
@@ -938,7 +925,7 @@ function checkEffect(scene){
                 }
                 else {                                              // stage to block out = this stage
                     console.log("block out "+effect[3]+" spaces");
-                    totalCount = parseInt(effect[3]);                         // blocked out spaces = required
+                    totalCount = parseInt(effect[3]);               // blocked out spaces = required
                 }
                 break;
             // ignore effects of card
@@ -966,8 +953,8 @@ function checkEffect(scene){
                     if (previousCountOcc[0] == previous.length) {      // no cards on board
                         scene.ignored = true;                          // ignore effect
                     }
-                    else {                                    // have cards on board
-                        totalCount = required;                // flipped cards = required
+                    else {                                  // have cards on board
+                        totalCount = required;              // flipped cards = required
                     }
                 }
                 else {                                      // have required cardID 
@@ -1050,34 +1037,29 @@ function areRulesMatched(scene) {
             var effect = wholeEffect[i];
             
             // array that will be used depending on stage(s) shown on card
-            let stage_counts = [];
+            let stage_counts = new Array();
+        
             for (var y = 0; y < effect[4].length; y++) {
-                if (effect[4][y] == 1) {
-                    for (var s = 0; s < cur_1Count; s++) {
-                        stage_counts.push(cur_1Count[s]);
-                    }
+                console.log(effect[4][y]);
+                let stage = parseInt(effect[4][y]);
+                if (stage === 1) {
+                    stage_counts = stage_counts.concat(currentStage_1);
                 }
-                if (effect[4][y] == 2) {
-                    for (var s = 0; s < cur_2Count; s++) {
-                        stage_counts.push(cur_2Count[s]);
-                    }
+                else if (stage === 2) {
+                    stage_counts = stage_counts.concat(currentStage_2);
                 }
-                if (effect[4][y] == 3) {
-                    for (var s = 0; s < cur_3Count; s++) {
-                        stage_counts.push(cur_3Count[s]);
-                    }
+                else if (stage === 3) {
+                    stage_counts = stage_counts.concat(currentStage_3);
                 }
-                if (effect[4][y] == 4) {
-                    for (var s = 0; s < cur_4Count; s++) {
-                        stage_counts.push(cur_4Count[s]);
-                    }
+                else if (stage === 4) {
+                    stage_counts = stage_counts.concat(currentStage_4);
                 }
             }
-            
-            console.log(stage_counts);
-
-            let stage_id = Object.keys(stage_counts);
-            let stage_occ = Object.values(stage_counts);
+        
+            let stage_depends = countCardOccurrences(stage_counts);
+            delete stage_depends["0"];
+            let stage_id = Object.keys(stage_depends);
+            let stage_occ = Object.values(stage_depends);
             let stage_total = stage_occ.reduce((a, b) => a + b, 0);
             console.log(stage_id, stage_occ, stage_total);
             
@@ -1087,12 +1069,8 @@ function areRulesMatched(scene) {
             for (var x = 0; x < effect[2].length; x++) {
                 var temp = effect[2][i];
                 var index = currentArrayId.indexOf(temp);
-                // card doesn't exist
-                if(index == "-1") {
-                    totalCount += 0;
-                }
                 // card is not specified
-                else if (temp == "0") {
+                if (temp == "0") {
                     if (effect[0] == "p") {             // effect is to add cards without specified ids 
                         totalCount += curArray.length;   // total count = length of current array 
                     }
@@ -1108,8 +1086,14 @@ function areRulesMatched(scene) {
                 } 
                 // card is specified
                 else {
-                    totalCount += currentArrayOcc[index];
-                    console.log(currentArrayOcc[index]);
+                    // card doesn't exist
+                    if (index == "-1") {
+                        totalCount += 0;
+                    }
+                    else {
+                        totalCount += currentArrayOcc[index];
+                        console.log(currentArrayOcc[index]);
+                    }
                 }
             }
             console.log(totalCount);
@@ -1247,6 +1231,10 @@ function playHandler(scene) {
         var temp = wholeEffect[i];
         var x = temp[4];
         stage.push(x-1);
+        
+        if (temp[0].includes("s")) {
+            alert(`You can get ${temp[5]} from the stack and save in inventory for later use`);
+        }
     }
 
     // allow activity cards to be played (overrides illegal moves)
@@ -1353,11 +1341,11 @@ function activityStoreHandler(scene) {
  */
 function finishHandler(scene) {
 	let variables = scene.teams[scene.currentTeam];
+    scene.completeEffect = areRulesMatched(scene);
 	
 	console.log("Checking if player correctly used event card effects");
     // check if rules are matched or effects are bugged for several times (i.e., pressed finish 5 times)
-	if (areRulesMatched(scene) || scene.forceFinish == 5) {
-        scene.completeEffect = true;
+	if (scene.completeEffect || scene.forceFinish == 4) {
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
         scene.eventBarFlip.setVisible(false);
@@ -1369,6 +1357,8 @@ function finishHandler(scene) {
         scene.flipState = false;
         scene.flipped = true;
         scene.forceFinish = 0;
+        scene.ignored = false;
+        scene.completeEffect = false;
         
         // disabling all the card placement boxes
         for (let j = 0; j < scene.stage+1; j++) {
@@ -1391,7 +1381,6 @@ function finishHandler(scene) {
 		endCard(scene);
 	}
     else {
-        scene.completeEffect = false;
         scene.forceFinish += 1;
         console.log(scene.forceFinish);
     }

@@ -41,7 +41,7 @@ class CardBox {
 				if (this.cardId != 0 && !this.flip) { displayCardInfo(this.scene, this.cardId) }
 			}
             else if (this.scene.blockedOut && this.testBlock) { this.placementBox.removeInteractive(); }
-            else if (this.scene.flipped && this.flip) { this.placementBox.removeInteractive(); }
+            else if (!this.scene.flipState && this.scene.flipped && this.flip) { this.placementBox.removeInteractive(); }
             else { this.updateCardBox(); } 
         });
 		this.cardText = this.scene.add.text(xPos, yPos, "Place Card", fonts.get("button")).setOrigin(0.5);
@@ -73,6 +73,27 @@ class CardBox {
 			this.workLateImage.setVisible(false);
 			workLateCardEnabler(this.scene);
 		}
+        
+        else if (this.scene.flipState && this.cardId != 0) {
+            console.log("can flip card");
+            if (!this.flip) {
+                this.flip = true;
+                this.cardText.setText("Flipped");
+                this.cardImage.setVisible(false);
+                this.backImage.setVisible(true);
+                this.scene.numberFlipped += 1;
+            }
+            else {
+                this.flip = false;
+                this.cardText.setText(this.cardId);
+                this.cardImage.setVisible(true);
+                this.backImage.setVisible(false);
+                this.scene.numberFlipped -= 1;
+            }
+        }
+        else if (!this.scene.flipState && this.flip) {
+            this.placementBox.disableInteractive();
+        }
 		
 		// a work late tile can only be placed if the player is holding a work late tile and there is a card in the card box (and there isn't already a work late tile)
 		else if (this.scene.isPlayerHoldingWorkLate && this.cardId != 0 && !this.hasWorkLate) {
@@ -139,26 +160,6 @@ class CardBox {
         else if (!isPlayerHoldingCard && this.scene.isEventRound) {
             let wholeEffect = useEffect(this.scene);
             let action = wholeEffect[0];
-            if (this.scene.flipState && this.cardId != 0) {
-                console.log("can flip card");
-                if (!this.flip) {
-                    this.flip = true;
-                    this.cardText.setText("Flipped");
-                    this.cardImage.setVisible(false);
-                    this.backImage.setVisible(true);
-                    this.scene.numberFlipped += 1;
-                }
-                else {
-                    this.flip = false;
-                    this.cardText.setText(this.cardId);
-                    this.cardImage.setVisible(true);
-                    this.backImage.setVisible(false);
-                    this.scene.numberFlipped -= 1;
-                }
-            }
-            else if (this.scene.flipped) {
-                this.placementBox.disableInteractive();
-            }
             if ((action.includes("o") || action.includes("b")) && this.cardId == 0) {
                 if (!this.testBlock) {
                     this.cardText.setText("Blocked Out");
