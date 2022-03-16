@@ -86,7 +86,7 @@ export default class playerView extends Phaser.Scene {
         this.completeEffect = false;
 		this.isInventoryOpen = false;
         
-        this.forceFinish = 0;                   // force the event card effect to end once this number reaches 3 (if bugging happens)
+        this.forceFinish = 0;                   // force the event card effect to end once this number reaches 5 (if bugging happens)
         
         this.activityInventoryOpen = false;
 
