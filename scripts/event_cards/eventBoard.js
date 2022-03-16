@@ -1346,8 +1346,8 @@ function finishHandler(scene) {
 	let variables = scene.teams[scene.currentTeam];
 	
 	console.log("Checking if player correctly used event card effects");
-    // check if rules are matched
-	if (areRulesMatched(scene)) {
+    // check if rules are matched or effects are bugged for several times (i.e., pressed finish 5 times)
+	if (areRulesMatched(scene) || scene.forceFinish == 5) {
         scene.completeEffect = true;
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
@@ -1359,6 +1359,7 @@ function finishHandler(scene) {
         scene.blockedOut = true;
         scene.flipState = false;
         scene.flipped = true;
+        scene.forceFinish = 0;
         
         // disabling all the card placement boxes
         for (let j = 0; j < scene.stage+1; j++) {
@@ -1382,6 +1383,7 @@ function finishHandler(scene) {
 	}
     else {
         scene.completeEffect = false;
+        scene.forceFinish += 1;
     }
 }
 

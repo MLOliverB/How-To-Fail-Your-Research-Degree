@@ -696,7 +696,7 @@ function buttonToggle(buttonObject, type, enable) {
 	}
 	// Pick up card button
 	else if (type == 1) {
-		let button = buttonObject;
+		let button = buttonObject.button;
 		if (enable == true) {	// enabling the button
 			button.setInteractive();
 			button.setFillStyle(colours.get("cardStack"));
