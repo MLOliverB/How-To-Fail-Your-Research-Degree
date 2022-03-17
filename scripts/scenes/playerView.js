@@ -150,14 +150,14 @@ export default class playerView extends Phaser.Scene {
 				pickUpCard(this);
 			}
 		});
-		this.currentCardText = this.add.text(this.x, this.y*1.76, "+", fonts.get("button")).setOrigin(0.5).setFontSize(50);	// text displayed on the box for the card the player is holding
-		this.currentCardImage = this.add.image(this.x, this.y*1.76, 2).setScale(0.3).setVisible(false);						// image displayed on the current card box
+		this.currentCardText = this.add.text(this.x, this.y*1.76, "+", fonts.get("button")).setOrigin(0.5).setFontSize(100);	// text displayed on the box for the card the player is holding
+		this.currentCardImage = this.add.image(this.x, this.y*1.76, 2).setScale(0.6).setVisible(false);						// image displayed on the current card box
 		
-		this.workLateImage = this.add.image(this.x*0.7, this.y*1.63, "workLate").setScale(0.12).setVisible(false);				// image displayed of the work late tile
+		this.workLateImage = this.add.image(this.x*0.7, this.y*1.63, "workLate").setScale(0.24).setVisible(false);				// image displayed of the work late tile
 		
-		this.currentStageText = this.add.text(this.x*0.05, this.y*0.04, "Stage: 1", fonts.get("button")).setFontSize(35);
-		this.currentTeamText = this.add.text(this.x*0.05, this.y*0.18, "Team: 1", fonts.get("button")).setFontSize(35);
-		this.timerText = this.add.text(this.x, this.y*0.13, "Time Remaining: "+this.roundLength+"s", fonts.get("button")).setOrigin(0.5).setFontSize(30);
+		this.currentStageText = this.add.text(this.x*0.05, this.y*0.04, "Stage: 1", fonts.get("button")).setFontSize(70);
+		this.currentTeamText = this.add.text(this.x*0.05, this.y*0.18, "Team: 1", fonts.get("button")).setFontSize(70);
+		this.timerText = this.add.text(this.x, this.y*0.13, "Time Remaining: "+this.roundLength+"s", fonts.get("button")).setOrigin(0.5).setFontSize(60);
 		
 		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Team", nextHandler, undefined, undefined);		// button to move to next player/stage
 		this.toolbarStart = new ToolbarButton(this, 0.43, 0.12, "Start", startHandler, undefined, undefined);			// button to start the game
@@ -178,7 +178,7 @@ export default class playerView extends Phaser.Scene {
 			}
 			this.scene.start("review", [cards, this.numberOfTeams, this.cardMap]);
 		});
-		this.reviewText = this.add.text(this.x*1.69, this.y*0.3, "Review Mode", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.reviewText = this.add.text(this.x*1.69, this.y*0.3, "Review Mode", {color: "0x000000"}).setOrigin(0.5).setFontSize(30);
 		*/
 
 
@@ -220,7 +220,7 @@ export default class playerView extends Phaser.Scene {
 		
 		
 		//// EVENT CARDS ////
-		this.eventStack = this.add.image(this.x*1.81, this.y*1.55, 'e1').setScale(0.235).setInteractive().setVisible(false);
+		this.eventStack = this.add.image(this.x*1.81, this.y*1.55, 'e1').setScale(0.47).setInteractive().setVisible(false);
 		this.eventStack.setDepth(20);
 		this.eventStack.on("pointerup", () => {
 			if (this.isFacilitatorModeActive) {

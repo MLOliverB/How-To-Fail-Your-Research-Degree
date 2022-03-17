@@ -45,9 +45,9 @@ class CardBox {
             else { this.updateCardBox(); } 
         });
 		this.cardText = this.scene.add.text(xPos, yPos, "Place Card", fonts.get("button")).setOrigin(0.5);
-		this.cardImage = this.scene.add.image(xPos, yPos, 2).setVisible(false).setScale(0.2);
-		this.workLateImage = this.scene.add.image(xPos, yPos, "workLate").setVisible(false).setScale(0.17);
-        this.backImage = this.scene.add.image(xPos, yPos, "a"+this.scene.stage).setVisible(false).setScale(0.17);
+		this.cardImage = this.scene.add.image(xPos, yPos, 2).setVisible(false).setScale(0.4);
+		this.workLateImage = this.scene.add.image(xPos, yPos, "workLate").setVisible(false).setScale(0.34);
+        this.backImage = this.scene.add.image(xPos, yPos, "a"+this.scene.stage).setVisible(false).setScale(0.34);
 	}
 	
 	/**
@@ -596,7 +596,7 @@ class FacilitatorModeButton {
 		this.button.on("pointerover", () => { this.button.setFillStyle(colours.get("buttonHover")); });
 		this.button.on("pointerout", () => { this.button.setFillStyle(colours.get("button")); });
 		this.button.on("pointerup", () => { this.toggleFacilitatorMode(); });
-		this.buttonText = this.scene.add.text(this.scene.x*1.69, this.scene.y*0.12, "Activate Facilitator Mode", fonts.get("button")).setOrigin(0.5).setFontSize(20);
+		this.buttonText = this.scene.add.text(this.scene.x*1.69, this.scene.y*0.12, "Activate Facilitator Mode", fonts.get("button")).setOrigin(0.5).setFontSize(40);
 
 		buttonToggle(this, 0, false);
 	}
@@ -760,7 +760,6 @@ function nextHandler(scene) {
 	buttonToggle(scene.toolbarStart, 0, true);
     buttonToggle(scene.eventBarActInventory, 2, false);
 	if (scene.activityInventoryOpen) closeActInventory(scene);
-	
 	// switching teams/stages
 	if (!scene.isEventRound && scene.stage != 0) {
 		moveToEventRound(scene);
@@ -773,7 +772,7 @@ function nextHandler(scene) {
 		}
 		
 		
-		if ((scene.isEventRound || scene.stage == 0) && scene.currentTeam != scene.numberOfTeams - 1 && scene.stage != 3) {
+		if ((scene.isEventRound || scene.stage == 0) && scene.currentTeam != scene.numberOfTeams - 1) {
 			moveToNextTeam(scene);
 		} else if ((scene.isEventRound || scene.stage == 0) && scene.currentTeam == scene.numberOfTeams - 1) {
 			moveToNextStage(scene);
@@ -819,7 +818,6 @@ function nextHandler(scene) {
 			}
 		}
 		
-		
 		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
 		scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
 	}
@@ -856,6 +854,7 @@ function moveToNextTeam(scene) {
 	scene.isEventRound = false;
 	scene.eventCardsRemaining = scene.totalEventCards;
 
+	scene.teams[scene.currentTeam].set("addCardBoxes", [])
 	if (scene.stage == 0) {
 		squashFirstStage(scene);
 		removeUnusedCardBoxes(scene);	// this will have been run at the start of the event round in other stages
@@ -907,7 +906,9 @@ function moveToNextStage(scene) {
 		scene.currentStageText.setText("Stage: " + (scene.stage + 1));
 		scene.currentTeam = 0;
 		scene.currentTeamText.setText("Team: 1");
+
 	}
+
 	scene.toolbarNext.buttonText.setText("Next Round");
 	if (scene.isInventoryOpen) closeInventory(scene);
     if (scene.activityInventoryOpen) closeActInventory(scene);
@@ -1018,6 +1019,7 @@ function startHandler(scene) {
 			variables.get("cards")[scene.stage][i].setVisible(true, true);
 		}
 		
+
 		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
 			variables.get("addCardBoxes")[i].setVisible(true, true);
 		}

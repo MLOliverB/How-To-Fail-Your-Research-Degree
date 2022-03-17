@@ -14,12 +14,12 @@ const colours = new Map([
 
 
 const fonts = new Map([
-    ["button",{color: "#000000", fontFamily: "Bahiana", fontSize: "25px"}],
-    ["buttonEvent",{color: "#FFFFFF", fontFamily: "Bahiana", fontSize: "20px"}],
-    ["h1",{color: "#000000", fontFamily: "Bahiana", fontSize: "120px"}],
-    ["h2",{color: "#FFFFFF", fontFamily: "Bahiana", fontSize: "85px"}],
-    ["h3",{color: "#000000", fontFamily: "Bahiana", fontSize: "30px"}],
-    ["h3Light",{color: "#FFFFFF", fontFamily: "Bahiana", fontSize: "30px"}],
+    ["button",{color: "#000000", fontFamily: "Bahiana", fontSize: "50px"}],
+    ["buttonEvent",{color: "#FFFFFF", fontFamily: "Bahiana", fontSize: "40px"}],
+    ["h1",{color: "#000000", fontFamily: "Bahiana", fontSize: "240px"}],
+    ["h2",{color: "#FFFFFF", fontFamily: "Bahiana", fontSize: "170px"}],
+    ["h3",{color: "#000000", fontFamily: "Bahiana", fontSize: "60px"}],
+    ["h3Light",{color: "#FFFFFF", fontFamily: "Bahiana", fontSize: "60px"}],
 ])
 
 

@@ -13,8 +13,8 @@ export default class mainMenu extends Phaser.Scene {
         this.height = this.cameras.main.displayHeight;
 
         this.add.rectangle(this.x, this.y, this.width, this.height, colours.get("background")); // background
-        this.add.rectangle(this.x*2-150, this.y, 300, this.height, colours.get("toolbar")); // sidebar
-        this.add.text(this.x-150, this.y, "How to Fail Your\nResearch Degree", fonts.get("h1")).setOrigin(0.5);
+        this.add.rectangle(this.x*2-this.x*0.5/2, this.y, this.x*0.5, this.height, colours.get("toolbar")); // sidebar
+        this.add.text(this.x-this.x*0.5/2, this.y, "How to Fail Your\nResearch Degree", fonts.get("h1")).setOrigin(0.5);
         this.events.on('shutdown', this.shutdown, this);
 
         if (data[0] == undefined) {

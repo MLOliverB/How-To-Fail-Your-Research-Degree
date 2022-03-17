@@ -37,9 +37,18 @@
             
             const config = {
                 type: Phaser.AUTO,
-                width: 960,
-                height: 540,
+                width: 1920,
+                height: 1080,
                 backgroundColor: '#a9e3ff',
+                scale: {
+                    mode: Phaser.Scale.FIT,
+                    autoCenter: Phaser.Scale.CENTER_BOTH,
+                    min: {
+                        width: 960,
+                        height: 540
+                    },
+                    zoom: 1,
+                },
                 //while testing, only include the scene(s) you're currently working on in the [] below to instantly skip to that scene
                 //scene: [mainMenu, options, numberOfTeams, playerView, review]
                 scene: [mainMenu, options, numberOfTeams, playerView, review]

@@ -98,13 +98,13 @@ class TriangleButton {
         
         // triangle points right when moving forwards, and vice versa
         if (direction == 0) {
-            this.button = scene.add.triangle(scene.x*x, scene.y*1.875, 0, 100, 100, 50, 0, 0, colours.get("button")).setScale(0.54).setInteractive();
+            this.button = scene.add.triangle(scene.x*x, scene.y*1.875, 0, 100, 100, 50, 0, 0, colours.get("button")).setScale(1.08).setInteractive();
             if (scene.numberOfTeams == 1) {
                 buttonToggle(this, 0, false);
                 this.disabled = true;
             }
         } else {
-            this.button = scene.add.triangle(scene.x*x, scene.y*1.875, 0, 50, 100, 100, 100, 0, colours.get("button")).setScale(0.54).setInteractive();
+            this.button = scene.add.triangle(scene.x*x, scene.y*1.875, 0, 50, 100, 100, 100, 0, colours.get("button")).setScale(1.08).setInteractive();
             buttonToggle(this, 0, false);
             this.disabled = true;
         }
@@ -138,7 +138,7 @@ class TriangleButton {
                 buttonToggle(this.scene.right, 0, false);
                 this.scene.right.disabled = true;
             }
-            buttonToggle(this.scene.left.button, 0, true);
+            buttonToggle(this.scene.left, 0, true);
         } else {    // cycle backwards
             console.log("Previous team")
             this.scene.currentTeam--;
@@ -179,9 +179,9 @@ class ReviewCardBox {
         this.placementBox.on("pointerup", () => { displayCardInfo(scene, id) });
         this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(colours.get("cardHover")); });
 		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(colours.get("card")); });
-        this.cardImage = scene.add.image(xPos, yPos, id).setScale(0.2);
+        this.cardImage = scene.add.image(xPos, yPos, id).setScale(0.4);
         if (hasWorkLate) {
-            this.workLateImage = scene.add.image(xPos, yPos, "workLate").setScale(0.17);
+            this.workLateImage = scene.add.image(xPos, yPos, "workLate").setScale(0.34);
         }
     }
 }

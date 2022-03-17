@@ -13,8 +13,8 @@ export default class options extends Phaser.Scene {
         this.height = this.cameras.main.displayHeight;
 
         this.add.rectangle(this.x, this.y, this.width, this.height, colours.get("background")); // background
-        this.add.rectangle(this.x, 50, this.width, 100, colours.get("toolbar")); // header bar
-        this.add.text(this.x, 50, 'Options', fonts.get("h2")).setOrigin(0.5);
+        this.add.rectangle(this.x, this.y*0.17, this.width, this.y*0.35, colours.get("toolbar")); // header bar
+        this.add.text(this.x, this.y*0.17, 'Options', fonts.get("h2")).setOrigin(0.5);
 
         this.roundLengths = [15, 30, 60, 120];
         this.eventCardPerRounds = [1, 2, 3, 4, 5];

@@ -13,8 +13,8 @@ export default class numberOfTeams extends Phaser.Scene {
         this.height = this.cameras.main.displayHeight;
 
         this.add.rectangle(this.x, this.y, this.width, this.height, colours.get("background")); // background
-        this.add.rectangle(this.x, 50, this.width, 100, colours.get("toolbar")); // header bar
-        this.add.text(this.x, 50, 'Number of Teams', fonts.get("h2")).setOrigin(0.5);
+        this.add.rectangle(this.x, this.y*0.17, this.width, this.y*0.35, colours.get("toolbar")); // header bar
+        this.add.text(this.x, this.y*0.17, 'Number of Teams', fonts.get("h2")).setOrigin(0.5);
 
         new CenterButton(this, 0.6, "One Team", () => { 
             data.push(1);

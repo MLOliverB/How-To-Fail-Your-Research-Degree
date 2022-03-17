@@ -20,9 +20,9 @@ class EventCard {
 		this.id = id;
         this.isSelected = false;
         if (this.id == 0) {
-            this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, "e1").setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+            this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.47)*this.cardPosition, this.scene.y*2.15, "e1").setScale(0.47).setDepth(10).setInteractive().setVisible(false);
         } else {
-            this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*2.15, this.id).setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+            this.card = this.scene.add.image(this.scene.x*0.17+(5+666*0.47)*this.cardPosition, this.scene.y*2.15, this.id).setScale(0.47).setDepth(10).setInteractive().setVisible(false);
         }
         this.card.on("pointerup", () => {
             if (this.scene.isFacilitatorModeActive) {
@@ -39,7 +39,7 @@ class EventCard {
                 this.playButtonText.setVisible(true);
             }
 		});
-        this.playButton = this.scene.add.rectangle(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), this.card.width, 200, colours.get("button")).setScale(0.235).setDepth(10).setAlpha(0.8).setInteractive().setVisible(false);
+        this.playButton = this.scene.add.rectangle(this.scene.x*0.17+(5+666*0.47)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.47)+(100*0.47), this.card.width, 200, colours.get("button")).setScale(0.47).setDepth(10).setAlpha(0.8).setInteractive().setVisible(false);
         this.playButton.on("pointerover", () => {
 			this.playButton.setFillStyle(colours.get("buttonHover"));
 		});
@@ -49,7 +49,7 @@ class EventCard {
         this.playButton.on("pointerup", () => {
 			this.playCard();
 		});
-        this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+666*0.235)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.235)+(100*0.235), "Play", fonts.get("buttonEvent")).setOrigin(0.5).setDepth(10).setVisible(false);
+        this.playButtonText = this.scene.add.text(this.scene.x*0.17+(5+666*0.47)*this.cardPosition, this.scene.y*1.55-(this.card.height/2*0.47)+(100*0.47), "Play", fonts.get("buttonEvent")).setOrigin(0.5).setDepth(10).setVisible(false);
         
         // effectCards: array of cards that needs to be changed due to effect
         let effectCards = [];
@@ -131,9 +131,9 @@ class ActivityCard {
         this.stage = stage;
         this.isSelected = false;
         if (this.id == 0) {
-            this.card = this.scene.add.image(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.85, "a0").setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+            this.card = this.scene.add.image(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.85, "a0").setScale(0.47).setDepth(10).setInteractive().setVisible(false);
         } else {
-            this.card = this.scene.add.image(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.85, this.id).setScale(0.235).setDepth(10).setInteractive().setVisible(false);
+            this.card = this.scene.add.image(this.scene.x*0.17+(5+200*0.235)*this.cardPosition, this.scene.y*1.85, this.id).setScale(0.47).setDepth(10).setInteractive().setVisible(false);
         }
         this.card.on("pointerup", () => {
             if (this.scene.isFacilitatorModeActive) {
