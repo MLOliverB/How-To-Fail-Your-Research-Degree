@@ -1301,6 +1301,8 @@ function storeHandler(scene) {
     }
 }
 
+
+
 /**
  * Runs when the store activity card button is clicked
  * Lets the player save a card which can be used later in their inventory
@@ -1387,6 +1389,7 @@ function finishHandler(scene) {
 }
 
 
+
 /**
  * Function to flip cards when pressed
  */
@@ -1426,6 +1429,7 @@ function flipHandler(scene){
     }
     console.log("Current flipState: "+scene.flipState);
 }
+
 
 
 /**
@@ -1479,6 +1483,8 @@ function inventoryHandler(scene) {
 	}
 }
 
+
+
 /**
  * Called when activity inventory button is pressed to open/close the inventory
  */
@@ -1496,6 +1502,8 @@ function actInventoryHandler(scene) {
         }
     }
 }
+
+
 
 /**
  * Closes the activity card inventory

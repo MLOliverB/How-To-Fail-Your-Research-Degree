@@ -6,7 +6,7 @@ export default class mainMenu extends Phaser.Scene {
         super({key: "mainMenu"});
     }
     
-    create() {
+    create(data) {
         this.x = this.cameras.main.centerX;
         this.y = this.cameras.main.centerY;
         this.width = this.cameras.main.displayWidth;
@@ -17,8 +17,12 @@ export default class mainMenu extends Phaser.Scene {
         this.add.text(this.x-150, this.y, "How to Fail Your\nResearch Degree", fonts.get("h1")).setOrigin(0.5);
         this.events.on('shutdown', this.shutdown, this);
 
-        new SidebarButton(this, 0.68, "Start Game", () => this.scene.start("numberOfTeams"));
-        new SidebarButton(this, 0.68*2, "Options", () => this.scene.start("options"));
+        if (data[0] == undefined) {
+            data = [30, 3, 4];
+        }
+
+        new SidebarButton(this, 0.68, "Start Game", () => this.scene.start("numberOfTeams", data));
+        new SidebarButton(this, 0.68*2, "Options", () => this.scene.start("options", data));
     }
     
     shutdown() {

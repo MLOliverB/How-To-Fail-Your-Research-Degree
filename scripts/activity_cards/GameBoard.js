@@ -954,6 +954,8 @@ function removeUnusedCardBoxes(scene) {
     variables.set("unusedCards", unused);
 }
 
+
+
 function addUnusedCardBoxes(scene) {
     let cards = scene.teams[scene.currentTeam].get("cards")[scene.stage];
     let unusedCards = scene.teams[scene.currentTeam].get("unusedCards");
@@ -1085,6 +1087,7 @@ function stopHandler(scene) {
     
     if (scene.activityInventoryOpen) closeActInventory(scene);
 }
+
 
 
 /**

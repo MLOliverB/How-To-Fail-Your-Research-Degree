@@ -47,7 +47,7 @@ export default class playerView extends Phaser.Scene {
         this.load.image('a3', './assets/cards/BACK-act-write-up.png');
 	}
     
-    create() {
+    create(data) {
         this.x = this.cameras.main.centerX;
         this.y = this.cameras.main.centerY;
         this.width = this.cameras.main.displayWidth;
@@ -64,17 +64,17 @@ export default class playerView extends Phaser.Scene {
 		
 		//// VARIABLES ////
 		this.stage = 0;							// Stages: (-1)=Pre-game, 0=Plan, 1=Context, 2=Implementation, 3=Write Up
-		this.numberOfTeams = 1;					// TODO: get this to recieve numberOfTeams from start menu!
+		this.numberOfTeams = data[3];
 		this.currentTeam = -1;
 
 		this.lastPlayedCard;					// The CardBox object of the activity card which was most recently played in a stage
 		
-		this.roundLength = 30;					// The maximum length of each round in seconds (TODO: get this from menu)
+		this.roundLength = data[0];
 		this.timer;
 		this.isTimerRunning = false;
 		
 		this.isEventRound = false;
-		this.totalEventCards = 3;							// TODO: get the number of event cards per round from menu
+		this.totalEventCards = data[1];						// The number of event cards per round
 		this.eventCardsRemaining = this.totalEventCards;	// The number of event cards drawn each round
         this.previousCardArray = new Array();               // previous event card array before making changes
         this.blockedOut = false;
@@ -92,7 +92,7 @@ export default class playerView extends Phaser.Scene {
 
 		this.isFacilitatorModeActive = false;
 		
-		let totalWorkLate = 4;					// The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
+		let totalWorkLate = data[2];			// The number of work late tiles each team starts with
 		this.isPlayerHoldingWorkLate = false;	// Whether or not the player is currently holding a work late tile
         
 		this.teams = []
