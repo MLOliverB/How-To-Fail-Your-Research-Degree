@@ -1,10 +1,10 @@
-import { CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard";
-import { loadActivityCardStack, shuffleCardStack } from "../cards-management";
+import { CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard.js";
+import { loadActivityCardStack, shuffleCardStack } from "../cards-management.js";
 
 export default class teamToolbar extends Phaser.Scene {
-    constructor (config, gameData) {
+    constructor (gameData) {
+		super({key: "teamToolbar"});
         this.gameData = gameData;
-        super(config);
 
         this.timer;
         this.isTimerRunning = false;
@@ -12,13 +12,17 @@ export default class teamToolbar extends Phaser.Scene {
     }
 
     preload() {
-        // Preload card images
-        for (let id in this.gameData.cardMap) {
-            this.load.image(this.gameData.cardMap[id], "./assets/cards/".concat(this.gameData.cardMap[id].image)).start();
+		// Load work late tile image
+		if (!this.gameData.game.textures.exists("workLate")) {
+            this.load.image("workLate", "./assets/cards/worklate.png");
         }
-
-        // Preload work late tile image separately
-        this.load.image("workLate", "./assets/cards/worklate.png").start();
+		let preloader = this;
+		// Load all other card images
+        this.gameData.cardMap.forEach(async function(card, id) {
+            if (card != null && !preloader.gameData.game.textures.exists(id)) {
+                preloader.load.image(id, "./assets/cards/".concat(card.image));
+            }
+        });
     }
 
     create() {
@@ -28,7 +32,7 @@ export default class teamToolbar extends Phaser.Scene {
         this.width = this.cameras.main.displayWidth;
         this.height = this.cameras.main.displayHeight;
 
-        this.add.rectangle(this.x, this.y, this.width, this.height, 0x023047); // Toolbar background
+        this.add.rectangle(this.x, this.y*1.95, this.width, this.height*0.2, 0x023047); // Toolbar background
 
 
         // TODOL Adjust coordinates and scaling
@@ -54,7 +58,7 @@ export default class teamToolbar extends Phaser.Scene {
 		
 		this.currentStageText = this.add.text(this.x, this.y*0.09, "Stage: 1", {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
 		this.currentTeamText = this.add.text(this.x, this.y*0.18, "Team: 1", {color: "0x000000"}).setOrigin(0.5).setFontSize(28);
-		this.timerText = this.add.text(this.x*0.3, this.y*0.13, "Time Remaining: "+this.roundLength+"s", {color: "0x000000"}).setOrigin(0.5).setFontSize(20);
+		this.timerText = this.add.text(this.x*0.3, this.y*0.13, "Time Remaining: "+this.gameData.roundLength+"s", {color: "0x000000"}).setOrigin(0.5).setFontSize(20);
 		
 		this.toolbarNext = new ToolbarButton(this, 0.15, 0.14, "Next Player", nextHandler, undefined, undefined);		// button to move to next player/stage
 		this.toolbarStart = new ToolbarButton(this, 0.43, 0.12, "Start", startHandler, undefined, undefined);			// button to start the game
@@ -88,6 +92,8 @@ export default class teamToolbar extends Phaser.Scene {
 				}
 			});
 		}
+
+		this.scene.bringToTop(this);
     }
 
     update() {

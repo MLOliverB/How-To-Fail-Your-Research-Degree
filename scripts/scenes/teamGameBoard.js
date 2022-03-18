@@ -1,27 +1,22 @@
-import { AddCardBox, CardBox } from "../activity_cards/GameBoard";
+import { AddCardBox, CardBox } from "../activity_cards/GameBoard.js";
+import teamToolbar from "./teamToolbar.js";
 
 export default class teamGameBoard extends Phaser.Scene {
-    constructor (config, gameData) {
-        this.gameData = gameData;
+    constructor (config, gameData, teamNumber) {
         super(config);
+        this.gameData = gameData;
+        this.teamNumber = teamNumber;
 
         this.middlePosition = 0;
         this.leftEdge = 0;
         this.rightEdge = 0;
-        this.isPlayerHoldingWorkLate = false;
-        this.cards = [];
-        this.addCardBoxes = [];
-        this.workLateTiles = gameData.totalWorkLateTiles;
+        // this.isPlayerHoldingWorkLate = false;
+        // this.cards = [];
+        // this.addCardBoxes = [];
+        // this.workLateTiles = gameData.totalWorkLateTiles;
     }
 
     preload() {
-        // Preload card images
-        for (let id in this.gameData.cardMap) {
-            this.load.image(this.gameData.cardMap[id], "./assets/cards/".concat(this.gameData.cardMap[id].image)).start();
-        }
-
-        // Preload work late tile image separately
-        this.load.image("workLate", "./assets/cards/worklate.png").start();
     }
 
     create() {
@@ -36,17 +31,13 @@ export default class teamGameBoard extends Phaser.Scene {
         // TODO adjust the size
         this.add.rectangle(this.x, this.y, this.width, this.height, 0xf4a261); // playing Board
 
-
-        for (let i = 0; i < this.gameData.numberOfTeams; i++) {
-            var card = new CardBox(this, 0);
-            this.cards.push([card]);
-            card.setVisible(false);
-            var card = new AddCardBox(this, -1);
-            card.setVisible(false);
-            var card = new AddCardBox(this, 1);
-            card.setVisible(false);
-        }
-
+        var card = new CardBox(this, 0);
+        this.gameData.teams[this.teamNumber].cards.push([card, ]);
+        card.setVisible(true);
+        var card = new AddCardBox(this, -1);
+        card.setVisible(true);
+        var card = new AddCardBox(this, 1);
+        card.setVisible(true);
     }
 
     update() {

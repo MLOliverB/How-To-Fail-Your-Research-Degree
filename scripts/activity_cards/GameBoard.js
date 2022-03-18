@@ -14,67 +14,67 @@ class CardBox {
 		this.cardId = 0;
 		this.hasWorkLate = false;
 		
-		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
+		this.placementBox = this.scene.add.rectangle(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.gameData.stage))), this.scene.width, this.scene.height, 0xb1cfe0).setScale(0.108, 0.136).setInteractive();
 		this.placementBox.on("pointerover", () => { this.placementBox.setFillStyle(0x6c95b7); });
 		this.placementBox.on("pointerout", () => { this.placementBox.setFillStyle(0xb1cfe0); });
 		this.placementBox.on("pointerup", () => { this.updateCardBox(); });
-		this.cardText = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
-		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), 2).setVisible(false).setScale(0.2);
-		this.workLateImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.stage))), "workLate").setVisible(false).setScale(0.17);
+		this.cardText = this.scene.add.text(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.gameData.stage))), "Place Card", {color: "0x000000"}).setOrigin(0.5).setFontSize(15);
+		this.cardImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.gameData.stage))), 2).setVisible(false).setScale(0.2);
+		this.workLateImage = this.scene.add.image(this.scene.x*(1+0.28*this.distanceFromMiddle), this.scene.y*(1.33-(0.31*(this.scene.gameData.stage))), "workLate").setVisible(false).setScale(0.17);
 	}
 	
 	/**
 	 * Either places a card or moves a card when a card box is clicked
 	*/
 	updateCardBox() {
-		let variables = this.scene.teams[this.scene.currentTeam];
+		let variables = this.scene.gameData.teams[this.scene.teamNumber]
 		
 		var isPlayerHoldingCard = true;
-		if (this.scene.teams[this.scene.currentTeam].get("currentCard") == 0) {
+		if (this.scene.gameData.teamToolbar.currentCard == 0) {
 			isPlayerHoldingCard = false;
 		}
 		
 		// pick up the work late tile if there is one before doing anything else
 		if (this.hasWorkLate) {
-			if (this.scene.isPlayerHoldingWorkLate) {
+			if (variables.isPlayerHoldingWorkLate) {
 				returnWorkLate(this.scene);
 			} else {
-				this.scene.isPlayerHoldingWorkLate = true;
-				this.scene.workLateImage.setVisible(true);
+				variables.isPlayerHoldingWorkLate = true;
+				this.scene.gameData.teamToolbar.workLateImage.setVisible(true);
 			}
 			this.hasWorkLate = false;
 			this.workLateImage.setVisible(false);
 		}
 		
 		// a work late tile can only be placed if the player is holding a work late tile and there is a card in the card box (and there isn't already a work late tile)
-		else if (this.scene.isPlayerHoldingWorkLate && this.cardId != 0 && !this.hasWorkLate) {
+		else if (variables.isPlayerHoldingWorkLate && this.cardId != 0 && !this.hasWorkLate) {
 			this.hasWorkLate = true;
 			this.workLateImage.setVisible(true);
-			this.scene.isPlayerHoldingWorkLate = false;
-			this.scene.workLateImage.setVisible(false);
+			variables.isPlayerHoldingWorkLate = false;
+			this.scene.gameData.teamToolbar.workLateImage.setVisible(false);
 		}
 		
 		// a card can only be placed if the player is holding a card and the card box is empty
 		else if (isPlayerHoldingCard && this.cardId == 0) {
 			console.log("Place a card");
-			this.cardId = variables.get("currentCard");
-			variables.set("currentCard", 0);
+			this.cardId = this.scene.gameData.teamToolbar.currentCard;
+			this.scene.gameData.teamToolbar.currentCard = 0;
 			
 			this.cardText.setText(this.cardId);
-			this.scene.currentCardText.setText("+");
-			this.scene.currentCardImage.setVisible(false);
+			this.scene.gameData.teamToolbar.currentCardText.setText("+");
+			this.scene.gameData.teamToolbar.currentCardImage.setVisible(false);
 			this.cardImage.setVisible(true).setTexture(this.cardId);
 		}
 		
 		// a card can only be picked up if the player is not holding a card and the card box has a card
 		else if (!isPlayerHoldingCard && this.cardId != 0) {
 			console.log("Pick up the card");
-			variables.set("currentCard", this.cardId);
+			this.scene.gameData.teamToolbar.currentCard = this.cardId;
 			this.cardId = 0;
 			
 			this.cardText.setText("Place Card");
-			this.scene.currentCardText.setText(variables.get("currentCard"));
-			this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
+			this.scene.gameData.teamToolbar.currentCardText.setText(this.scene.gameData.teamToolbar.currentCard);
+			this.scene.gameData.teamToolbar.currentCardImage.setVisible(true).setTexture(this.scene.gameData.teamToolbar.currentCard);
 			this.cardImage.setVisible(false);
 		}
 	}
@@ -126,7 +126,7 @@ class AddCardBox {
 	constructor(scene, distanceFromMiddle) {
 		this.scene = scene;
 		this.distanceFromMiddle = distanceFromMiddle;
-		this.scene.teams[this.scene.currentTeam].get("addCardBoxes").push(this);
+		this.scene.gameData.teams[this.scene.teamNumber].addCardBoxes.push(this);
 		
 		// the first box on the "right" does not need a multiplier
 		var distanceMultiplier = this.distanceFromMiddle;
@@ -134,24 +134,24 @@ class AddCardBox {
 			distanceMultiplier--;
 		}
 		
-		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
+		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.gameData.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
 		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(0x6c95b7);});
 		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(0xb1cfe0);});
 		this.buttonBox.on("pointerup", () => this.addBox());
-		this.boxText = this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
+		this.boxText = this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.gameData.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
 	}
 	
 	/**
 	 * Adds a new card box in the correct positions
 	*/
 	addBox() {
-		let variables = this.scene.teams[this.scene.currentTeam];
-		let cards = variables.get("cards")[this.scene.stage];
+		let variables = this.scene.gameData.teams[this.scene.teamNumber];
+		let cards = variables.cards[this.scene.gameData.stage];
 		
 		console.log("Add a card box");
 		
 		// disable this box if it's any stage other than the first stage since cards can't be moved once they're placed on the other stages
-		if (this.scene.stage != 0) {
+		if (this.scene.gameData.stage != 0) {
 			this.buttonBox.disableInteractive().setVisible(false);
 			this.boxText.setVisible(false);
 		}
@@ -159,14 +159,14 @@ class AddCardBox {
 		// different code is needed depending on if the card is being added to the left or right of the centre card due how the rendering positions are calculated
 		if (this.distanceFromMiddle < 0) {
 			// adds new boxes at the furthest left edge
-			let newBox = new CardBox(this.scene, variables.get("leftEdge")-1);
-			new AddCardBox(this.scene, variables.get("leftEdge")-2);
-			variables.set("leftEdge", variables.get("leftEdge") - 1);
+			let newBox = new CardBox(this.scene, this.scene.leftEdge-1);
+			new AddCardBox(this.scene, this.scene.leftEdge-2);
+			this.scene.leftEdge = this.scene.leftEdge - 1;
 			
 			// updating cards array and related variables
-			let position = variables.get("middlePosition")+this.distanceFromMiddle+1;
+			let position = this.scene.middlePosition + this.distanceFromMiddle + 1;
 			cards.unshift(newBox);		//adding empty box to start of the array, the card ids will be shifted later
-			variables.set("middlePosition", variables.get("middlePosition") + 1);
+			this.scene.middlePosition = this.scene.middlePosition + 1;
 			
 			
 			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the start of the array
@@ -187,12 +187,12 @@ class AddCardBox {
 			}
 		} else {
 			// adds new boxes at the furthest right edge
-			let newBox = new CardBox(this.scene, variables.get("rightEdge")+1);
-			new AddCardBox(this.scene, variables.get("rightEdge")+2);
-			variables.set("rightEdge", variables.get("rightEdge")+1);
+			let newBox = new CardBox(this.scene, this.scene.rightEdge+1);
+			new AddCardBox(this.scene, this.scene.rightEdge+2);
+			this.scene.rightEdge = this.scene.rightEdge + 1;
 			
 			// updating cards array and related variables
-			let position = variables.get("middlePosition")+this.distanceFromMiddle;
+			let position = this.scene.middlePosition + this.distanceFromMiddle;
 			cards.push(newBox);		//adding empty box to end of the array, the card ids will be shifted later
 			
 			// the distanceFromMiddle values of card boxes don't need to be updated if we only add at the end of the array
@@ -277,15 +277,15 @@ class CardDiscardBox {
 		this.button.on("pointerover", () => {
 			console.group("Discardability Check");
 			console.log("Checking if current card can be discarded...");
-			let variables = this.scene.teams[this.scene.currentTeam];
-			let cards = variables.get("cards")[this.scene.stage];
+			let variables = this.scene.gameData.teams[this.scene.gameData.currentTeam];
+			let cards = variables.cards[this.scene.gameData.stage];
 
 			
 			let isDiscardable = true;
-			let currentCard = this.scene.cardMap.get(variables.get("currentCard"));
+			let currentCard = this.scene.gameData.cardMap.get(this.scene.currentCard);
 			let freePositions = []
 
-			if (this.scene.stage == 0 || currentCard == null) {
+			if (this.scene.gameData.stage == 0 || currentCard == null) {
 				isDiscardable = false;
 			} else {
 				// record all indexes in the grid where a card could be placed
@@ -302,11 +302,11 @@ class CardDiscardBox {
 			while (freePositions.length > 0) {
 				let ix = freePositions.pop();
 				let leftCardId = (ix <= 0) ? 0 : cards[ix-1].cardId;
-				let leftCard = this.scene.cardMap.get(leftCardId);
+				let leftCard = this.scene.gameData.cardMap.get(leftCardId);
 				let rightCardId = (ix >= cards.length-1) ? 0 : cards[ix+1].cardId;
-				let rightCard = this.scene.cardMap.get(rightCardId);
-				let bottomCardIx = ix + (cards[0].distanceFromMiddle - variables.get("cards")[this.scene.stage-1][0].distanceFromMiddle);
-				let bottomCardId = ((bottomCardIx < 0) || (bottomCardIx > variables.get("cards")[this.scene.stage-1].length-1)) ? 0 : variables.get("cards")[this.scene.stage-1][bottomCardIx].cardId;
+				let rightCard = this.scene.gameData.cardMap.get(rightCardId);
+				let bottomCardIx = ix + (cards[0].distanceFromMiddle - variables.cards[this.scene.gameData.stage-1][0].distanceFromMiddle);
+				let bottomCardId = ((bottomCardIx < 0) || (bottomCardIx > variables.cards[this.scene.stage-1].length-1)) ? 0 : variables.cards[this.scene.gameData.stage-1][bottomCardIx].cardId;
 				let bottomCard = this.scene.cardMap.get(bottomCardId);
 
 				// A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
@@ -318,7 +318,7 @@ class CardDiscardBox {
 				// Check if any adjacent card is overlaid with a work-late tile. If that is the case, the card is connected in all directions
 				leftCardPlacements = (leftCard != null && cards[ix-1].hasWorkLate) ? ['1', '1', '1', '1'] : leftCardPlacements;
 				rightCardPlacements = (rightCard != null && cards[ix+1].hasWorkLate) ? ['1', '1', '1', '1'] : rightCardPlacements;
-				bottomCardPlacements = (bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ['1', '1', '1', '1'] : bottomCardPlacements;
+				bottomCardPlacements = (bottomCard != null && variables.cards[this.scene.gameData.stage-1][bottomCardIx].hasWorkLate) ? ['1', '1', '1', '1'] : bottomCardPlacements;
 
 				// For each direction (left, right, bottom), check if the connections of the cards line up
 				let leftAligned = (leftCard == null) ? true : (leftCardPlacements[1] == currentCardPlacements[0]);
@@ -330,7 +330,7 @@ class CardDiscardBox {
 				let rightConnected = (rightCard == null) ? false : (rightCardPlacements[0] == '1' && currentCardPlacements[1] == '1');
 				let bottomConnected = (bottomCard == null) ? false : (bottomCardPlacements[2] == '1' && currentCardPlacements[3] == '1');
 
-				console.group(`Position (${this.scene.stage}, ${ix})`);
+				console.group(`Position (${this.scene.gameData.stage}, ${ix})`);
 				console.log(`| ${(leftCardPlacements[2] == '1' ? '^' : 'x')}   ${(currentCardPlacements[2] == '1' ? '^' : 'x')}   ${(rightCardPlacements[2] == '1' ? '^' : 'x')} |${(leftCard != null && cards[ix-1].hasWorkLate) ? ' Left Card Work Late' : (leftCard != null) ? ' Left Card Normal' : ' No Left Card'}\n|${(leftCardPlacements[0] == '1' ? '<' : 'x')}L${(leftCardPlacements[1] == '1' ? '>' : 'x')} ${(currentCardPlacements[0] == '1' ? '<' : 'x')}C${(currentCardPlacements[1] == '1' ? '>' : 'x')} ${(rightCardPlacements[0] == '1' ? '<' : 'x')}R${(rightCardPlacements[1] == '1' ? '>' : 'x')}|${(rightCard != null && cards[ix+1].hasWorkLate) ? ' Right Card Work Late' : (rightCard != null) ? ' Right Card Normal' : ' No Right Card'}\n| ${(leftCardPlacements[3] == '1' ? 'v' : 'x')}   ${(currentCardPlacements[3] == '1' ? 'v' : 'x')}   ${(rightCardPlacements[3] == '1' ? 'v' : 'x')} |${(bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ' Bottom Card Work Late' : (bottomCard != null) ? ' Bottom Card Normal' : ' No Bottom Card'}\n|     ${(bottomCardPlacements[2] == '1' ? '^' : 'x')}     |\n|    ${(bottomCardPlacements[0] == '1' ? '<' : 'x')}B${(bottomCardPlacements[1] == '1' ? '>' : 'x')}    |\n|     ${(bottomCardPlacements[3] == '1' ? 'v' : 'x')}     |`);
 				console.log(`Alignment - Left ${leftAligned}, Right ${rightAligned}, Bottom ${bottomAligned}`);
 				console.log(`Connectivity - Left ${leftConnected}, Right ${rightConnected}, Bottom ${bottomConnected}`);
@@ -377,7 +377,7 @@ class CardDiscardBox {
 				this.canBeDiscarded = false;
 				console.log("Discarding current card");
 
-				this.scene.teams[this.scene.currentTeam].set("currentCard", 0);
+				this.scene.currentCard = 0;
 				this.scene.currentCardText.setText("+");
 				this.scene.currentCardImage.setVisible(false);
 				
@@ -463,76 +463,69 @@ function buttonToggle(button, type, enable) {
  * Decides whether to move to the next team or the next stage after the next button is pressed
  */
 function nextHandler(scene) {
-	let variables = scene.teams[scene.currentTeam];
+	let gameData = scene.gameData
+	//let variables = gameData.teams[scene.gameData.currentTeam];
 
 	// Identify all illegally placed cards
-	console.log("Illegal Placements Team", scene.currentTeam, "\n", getIllegalPlacements(scene, scene.currentTeam));
+	console.log("Illegal Placements Team", gameData.currentTeam, "\n", getIllegalPlacements(scene, gameData.currentTeam));
 	
 	buttonToggle(scene.toolbarNext.button, 0, false);
 	buttonToggle(scene.toolbarStart.button, 0, true);
-	
-	// making all the card components for team A invisible
-	for (let i = 0; i <= scene.stage; i++) {
-		for (let j = 0; j < variables.get("cards")[i].length; j++) {
-			variables.get("cards")[i][j].setVisible(false, true);
-		}
-	}
-	
-	if (scene.currentTeam == scene.numberOfTeams - 1) {		// move to next stage if all teams have played
-		if (scene.stage == 3) {
+
+
+	// Hide current gameboard
+	gameData.teams[gameData.currentTeam].scene.sys.setVisible(false);
+
+	// Move to next team
+	// If all teams have played, move to next stage
+	let oldStage = gameData.stage;
+	if (gameData.currentTeam == (gameData.numberOfTeams - 1)) {		// move to next stage if all teams have played
+		if (scene.gameData.stage == 3) {
 			buttonToggle(scene.toolbarStart.button, 0, false);
 			// TODO: move to final screen scene (probably need to pass the teams array)
 			console.log("TODO: go to final screen");
 			scene.currentStageText.setText("Stage: MOVE TO FINAL SCREEN");
 			return;	//TODO: remove this once moved to final stage
 		} else {
-			scene.stage++;
-			scene.currentStageText.setText("Stage: " + (scene.stage + 1));
-			scene.currentTeam = 0;
+			gameData.stage++;
+			scene.currentStageText.setText("Stage: " + (gameData.stage + 1));
+			gameData.currentTeam = 0;
 			scene.currentTeamText.setText("Team: 1");
 		}
 	} else {
-		scene.currentTeam++;
-		scene.currentTeamText.setText("Team: " + (scene.currentTeam + 1));
+		gameData.currentTeam++;
+		scene.currentTeamText.setText("Team: " + (gameData.currentTeam + 1));
 	}
-	
-	variables = scene.teams[scene.currentTeam];
-	// making new cards for team A the next stage (unless it's the first stage, in which case they were already made)
-	if (scene.stage != 0) {
-		// start with the same number of boxes as the previous stage (including boxes without cards)
-		let cards = variables.get("cards");
-		cards.push([]);
-		for (let i in cards[scene.stage-1]) {
-			let distance = cards[scene.stage-1][i].distanceFromMiddle
-			cards[scene.stage].push(new CardBox(scene, distance));
-			cards[scene.stage][i].placementBox.disableInteractive();
-		}
-		
-		// only start with add card boxes on the outer edges
-		var box = new AddCardBox(scene, variables.get("leftEdge") - 1)
-		box.setVisible(false, true);
-		variables.get("addCardBoxes").push(box);
-		box = new AddCardBox(scene, variables.get("rightEdge") + 1)
-		box.setVisible(false, true);
-		variables.get("addCardBoxes").push(box);
-		
-		
-		console.log(variables.get("cards")[scene.stage]);
-	}
-	
-	
-	// making all the card components for team B visible
-	for (let i = 0; i <= scene.stage; i++) {
-		for (let j = 0; j < variables.get("cards")[i].length; j++) {
-			variables.get("cards")[i][j].setVisible(true, false);
+
+	// If we changed stages, make new cards for each team
+	// Start with the same number of boxes as the previous stage
+	if (gameData.stage != oldStage) {
+		for (let team = 0; team < gameData.numberOfTeams; team++) {
+			let variables = gameData.teams[team];
+			let cards = variables.cards;
+			cards.push([]);
+
+			for (let i = 0; i < cards[oldStage].length; i++) {
+				let distance = cards[oldStage][i].distanceFromMiddle;
+				cards[gameData.stage].push(new CardBox(variables.scene, distance));
+				cards[gameData.stage][i].placementBox.disableInteractive();
+			}
+
+			let leftAddCardBox = new AddCardBox(variables.scene, variables.scene.leftEdge-1);
+			let rightAddCardBox = new AddCardBox(variables.scene, variables.scene.rightEdge+1);
+			leftAddCardBox.setVisible(false, true);
+			rightAddCardBox.setVisible(false, true);
+			variables.addCardBoxes.push(leftAddCardBox);
+			variables.addCardBoxes.push(rightAddCardBox);
 		}
 	}
-	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
-		variables.get("addCardBoxes")[i].setVisible(true, false);
-	}
-	
-	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
-	scene.timerText.setText("Time Remaining: "+scene.roundLength+"s")
+
+	// Make the next gameboard visible
+	gameData.teams[gameData.currentTeam].scene.sys.setVisible(true);
+	gameData.game.scene.bringToTop("teamToolbar");
+
+	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + gameData.teams[gameData.currentTeam].workLateTiles);
+	scene.timerText.setText("Time Remaining: "+ gameData.roundLength+"s");
 }
 
 
@@ -542,7 +535,7 @@ function nextHandler(scene) {
  * Runs the code to start (and end) a round of the game
  */
 function startHandler(scene) {
-	let variables = scene.teams[scene.currentTeam];
+	let variables = scene.gameData.teams[scene.gameData.currentTeam];
 	
 	// the game was running when the button was pressed (stop the timer)
 	if (scene.isTimerRunning) {
@@ -551,7 +544,7 @@ function startHandler(scene) {
 	// the game was paused when the button was pressed (start the timer)
 	else {
 		// starting the timer
-		scene.timer = scene.time.addEvent({delay: 1000, repeat: scene.roundLength-1, callback: timerUpdater, args: [scene]});
+		scene.timer = scene.time.addEvent({delay: 1000, repeat: scene.gameData.roundLength-1, callback: timerUpdater, args: [scene]});
 		scene.isTimerRunning = true;
 		
 		scene.toolbarStart.buttonText.setText("Stop Timer");
@@ -562,18 +555,18 @@ function startHandler(scene) {
 		buttonToggle(scene.currentCardBox, 1, true);
 		
 		// making all the card components visible
-		for (let i = 0; i < scene.stage; i++) {
-			for (let j = 0; j < variables.get("cards")[i].length; j++) {
-				variables.get("cards")[i][j].setVisible(true, false);
+		for (let i = 0; i < scene.gameData.stage; i++) {
+			for (let j = 0; j < variables.cards[i].length; j++) {
+				variables.cards[i][j].setVisible(true, false);
 			}
 		}
 		// only the newest stage should be interactive
-		for (let i = 0; i < variables.get("cards")[scene.stage].length; i++) {
-			variables.get("cards")[scene.stage][i].setVisible(true, true);
+		for (let i = 0; i < variables.cards[scene.gameData.stage].length; i++) {
+			variables.cards[scene.gameData.stage][i].setVisible(true, true);
 		}
 		
-		for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
-			variables.get("addCardBoxes")[i].setVisible(true, true);
+		for (let i = 0; i < variables.cards.length; i++) {
+			variables.addCardBoxes[i].setVisible(true, true);
 		}
 	}
 }
@@ -598,7 +591,7 @@ function timerUpdater(scene) {
  * Ends the current round
  */
 function stopHandler(scene) {
-	let variables = scene.teams[scene.currentTeam];
+	let variables = scene.gameData.teams[scene.gameData.currentTeam];
 	
 	if (scene.timer.getOverallRemainingSeconds() > 0) {
 		scene.timer.remove();
@@ -606,7 +599,7 @@ function stopHandler(scene) {
 	scene.isTimerRunning = false;
 	scene.toolbarStart.buttonText.setText("Start Timer")
 	
-	variables.set("currentCard", 0);
+	scene.currentCard = 0;
 	scene.currentCardText.setText("+");
 	scene.currentCardImage.setVisible(false);
 	
@@ -617,22 +610,22 @@ function stopHandler(scene) {
 	buttonToggle(scene.currentCardBox, 1, false);
 	
 	// returning unused work late tiles
-	if (scene.isPlayerHoldingWorkLate) {
+	if (variables.isPlayerHoldingWorkLate) {
 		returnWorkLate(scene);
 		scene.workLateImage.setVisible(false);
-		scene.isPlayerHoldingWorkLate = false;
+		variables.isPlayerHoldingWorkLate = false;
 	}
 	
 	// disabling all the card placement boxes
-	for (let i = 0; i < variables.get("cards")[scene.stage].length; i++) {
-		variables.get("cards")[scene.stage][i].placementBox.disableInteractive();
+	for (let i = 0; i < variables.cards[scene.gameData.stage].length; i++) {
+		variables.cards[scene.gameData.stage][i].placementBox.disableInteractive();
 	}
 	
 	// deleting all the add card buttons from the current round
-	for (let i = 0; i < variables.get("addCardBoxes").length; i++) {
-		variables.get("addCardBoxes")[i].setVisible(false, true);
+	for (let i = 0; i < variables.addCardBoxes.length; i++) {
+		variables.addCardBoxes[i].setVisible(false, true);
 	}
-	variables.set("addCardBoxes", [])	//cleared since the old add card buttons will not be needed again
+	variables.addCardBoxes = [];	//cleared since the old add card buttons will not be needed again
 }
 
 
@@ -642,18 +635,18 @@ function stopHandler(scene) {
  * Allows the user to use work late tiles
  */
 function workLateHandler(scene) {
-	let variables = scene.teams[scene.currentTeam];
+	let variables = scene.gameData.teams[scene.gameData.currentTeam];
 	
-	if (scene.isPlayerHoldingWorkLate) {		// the user is holding a work late tile so they want to put it back
+	if (variables.isPlayerHoldingWorkLate) {		// the user is holding a work late tile so they want to put it back
 		returnWorkLate(scene);
-		scene.isPlayerHoldingWorkLate = false;
+		variables.isPlayerHoldingWorkLate = false;
 		scene.workLateImage.setVisible(false);
-	} else if (variables.get("workLateTiles") > 0) {	// can only pick up a tile if there are still any in inventory
-		let variables = scene.teams[scene.currentTeam];
-		scene.isPlayerHoldingWorkLate = true;
+	} else if (variables.workLateTiles > 0) {	// can only pick up a tile if there are still any in inventory
+		let variables = scene.gameData.teams[scene.gameData.currentTeam];
+		variables.isPlayerHoldingWorkLate = true;
 		scene.workLateImage.setVisible(true);
-		variables.set("workLateTiles", variables.get("workLateTiles") - 1);
-		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
+		variables.workLateTiles = variables.workLateTiles - 1;
+		scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.workLateTiles);
 	}
 }
 
@@ -663,34 +656,34 @@ function workLateHandler(scene) {
  * returns a work late tile
  */
 function returnWorkLate(scene) {
-	let variables = scene.teams[scene.currentTeam];
-	variables.set("workLateTiles", variables.get("workLateTiles") + 1);
-	scene.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.get("workLateTiles"));
+	let variables = scene.gameData.teams[scene.gameData.currentTeam];
+	variables.workLateTiles++;
+	scene.gameData.teamToolbar.toolbarWorkLate.buttonText.setText("Work Late\nTiles: " + variables.workLateTiles);
 }
 
 
 
-/**
- * Sets all the card boxes and add card boxes for the current player to be visible or invisible
- * @param {boolean} isVisible True = set to visible, False = set to invisible
- */
-function toggleTeamVisibility(scene, isVisible) {
-	//console.log(scene.stage);
-	//console.log(isVisible + " " + scene.currentTeam);
-	let variables = scene.teams[scene.currentTeam];
+// /**
+//  * Sets all the card boxes and add card boxes for the current player to be visible or invisible
+//  * @param {boolean} isVisible True = set to visible, False = set to invisible
+//  */
+// function toggleTeamVisibility(scene, isVisible) {
+// 	//console.log(scene.stage);
+// 	//console.log(isVisible + " " + scene.currentTeam);
+// 	let variables = scene.teams[scene.currentTeam];
 	
-	for (let stage = 0; stage < scene.stage+1; stage++) {
-		for (let card = 0; card < variables.get("cards")[stage].length; card++) {
-			variables.get("cards")[stage][card].placementBox.setVisible(isVisible);
-			variables.get("cards")[stage][card].cardText.setVisible(isVisible);
-			variables.get("cards")[stage][card].cardImage.setVisible(isVisible);
-		}
-		for (let button = 0; button < scene.addCardBoxes.length; button++) {
-			variables.get("addCardBoxes")[button].buttonBox.setVisible(isVisible);
-			variables.get("addCardBoxes")[button].boxText.setVisible(isVisible);
-		}
-	}
-}
+// 	for (let stage = 0; stage < scene.stage+1; stage++) {
+// 		for (let card = 0; card < variables.get("cards")[stage].length; card++) {
+// 			variables.get("cards")[stage][card].placementBox.setVisible(isVisible);
+// 			variables.get("cards")[stage][card].cardText.setVisible(isVisible);
+// 			variables.get("cards")[stage][card].cardImage.setVisible(isVisible);
+// 		}
+// 		for (let button = 0; button < scene.addCardBoxes.length; button++) {
+// 			variables.get("addCardBoxes")[button].buttonBox.setVisible(isVisible);
+// 			variables.get("addCardBoxes")[button].boxText.setVisible(isVisible);
+// 		}
+// 	}
+// }
 
 
 
@@ -699,11 +692,10 @@ function toggleTeamVisibility(scene, isVisible) {
  */
 function pickUpCard(scene) {
 	console.log("Pick up a card");
-	let variables = scene.teams[scene.currentTeam];
-	if (variables.get("currentCard") == 0) {
-		variables.set("currentCard", scene.activityCards[scene.stage].pop().id);
-		scene.currentCardText.setText(variables.get("currentCard"));
-		scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
+	if (scene.gameData.teamToolbar.currentCard == 0) {
+		scene.gameData.teamToolbar.currentCard = scene.gameData.teamToolbar.activityCards[scene.gameData.stage].pop().id;
+		scene.currentCardText.setText(scene.gameData.teamToolbar.currentCard);
+		scene.currentCardImage.setVisible(true).setTexture(scene.gameData.teamToolbar.currentCard);
 	}
 }
 
@@ -723,7 +715,7 @@ function getIllegalPlacements(scene, team) {
 			if (cards[stage][ix].hasWorkLate) {
 				this.connectivity = [true, true, true, true];
 			} else {
-				let placements = scene.cardMap.get(this.id) == null ? ['1', '1', '1', '1'] : scene.cardMap.get(this.id).placement.split(",");
+				let placements = scene.gameData.cardMap.get(this.id) == null ? ['1', '1', '1', '1'] : scene.gameData.cardMap.get(this.id).placement.split(",");
 				for (let i = 0; i < placements.length; i++) {
 					this.connectivity.push(placements[i] == '1');
 				}
@@ -736,8 +728,8 @@ function getIllegalPlacements(scene, team) {
 	let nodes = []
 	let nodesGrid = []
 	// Convert all cards in the game board grid (of the current team) to nodes
-	let cards = scene.teams[team].get("cards");
-	for (let stage = 0; stage <= scene.stage; stage++) {
+	let cards = scene.gameData.teams[team].cards;
+	for (let stage = 0; stage <= scene.gameData.stage; stage++) {
 		let stageList = [];
 		for (let ix = 0; ix < cards[stage].length; ix++) {
 			let node = (cards[stage][ix].cardId == 0) ? null : new Node(stage, ix, cards);

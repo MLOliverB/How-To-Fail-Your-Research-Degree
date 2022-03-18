@@ -25,7 +25,16 @@
             import options from "./scripts/scenes/options.js";
             import numberOfTeams from "./scripts/scenes/numberOfTeams.js";
             import playerView from "./scripts/scenes/playerView.js";
-            
+            import teamGameBoard from "./scripts/scenes/teamGameBoard.js";
+            import teamToolbar from "./scripts/scenes/teamToolbar.js";
+            import gameData from "./scripts/gameData.js";
+
+            let gd = undefined;
+
+            function gameReady(game) {
+                gd = new gameData(game);
+            }
+
             const config = {
                 type: Phaser.AUTO,
                 width: 960,
@@ -33,8 +42,11 @@
                 backgroundColor: '#a9e3ff',
                 //while testing, only include the scene(s) you're currently working on in the [] below to instantly skip to that scene
                 //scene: [mainMenu, options, numberOfTeams, playerView]
-                scene: [playerView]
+                scene: [],
+                callbacks: {postBoot: gameReady}
             };
+
+            
 
             const game = new Phaser.Game(config);
         </script>
