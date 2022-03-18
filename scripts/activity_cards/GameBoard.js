@@ -1348,6 +1348,7 @@ function getIllegalPlacements(scene, team) {
 }
 
 
+
 function highlightIllegalPlacements(scene) {
 
 }
@@ -1357,13 +1358,6 @@ function highlightIllegalPlacements(scene) {
 function resetHighlightIllegalPlacements(scene) {
 	
 }
-
-
-
-function resetHighlightIllegalPlacements(scene) {
-	
-}
-
 
 
 export { CardBox, AddCardBox, CardDiscardBox, ToolbarButton, FacilitatorModeButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard, displayCardInfo, addUnusedCardBoxes };
