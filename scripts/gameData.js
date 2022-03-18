@@ -1,7 +1,7 @@
 import { loadAllCardsPromise } from "./cards-management.js";
 import teamGameBoard from "./scenes/teamGameBoard.js";
 import teamToolbar from "./scenes/teamToolbar.js";
-import { ActivityCard, EventCard } from "./cards-management.js";
+import { EventCard, ActivityCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, activityStoreHandler, finishHandler, inventoryHandler, actInventoryHandler, flipHandler } from "./event_cards/eventBoard.js";
 
 export default class GameData {
     constructor(game, data) {
@@ -34,8 +34,8 @@ export default class GameData {
                 cards: [],
                 addCardBoxes: [],
                 isPlayerHoldingWorkLate: false,
-                eventCards: [new EventCard(this, 0, 0), new EventCard(this, 0, 1), new EventCard(this, 0, 2)],
-                activityCards: [new ActivityCard(this, 0, null, 0), new ActivityCard(this, 0, null, 1), new ActivityCard(this, 0, null, 2)],
+                eventCards: [],
+                activityCards: [],
                 ignoreEff: [],
                 toIgnore: [],
                 unusedCards: [],
@@ -47,6 +47,11 @@ export default class GameData {
         }
 
         this.teamToolbar = this.game.scene.add("teamToolbar", new teamToolbar(this), false);
+
+        for (let i = 0; i < this.numberOfTeams; i++) {
+            this.teams[i].eventCards = [new EventCard(this.teamToolbar, 0, 0), new EventCard(this.teamToolbar, 0, 1), new EventCard(this.teamToolbar, 0, 2)];
+            this.teams[i].activityCards = [new ActivityCard(this.teamToolbar, 0, null, 0), new ActivityCard(this.teamToolbar, 0, null, 1), new ActivityCard(this.teamToolbar, 0, null, 2)];
+        }
 
         
 
@@ -63,5 +68,9 @@ export default class GameData {
         for (let i = 1; i < this.numberOfTeams; i++) {
             this.teams[i].scene.sys.setVisible(false);
         }
+
+        this.game.scene.remove("mainMenu");
+        this.game.scene.remove("numberOfTeams");
+        this.game.scene.remove("options");
     }
 }

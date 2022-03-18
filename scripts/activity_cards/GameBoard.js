@@ -21,7 +21,7 @@ class CardBox {
         this.flip = false;
 		
 		let xPos;
-		if (this.scene.stage == 0) {
+		if (this.scene.gameData.stage == 0) {
 			xPos = this.scene.x*(1+0.28*this.distanceFromMiddle);
 		} else {
 			xPos = this.scene.x*(1+0.225*this.distanceFromMiddle);
@@ -132,7 +132,7 @@ class CardBox {
 			this.cardImage.setVisible(true).setTexture(this.cardId);
 
 			// only the most recently placed card can be picked up on any round other than 0
-			if (this.scene.stage != 0) {
+			if (this.scene.gameData.stage != 0) {
 				if (this.scene.gameData.teamToolbar.lastPlayedCard != undefined) {
 					this.scene.gameData.teamToolbar.lastPlayedCard.placementBox.disableInteractive();
 				}
@@ -256,7 +256,7 @@ class AddCardBox {
 		}
 
 		let xPos;
-		if (this.scene.stage == 0) {
+		if (this.scene.gameData.stage == 0) {
 			xPos = this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier);
 		} else {
 			if (this.distanceFromMiddle < 0) {
@@ -475,7 +475,10 @@ class CardDiscardBox {
                     let rightCardId = (ix >= cards.length-1) ? 0 : cards[ix+1].cardId;
                     let rightCard = this.scene.gameData.cardMap.get(rightCardId);
                     let bottomCardIx = ix + (cards[0].distanceFromMiddle - variables.cards[this.scene.gameData.stage-1][0].distanceFromMiddle);
-                    let bottomCardId = ((bottomCardIx < 0) || (bottomCardIx > variables.cards[this.scene.gameData.stage-1].length-1)) ? 0 : variables.cards[this.scene.stage-1][bottomCardIx].cardId;
+					// console.log(variables.cards)
+					// console.log(variables.cards[this.scene.gameData.stage-1])
+					// console.log(variables.cards[this.scene.gameData.stage-1][bottomCardIx])
+                    let bottomCardId = ((bottomCardIx < 0) || (bottomCardIx > variables.cards[this.scene.gameData.stage-1].length-1)) ? 0 : variables.cards[this.scene.gameData.stage-1][bottomCardIx].cardId;
                     let bottomCard = this.scene.gameData.cardMap.get(bottomCardId);
 
                     // A card is legal to place if it is connected to at least one card and if the edges of adjacent cards are the same
@@ -500,7 +503,7 @@ class CardDiscardBox {
                     let bottomConnected = (bottomCard == null) ? false : (bottomCardPlacements[2] == '1' && currentCardPlacements[3] == '1');
 
                     console.group(`Position (${this.scene.gameData.stage}, ${ix})`);
-                    console.log(`| ${(leftCardPlacements[2] == '1' ? '^' : 'x')}   ${(currentCardPlacements[2] == '1' ? '^' : 'x')}   ${(rightCardPlacements[2] == '1' ? '^' : 'x')} |${(leftCard != null && cards[ix-1].hasWorkLate) ? ' Left Card Work Late' : (leftCard != null) ? ' Left Card Normal' : ' No Left Card'}\n|${(leftCardPlacements[0] == '1' ? '<' : 'x')}L${(leftCardPlacements[1] == '1' ? '>' : 'x')} ${(currentCardPlacements[0] == '1' ? '<' : 'x')}C${(currentCardPlacements[1] == '1' ? '>' : 'x')} ${(rightCardPlacements[0] == '1' ? '<' : 'x')}R${(rightCardPlacements[1] == '1' ? '>' : 'x')}|${(rightCard != null && cards[ix+1].hasWorkLate) ? ' Right Card Work Late' : (rightCard != null) ? ' Right Card Normal' : ' No Right Card'}\n| ${(leftCardPlacements[3] == '1' ? 'v' : 'x')}   ${(currentCardPlacements[3] == '1' ? 'v' : 'x')}   ${(rightCardPlacements[3] == '1' ? 'v' : 'x')} |${(bottomCard != null && variables.get("cards")[this.scene.stage-1][bottomCardIx].hasWorkLate) ? ' Bottom Card Work Late' : (bottomCard != null) ? ' Bottom Card Normal' : ' No Bottom Card'}\n|     ${(bottomCardPlacements[2] == '1' ? '^' : 'x')}     |\n|    ${(bottomCardPlacements[0] == '1' ? '<' : 'x')}B${(bottomCardPlacements[1] == '1' ? '>' : 'x')}    |\n|     ${(bottomCardPlacements[3] == '1' ? 'v' : 'x')}     |`);
+                    console.log(`| ${(leftCardPlacements[2] == '1' ? '^' : 'x')}   ${(currentCardPlacements[2] == '1' ? '^' : 'x')}   ${(rightCardPlacements[2] == '1' ? '^' : 'x')} |${(leftCard != null && cards[ix-1].hasWorkLate) ? ' Left Card Work Late' : (leftCard != null) ? ' Left Card Normal' : ' No Left Card'}\n|${(leftCardPlacements[0] == '1' ? '<' : 'x')}L${(leftCardPlacements[1] == '1' ? '>' : 'x')} ${(currentCardPlacements[0] == '1' ? '<' : 'x')}C${(currentCardPlacements[1] == '1' ? '>' : 'x')} ${(rightCardPlacements[0] == '1' ? '<' : 'x')}R${(rightCardPlacements[1] == '1' ? '>' : 'x')}|${(rightCard != null && cards[ix+1].hasWorkLate) ? ' Right Card Work Late' : (rightCard != null) ? ' Right Card Normal' : ' No Right Card'}\n| ${(leftCardPlacements[3] == '1' ? 'v' : 'x')}   ${(currentCardPlacements[3] == '1' ? 'v' : 'x')}   ${(rightCardPlacements[3] == '1' ? 'v' : 'x')} |${(bottomCard != null && variables.cards[this.scene.gameData.stage-1][bottomCardIx].hasWorkLate) ? ' Bottom Card Work Late' : (bottomCard != null) ? ' Bottom Card Normal' : ' No Bottom Card'}\n|     ${(bottomCardPlacements[2] == '1' ? '^' : 'x')}     |\n|    ${(bottomCardPlacements[0] == '1' ? '<' : 'x')}B${(bottomCardPlacements[1] == '1' ? '>' : 'x')}    |\n|     ${(bottomCardPlacements[3] == '1' ? 'v' : 'x')}     |`);
                     console.log(`Alignment - Left ${leftAligned}, Right ${rightAligned}, Bottom ${bottomAligned}`);
                     console.log(`Connectivity - Left ${leftConnected}, Right ${rightConnected}, Bottom ${bottomConnected}`);
                     console.groupEnd();
@@ -837,7 +840,7 @@ function nextHandler(scene) {
 
 	scene.gameData.teams[scene.gameData.currentTeam].addCardBoxes = [];
 	if (scene.gameData.stage == 0) {
-		//squashFirstStage(scene);
+		squashFirstStage(scene);
 		removeUnusedCardBoxes(scene);	// this will have been run at the start of the event round in other stages
 	}
 	
@@ -870,11 +873,11 @@ function moveToNextStage(scene) {
     scene.gameData.teams[scene.gameData.currentTeam].addCardBoxes = [];	//cleared since the old add card buttons will not be needed again
 
 	if (scene.gameData.stage == 0) {
-		//squashFirstStage(scene);
+		squashFirstStage(scene);
 		removeUnusedCardBoxes(scene);	// this will have been run at the start of the event round in other stages
 	}
 	
-	if (scene.stage == 3) {
+	if (scene.gameData.stage == 3) {
 		// moving to review stage
 		buttonToggle(scene.toolbarStart, 0, false);
 		let cards = [];
@@ -1265,7 +1268,7 @@ function getIllegalPlacements(scene, team) {
 					}
 				}
 				// Check if this node can connect to a top node and if this top node is connected
-				if (node.connectivity[2] && node.stage < scene.stage) {
+				if (node.connectivity[2] && node.stage < scene.gameData.stage) {
 					let topCardIx = node.ix + (cards[node.stage+1][0].distanceFromMiddle - cards[node.stage][0].distanceFromMiddle);
 					if (nodesGrid[node.stage+1][topCardIx] != null) {
 						if (nodesGrid[node.stage+1][topCardIx].connectivity[3]) {

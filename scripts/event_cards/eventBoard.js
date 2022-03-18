@@ -1315,6 +1315,7 @@ function activityStoreHandler(scene) {
     let variables = scene.gameData.teams[scene.gameData.currentTeam];
     let cards = variables.activityCards;
     let currentCard = scene.gameData.cardMap.get(scene.currentCard);
+    console.log(currentCard);
     console.log(currentCard.stage);
     let stored = false;
     for (let i = 0; i < cards.length; i++) {
@@ -1466,6 +1467,7 @@ function inventoryHandler(scene) {
     } else {
         scene.isInventoryOpen = true;
         for (let i = 0; i < cards.length; i++) {
+            console.log(cards[i]);
             cards[i].setVisible(true);
             scene.eventBarInventory.buttonText.setText("Close\nInventory");
         }
