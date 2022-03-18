@@ -935,17 +935,17 @@ function checkEffect(scene){
                 
                 // push event card into array for later use (only works if stored in inventory)
                 let itemp = [];
-                if (variables.get("ignoreEff") != undefined) {
-                    itemp = variables.get("ignoreEff");
+                if (variables.ignoreEff != undefined) {
+                    itemp = variables.ignoreEff;
                 }
                 itemp.push(holdEventID);
                 variables.set("ignoreEff", itemp);
                 // push event card to be ignored into array for later use (if picked up the card)
-                if (variables.get("toIgnore") != undefined) {
-                    itemp = variables.get("toIgnore");
+                if (variables.toIgnore != undefined) {
+                    itemp = variables.toIgnore;
                 }
                 itemp.push(effect[2]);
-                variables.set("toIgnore", itemp);
+                variables.toIgnore = itemp;
                 break;
             // flip card
             case "f":
@@ -1247,7 +1247,7 @@ function playHandler(scene) {
     // stages will become interactive and all card components visible depending on stage specified
     for (let i = 0; i <= scene.gameData.stage; i++) {
         if (stage.includes(i)) {
-            for (let j = 0; j < variablescards[i].length; j++) {
+            for (let j = 0; j < variables.cards[i].length; j++) {
                 variables.cards[i][j].setVisible(true, true);
             }
         }
