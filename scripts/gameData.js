@@ -1,10 +1,15 @@
 import { loadAllCardsPromise } from "./cards-management.js";
 import teamGameBoard from "./scenes/teamGameBoard.js";
 import teamToolbar from "./scenes/teamToolbar.js";
+import { ActivityCard, EventCard } from "./cards-management.js";
 
 export default class GameData {
-    constructor(game) {
+    constructor(game, data) {
         this.game = game;
+        this.roundLength = data[0];              // The maximum length of each round in seconds (TODO: get this from menu)
+        this.totalEventCards = data[1];
+        this.totalWorkLateTiles = data[2];       // The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
+        this.numberOfTeams = data[3]; 
         this.cardMap = new Map();
         this.cardMap.set(0, null);
 
@@ -20,12 +25,7 @@ export default class GameData {
 
     cardsPreloadedCallback() {
         this.stage = 0;
-        this.numberOfTeams = 2;             // TODO: get this to recieve numberOfTeams from start menu!
         this.currentTeam = 0;
-
-        this.roundLength = 30;              // The maximum length of each round in seconds (TODO: get this from menu)
-        this.totalWorkLateTiles = 4         // The number of work late tiles each team starts with (TODO: get number of work late tiles from menu)
-
         this.teams = [];                   // 1D-array of scenes displaying the game boards of each team
 
         for (let i = 0; i < this.numberOfTeams; i++) {
@@ -33,7 +33,12 @@ export default class GameData {
                 workLateTiles: this.totalWorkLateTiles,
                 cards: [],
                 addCardBoxes: [],
-                isPlayerHoldingWorkLate: false
+                isPlayerHoldingWorkLate: false,
+                eventCards: [new EventCard(this, 0, 0), new EventCard(this, 0, 1), new EventCard(this, 0, 2)],
+                activityCards: [new ActivityCard(this, 0, null, 0), new ActivityCard(this, 0, null, 1), new ActivityCard(this, 0, null, 2)],
+                ignoreEff: [],
+                toIgnore: [],
+                unusedCards: [],
             });
             let keyName = `board${i}`
             this.teams[i].scene = this.game.scene.add(keyName, new teamGameBoard({key: keyName}, this, i), false);

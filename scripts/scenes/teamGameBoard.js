@@ -1,5 +1,9 @@
 import { AddCardBox, CardBox } from "../activity_cards/GameBoard.js";
 import teamToolbar from "./teamToolbar.js";
+import { CardDiscardBox, ToolbarButton, buttonToggle, nextHandler, startHandler, workLateHandler, pickUpCard } from "../activity_cards/GameBoard.js";
+import { EventCard, ActivityCard, EventBarButton, pickUpEventCard, playHandler, storeHandler, activityStoreHandler, finishHandler, inventoryHandler, actInventoryHandler, flipHandler } from "../event_cards/eventBoard.js";
+import { loadActivityCardStack, shuffleCardStack } from "../cards-management.js";
+import { colours, fonts } from "../theme.js";
 
 export default class teamGameBoard extends Phaser.Scene {
     constructor (config, gameData, teamNumber) {
