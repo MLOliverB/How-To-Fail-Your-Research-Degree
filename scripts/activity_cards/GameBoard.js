@@ -1352,6 +1352,14 @@ function highlightIllegalPlacements(scene) {
 
 }
 
+
+
+function resetHighlightIllegalPlacements(scene) {
+	
+}
+
+
+
 function resetHighlightIllegalPlacements(scene) {
 	
 }
