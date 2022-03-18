@@ -13,7 +13,6 @@ With many interactions still taking place online, students find themselves isola
 
   
 
----
 
 ## Setup Guide
 In order to run the game, it must be running on a server. One option for creating a server is using Python.
@@ -25,7 +24,7 @@ If Python is not installed, open a command line (you can do this by opening the 
 3. Type python -m http.server 8000 and press enter.
 4. Navigate to http://127.0.0.1:8000/game.html in a web browser.
 
----
+
 
 ## User Guide
 
