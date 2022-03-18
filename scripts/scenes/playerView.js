@@ -207,11 +207,19 @@ export default class playerView extends Phaser.Scene {
 
 		
 		// creating a button to pick up a card from the stack
-		this.activityCards = [];
+		this.activityCards = [[], [], [], []];
 		for (let s = 1; s < 5; s++) {
 			loadActivityCardStack(s, (cards) => {
-				this.activityCards.push(shuffleCardStack(cards));
-				if (s == 4) { // Once all stacks have been loaded, enable the game to be played (by pressing the timer start button)
+				let stageIX = cards[0].stage - 1;
+				this.activityCards[stageIX] = shuffleCardStack(cards);
+				let complete = true;
+				for (let i = 0; i < this.activityCards.length; i++) {
+					if (this.activityCards[i].length == 0) {
+						complete = false;
+						break;
+					}
+				}
+				if (complete) { // Once all stacks have been loaded, enable the game to be played (by pressing the timer start button)
 					buttonToggle(this.toolbarStart, 0, true);
 				}
 			});
