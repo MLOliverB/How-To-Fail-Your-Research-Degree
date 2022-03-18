@@ -29,7 +29,7 @@ export default class teamGameBoard extends Phaser.Scene {
 
         
         // TODO adjust the size
-        this.add.rectangle(this.x, this.y, this.width, this.height, 0xf4a261); // playing Board
+        this.background = this.add.rectangle(this.x, this.y, this.width, this.height, 0xf4a261); // playing Board
 
         var card = new CardBox(this, 0);
         this.gameData.teams[this.teamNumber].cards.push([card, ]);

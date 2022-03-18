@@ -134,11 +134,35 @@ class AddCardBox {
 			distanceMultiplier--;
 		}
 		
-		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.gameData.stage))), this.scene.width, this.scene.height,0xb1cfe0).setScale(0.023, 0.136).setInteractive();
+		this.buttonBox = this.scene.add.rectangle(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.gameData.stage))), this.scene.width * 0.023, this.scene.height * 0.136,0xb1cfe0).setInteractive();
 		this.buttonBox.on("pointerover", () => {this.buttonBox.setFillStyle(0x6c95b7);});
 		this.buttonBox.on("pointerout", () => {this.buttonBox.setFillStyle(0xb1cfe0);});
 		this.buttonBox.on("pointerup", () => this.addBox());
 		this.boxText = this.scene.add.text(this.scene.x+this.scene.x*(0.14+0.28*distanceMultiplier), this.scene.y*(1.33-(0.31*(this.scene.gameData.stage))), '+', {color: "0x000000"}).setOrigin(0.5);
+
+		// console.log(this.buttonBox.x, this.buttonBox.displayWidth, this.buttonBox.x + this.buttonBox.displayWidth);
+		// console.log(this.scene.background.x, this.scene.background.displayWidth, this.scene.background.x + this.scene.background.displayWidth);
+		let button = new Phaser.Geom.Rectangle(this.buttonBox.x - this.buttonBox.displayOriginX, this.buttonBox.y - this.buttonBox.displayOriginY, this.buttonBox.displayWidth, this.buttonBox.displayHeight);
+		let background = new Phaser.Geom.Rectangle(this.scene.background.x - this.scene.background.displayOriginX, this.scene.background.y - this.scene.background.displayOriginY, this.scene.background.displayWidth, this.scene.background.displayHeight);
+
+		// console.log(this.buttonBox.displayOriginX, this.buttonBox.displayOriginY);
+
+
+		// console.log(button.right, background.right);
+
+		let v1 = Phaser.Math.Vector2();
+		let v2 = Phaser.Math.Vector2();
+		let rescale = false;
+		if (this.buttonBox.getRightCenter(v1, true).x > this.scene.background.getRightCenter(v2, true).x) {
+			rescale = true;
+		} else if (this.buttonBox.getLeftCenter(v1, true).x < this.scene.background.getLeftCenter(v2, true).x) {
+			rescale = true;
+		}
+		if (rescale) {
+			this.scene.background.scaleX = this.scene.background.scaleX * 2;
+			this.scene.background.scaleY = this.scene.background.scaleY * 2;
+			this.scene.cameras.main.zoom = this.scene.cameras.main.zoom / 2;
+		}
 	}
 	
 	/**
