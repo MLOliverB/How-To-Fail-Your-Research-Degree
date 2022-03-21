@@ -553,7 +553,7 @@ function useEffect(scene) {
                 var temp = toBeAbsent[i][0];
                 var index = idArray.indexOf(temp);
                 var number = countArray[index];
-                console.log(index, number);
+                console.log("Index: "+index+"\nnumber not required: "+number);
                 if (number == undefined) {
                     number = 0;
                 }
@@ -575,7 +575,7 @@ function useEffect(scene) {
                 var temp = toBePresent[i][0];
                 var index = idArray.indexOf(temp);
                 var number = countArray[index];
-                console.log(index, number);
+                console.log("Index: "+index+"\nnumber required: "+number);
                 if (number == undefined) {
                     number = 0;
                 }
@@ -821,10 +821,12 @@ function checkEffect(scene){
         
         // array that will be used depending on stage(s) shown on card
         let stage_counts = new Array();
+        let stages = [];
         
         for (var y = 0; y < effect[4].length; y++) {
             console.log(effect[4][y]);
             let stage = parseInt(effect[4][y]);
+            stages.push(stage);
             if (stage === 1) {
                 stage_counts = stage_counts.concat(previousStage_1);
             }
@@ -838,8 +840,12 @@ function checkEffect(scene){
                 stage_counts = stage_counts.concat(previousStage_4);
             }
         }
-        
+        console.log(stages);
         let stage_depends = countCardOccurrences(stage_counts);
+        let stage_zero = 0;
+        if (stage_depends["0"]){
+            stage_zero = stage_depends["0"];
+        }
         delete stage_depends["0"];
         let stage_id = Object.keys(stage_depends);
         let stage_occ = Object.values(stage_depends);
@@ -868,16 +874,18 @@ function checkEffect(scene){
                 }
             }
         }
-        console.log("original: "+totalCount);
+        console.log("original number: "+totalCount);
         
         // only used for remove and flip cards
         let required = 0;
-        if (stage_total < parseInt(effect[3])){ // cards on board < required (certain stage)
-            required = stage_total;             // only remove number of cards from that stage
+        if (parseInt(stage_total) < parseInt(effect[3])){ // cards on board < required (certain stage)
+            required = parseInt(stage_total);             // only remove number of cards from that stage
         }
         else {
             required = parseInt(effect[3]);     // can remove required number of cards 
         }
+        console.log(stage_total, required, parseInt(effect[3]));
+        console.log("Required number to remove: "+required);
         
         // check action to change number of totalCount
         switch (effect[0]){
@@ -909,7 +917,17 @@ function checkEffect(scene){
                     totalCount = previous.length + parseInt(effect[3]);// card array increase by required amount
                 }
                 else {                                          // have required cardID
-                    totalCount += parseInt(effect[3]);          // number of card occurrence(s) increase by requirement
+                    if (stages.includes(scene.stage+1)) {
+                        console.log("Current stage count: "+totalCount, parseInt(effect[3]));
+                        totalCount += parseInt(effect[3]);      // number of card occurrence(s) increase by requirement
+                        console.log(totalCount, parseInt(effect[3]));
+                    }
+                    else {
+                        if (stage_zero == 0) {
+                            totalCount = 0;
+                        }
+                    }
+                    
                 }
                 break;
             // stand in for card
@@ -981,7 +999,7 @@ function checkEffect(scene){
         tempArray.push(totalCount, effect[2]);
         ideal.push(tempArray);
     }
-    console.log(ideal);
+    console.log("Ideal: "+ideal);
     return ideal;
 }
 
@@ -1113,11 +1131,14 @@ function areRulesMatched(scene) {
             }
             else if (ideal.equals(current)) {
                 console.log("correct changes");
+                console.log("ideal: " + "\nCardID: " + ideal[0][1] + "\nNo.: " + ideal[0][0] + 
+                            "\ncurrent: " + "\nCardID: " + current[0][1] + "\nNo.: " + current[0][0]);
                 matched = true;
             }
             else {
                 console.log("rules are not matched");
-                console.log("ideal: "+ideal + "\ncurrent: "+current);
+                console.log("ideal: " + "\nCardID: " + ideal[0][1] + "\nNo.: " + ideal[0][0] + 
+                            "\ncurrent: " + "\nCardID: " + current[0][1] + "\nNo.: " + current[0][0]);
                 matched = false;
             }
         }

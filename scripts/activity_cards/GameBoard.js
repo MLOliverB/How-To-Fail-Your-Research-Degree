@@ -76,11 +76,13 @@ class CardBox {
         
         else if (this.scene.flipState && this.cardId != 0) {
             console.log("can flip card");
+            let temp_id = this.cardId;
             if (!this.flip) {
                 this.flip = true;
                 this.cardText.setText("Flipped");
                 this.cardImage.setVisible(false);
                 this.backImage.setVisible(true);
+                this.cardId = 0;
                 this.scene.numberFlipped += 1;
             }
             else {
@@ -88,6 +90,7 @@ class CardBox {
                 this.cardText.setText(this.cardId);
                 this.cardImage.setVisible(true);
                 this.backImage.setVisible(false);
+                this.cardId = temp_id;
                 this.scene.numberFlipped -= 1;
             }
         }
