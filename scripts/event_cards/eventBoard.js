@@ -637,7 +637,7 @@ function useEffect(scene) {
          */
         var chosenElse = holdEventID.else_condition.toString();
         var splitElse;
-        if (holdEventID == "62") {
+        if (holdEventID == "62" || holdEventID == "63") {
             var temp = "n0:1:2";
             splitElse = temp.split(/:/);
         }
