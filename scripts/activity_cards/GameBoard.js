@@ -87,7 +87,7 @@ class CardBox {
             }
             else {
                 this.flip = false;
-                this.cardText.setText(this.cardId);
+                this.cardText.setText(temp_id);
                 this.cardImage.setVisible(true);
                 this.backImage.setVisible(false);
                 this.cardId = temp_id;
@@ -96,6 +96,7 @@ class CardBox {
         }
         else if (!this.scene.flipState && this.flip) {
             this.placementBox.disableInteractive();
+            this.cardId = 0;
         }
 		
 		// a work late tile can only be placed if the player is holding a work late tile and there is a card in the card box (and there isn't already a work late tile)

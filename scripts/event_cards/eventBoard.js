@@ -615,7 +615,7 @@ function useEffect(scene) {
 
         var doubleEffect = chosenEffect.split(/&(?!\d)/);
         var splitEffect = new Array();
-        if (holdEventID == "62") {
+        if (variables.get("currentEventCard") == "62" || variables.get("currentEventCard") == "63") {
             var temp = "n0:2:2";
             splitEffect = temp.split(/:/);
         }
@@ -637,9 +637,9 @@ function useEffect(scene) {
          */
         var chosenElse = holdEventID.else_condition.toString();
         var splitElse;
-        if (holdEventID == "62" || holdEventID == "63") {
+        if (variables.get("currentEventCard") == "62" || variables.get("currentEventCard") == "63") {
             var temp = "n0:1:2";
-            splitElse = temp.split(/:/);
+            splitElse = temp.toString().split(/:/);
         }
         else {
             splitElse = chosenElse.split(/:/);
@@ -752,7 +752,7 @@ function useEffect(scene) {
             singleEffect.push(sAct[i], adjacency[i], forAction[i], totalAmount[i], cardStage[i], chosenTitle);
         }
         else {
-            singleEffect.push(sAct, adjacency, forAction, totalAmount, cardStage, chosenTitle);
+        singleEffect.push(sAct, adjacency, forAction, totalAmount, cardStage, chosenTitle);
         }
         //console.log(singleEffect);
         wholeEffect.push(singleEffect);
@@ -844,7 +844,7 @@ function checkEffect(scene){
         let stage_depends = countCardOccurrences(stage_counts);
         let stage_zero = 0;
         if (stage_depends["0"]){
-            stage_zero = stage_depends["0"];
+            stage_zero = stage_depends["0"] - scene.numberFlipped;
         }
         delete stage_depends["0"];
         let stage_id = Object.keys(stage_depends);
@@ -859,7 +859,7 @@ function checkEffect(scene){
         
         // get total occurrence(s) of cardID(s) 
         for (var x = 0; x < effect[2].length; x++) {
-            var temp = parseInt(effect[2][x]);
+            var temp = effect[2][x];
             var index = stage_id.indexOf(temp);
             console.log(temp, index);
             if (temp == "0") {                          // card is not specified
@@ -891,6 +891,7 @@ function checkEffect(scene){
         switch (effect[0]){
             // remove card
             case "n":
+            case ["n"]:
                 if (effect[2][0] == "0") {                      // no required cardID -> totalCount = number of cards
                     if (required == 0) {                        // no cards on board for stage
                         scene.ignored = true;                   // ignore effect
@@ -990,7 +991,16 @@ function checkEffect(scene){
                 
                 break;
             default:
-                console.log("no action");
+                if (variables.get("currentEventCard") == "62" || variables.get("currentEventCard") == "63") { // manual input 
+                    if (parseInt(stage_total) == 0) {           // no cards on board for stage
+                        scene.ignored = true;                   // ignore effect
+                    }
+                    else {                                      // have cards
+                        totalCount -= 1;                        // number of cards reduce by 1
+                        console.log(totalCount);
+                    }
+                }
+            console.log("no action");
         }
         //console.log("ideal: "+totalCount);
         
@@ -1261,6 +1271,9 @@ function playHandler(scene) {
     // allow activity cards to be played (overrides illegal moves)
     buttonToggle(scene.toolbarDiscard, 0, true);
     buttonToggle(scene.currentCardBox, 1, true);
+    
+    buttonToggle(scene.eventBarActInventory, 2, true);
+    buttonToggle(scene.eventBarActStore, 2, true);
 	
     // stages will become interactive and all card components visible depending on stage specified
     for (let i = 0; i <= scene.stage; i++) {
@@ -1333,7 +1346,7 @@ function activityStoreHandler(scene) {
     let variables = scene.teams[scene.currentTeam];
     let cards = variables.get("activityCards");
     let currentCard = scene.cardMap.get(variables.get("currentCard"));
-    console.log(currentCard.stage);
+    //console.log(currentCard.stage);
     let stored = false;
     for (let i = 0; i < cards.length; i++) {
         if (cards[i].id == 0) {
