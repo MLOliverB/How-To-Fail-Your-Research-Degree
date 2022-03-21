@@ -1361,6 +1361,7 @@ function finishHandler(scene) {
         scene.forceFinish = 0;
         scene.ignored = false;
         scene.completeEffect = false;
+        if (scene.activityInventoryOpen) closeActInventory(scene);
         
         // disabling all the card placement boxes
         for (let j = 0; j < scene.stage+1; j++) {
