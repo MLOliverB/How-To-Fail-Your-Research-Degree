@@ -199,6 +199,9 @@ class CardBox {
 			if (this.hasWorkLate) {
 				this.workLateImage.setVisible(true);
 			}
+            if (this.flip) {
+                this.backImage.setVisible(true);
+            }
 		} else {
 			if (isInteractiveToggle) {
 				this.placementBox.setVisible(false).disableInteractive();
@@ -210,6 +213,9 @@ class CardBox {
 			if (this.hasWorkLate) {
 				this.workLateImage.setVisible(false);
 			}
+            if (this.flip) {
+                this.backImage.setVisible(false);
+            }
 		}
 	}
 
@@ -1201,7 +1207,7 @@ function pickUpCard(scene) {
 	let variables = scene.teams[scene.currentTeam];
     // during event round, will pick up specified cards
     if (scene.isEventRound && variables.get("currentCard") == 0) {
-        console.log("ID: "+variables.get("currentCard").id);
+        console.log("ID: "+variables.get("currentCard"));
         var wholeEffect = useEffect(scene);
         for (var i = 0; i < wholeEffect.length; i++) {
             var cardId = wholeEffect[i][2];

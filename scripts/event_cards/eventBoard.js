@@ -105,10 +105,9 @@ class EventCard {
     }
 
 
-    switchCard(id, stage) {
+    switchCard(id) {
         this.id = id;
         this.card.setTexture(id);
-        this.stage = stage;
     }
 }
 
@@ -531,18 +530,20 @@ function useEffect(scene) {
                     }
                 }
             }
-            if((!toBePresent.length) && (toBeAbsent.length)){
-                console.log(`Title of event card: ${chosenTitle} \n
-                            Requirement -\n
-                            Card(s) that should be absent: ${toBeAbsent}\n
-                            Specific number of card(s) not to exceed: ${absCondition}`);
-            }
-            if((!toBeAbsent.length) && (toBePresent.length)){
-                console.log(`Title of event card: ${chosenTitle} \n
-                        Requirement -\n
-                        Card(s) that should be present: ${toBePresent}\n
-                        Specific number of card(s) necessary: ${preCondition}`);
-            }
+            if (!scene.alertEvent) {
+                if((!toBePresent.length) && (toBeAbsent.length)){
+                    console.log(`Title of event card: ${chosenTitle} \n
+                                Requirement -\n
+                                Card(s) that should be absent: ${toBeAbsent}\n
+                                Specific number of card(s) not to exceed: ${absCondition}`);
+                }
+                if((!toBeAbsent.length) && (toBePresent.length)){
+                    console.log(`Title of event card: ${chosenTitle} \n
+                                Requirement -\n
+                                Card(s) that should be present: ${toBePresent}\n
+                                Specific number of card(s) necessary: ${preCondition}`);
+                }
+            }    
         }
 
         // check if requirement is met
@@ -553,16 +554,16 @@ function useEffect(scene) {
                 var temp = toBeAbsent[i][0];
                 var index = idArray.indexOf(temp);
                 var number = countArray[index];
-                console.log("Index: "+index+"\nnumber not required: "+number);
+                if (!scene.alertEvent) {console.log("Index: "+index+"\nnumber not required: "+number);}
                 if (number == undefined) {
                     number = 0;
                 }
                 if (number > absCondition[i]) {
-                    console.log("requirement not fulfilled, cannot use effect");
+                    if (!scene.alertEvent) {console.log("requirement not fulfilled, cannot use effect");}
                     booleanArr.push(false);
                 }
                 else {
-                    console.log("requirement fulfilled, move to next requirement");
+                    if (!scene.alertEvent) {console.log("requirement fulfilled, move to next requirement");}
                     booleanArr.push(true);
                 }
             }
@@ -575,16 +576,16 @@ function useEffect(scene) {
                 var temp = toBePresent[i][0];
                 var index = idArray.indexOf(temp);
                 var number = countArray[index];
-                console.log("Index: "+index+"\nnumber required: "+number);
+                if (!scene.alertEvent) {console.log("Index: "+index+"\nnumber required: "+number);}
                 if (number == undefined) {
                     number = 0;
                 }
-                if (number < preCondition) {
-                    console.log("requirement not fulfilled, cannot use effect");
+                else if (number < preCondition) {
+                    if (!scene.alertEvent) {console.log("requirement not fulfilled, cannot use effect");}
                     booleanArr.push(false);
                 }
                 else {
-                    console.log("requirement fulfilled, move to next requirement");
+                    if (!scene.alertEvent) {console.log("requirement fulfilled, move to next requirement");}
                     booleanArr.push(true);
                 }
             }
@@ -599,6 +600,7 @@ function useEffect(scene) {
         else {
             return false;
         }
+        scene.alertEvent = true;
     }
     
 
@@ -743,13 +745,15 @@ function useEffect(scene) {
         else {
             cardStage.push(holdEventID.stage.toString());
         }
-
-        console.log(`Title of event card: ${chosenTitle} \n
-                        Effect - \n
-                        Action to take: ${action}\n
-                        CardID(s): ${forAction}\n
-                        Number of card(s)/space(s): ${totalAmount}\n
-                        Stages: ${cardStage}`);
+        
+        if (!scene.alertEvent) {
+            console.log(`Title of event card: ${chosenTitle} \n
+                            Effect - \n
+                            Action to take: ${action}\n
+                            CardID(s): ${forAction}\n
+                            Number of card(s)/space(s): ${totalAmount}\n
+                            Stages: ${cardStage}`);
+        }
         
         if (fulfilled) {
             singleEffect.push(sAct[i], adjacency[i], forAction[i], totalAmount[i], cardStage[i], chosenTitle);
@@ -1353,7 +1357,12 @@ function activityStoreHandler(scene) {
     let stored = false;
     for (let i = 0; i < cards.length; i++) {
         if (cards[i].id == 0) {
-            cards[i].switchCard(variables.get("currentCard"), currentCard.stage);
+            try {
+                cards[i].switchCard(variables.get("currentCard"), currentCard.stage);
+            }
+            catch (error) {
+                cards[i].switchCard(variables.get("currentCard"), manualStage(variables.get("currentCard")));
+            }
             variables.set("currentCard", 0);
             if (scene.activityInventoryOpen) {
                 cards[i].setVisible(true);
@@ -1369,6 +1378,24 @@ function activityStoreHandler(scene) {
     else {
         scene.currentCardText.setText("+");
         scene.currentCardImage.setVisible(false);
+    }
+}
+
+/**
+ * stage for activity card ID if stage is not yet in CardMap
+ */
+function manualStage(id) {
+    if (id <= 8) {
+        return "1";
+    }
+    else if (id <= 32) {
+        return "2";
+    }
+    else if (id <= 46) {
+        return "3";
+    }
+    else {
+        return "4";
     }
 }
 
@@ -1398,6 +1425,7 @@ function finishHandler(scene) {
         scene.forceFinish = 0;
         scene.ignored = false;
         scene.completeEffect = false;
+        scene.alertEvent = false;
         if (scene.activityInventoryOpen) closeActInventory(scene);
         
         // disabling all the card placement boxes
