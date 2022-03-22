@@ -76,25 +76,22 @@ class CardBox {
         
         else if (this.scene.flipState && this.cardId != 0) {
             console.log("can flip card");
-            let temp_id = this.cardId;
             if (!this.flip) {
                 this.flip = true;
                 this.cardText.setText("Flipped");
                 this.cardImage.setVisible(false);
                 this.backImage.setVisible(true);
-                this.cardId = 0;
                 this.scene.numberFlipped += 1;
             }
             else {
                 this.flip = false;
-                this.cardText.setText(temp_id);
+                this.cardText.setText(this.cardId);
                 this.cardImage.setVisible(true);
                 this.backImage.setVisible(false);
-                this.cardId = temp_id;
                 this.scene.numberFlipped -= 1;
             }
         }
-        else if (!this.scene.flipState && this.flip) {
+        else if (!this.scene.flipState && this.flip && this.cardId != 0) {
             this.placementBox.disableInteractive();
             this.cardId = 0;
         }

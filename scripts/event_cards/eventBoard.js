@@ -1380,8 +1380,8 @@ function finishHandler(scene) {
     scene.completeEffect = areRulesMatched(scene);
 	
 	console.log("Checking if player correctly used event card effects");
-    // check if rules are matched or effects are bugged for several times (i.e., pressed finish 5 times)
-	if (scene.completeEffect || scene.forceFinish == 4) {
+    // check if rules are matched or effects are bugged for several times (i.e., pressed finish 3 times)
+	if (scene.completeEffect || scene.forceFinish == 2) {
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
         scene.eventBarFlip.setVisible(false);
