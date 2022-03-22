@@ -618,15 +618,18 @@ function useEffect(scene) {
         if (variables.get("currentEventCard") == "62" || variables.get("currentEventCard") == "63") {
             var temp = "n0:2:2";
             splitEffect = temp.split(/:/);
+            obtainEffect(splitEffect);
         }
-        for (var i = 0; i < doubleEffect.length; i++) {
-            var x = doubleEffect[i].split(/:/);
-            splitEffect[i] = x;
-        }
+        else {
+            for (var i = 0; i < doubleEffect.length; i++) {
+                var x = doubleEffect[i].split(/:/);
+                splitEffect[i] = x;
+            }
 
-        // effect of card chosen
-        for (var i = 0; i < splitEffect.length; i++) {
-            obtainEffect(splitEffect[i]);
+            // effect of card chosen
+            for (var i = 0; i < splitEffect.length; i++) {
+                obtainEffect(splitEffect[i]);
+            }
         }
 
     } 
