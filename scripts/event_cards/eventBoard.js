@@ -530,6 +530,7 @@ function useEffect(scene) {
                     }
                 }
             }
+            // console log for requirement(s)
             if (!scene.alertEvent) {
                 if((!toBePresent.length) && (toBeAbsent.length)){
                     console.log(`Title of event card: ${chosenTitle} \n
@@ -549,6 +550,8 @@ function useEffect(scene) {
         // check if requirement is met
         var booleanArr = new Array();
         //console.log(toBeAbsent, toBePresent);
+        
+        // check for requirement that requires card to be absent
         if(toBeAbsent.length) {
             for (var i = 0; i < toBeAbsent.length; i++) {
                 var temp = toBeAbsent[i][0];
@@ -571,6 +574,8 @@ function useEffect(scene) {
         else {
             booleanArr.push(true);
         }
+        
+        // check for requirement that requires card to be present
         if(toBePresent.length) {
             for (var i = 0; i < toBePresent.length; i++){
                 var temp = toBePresent[i][0];
@@ -719,6 +724,7 @@ function useEffect(scene) {
             case "f":
                 action.push('Flip card');
                 sAct.push("f");
+                break;
             default:
                 console.log('none');
                 sAct.push("l");
@@ -746,6 +752,7 @@ function useEffect(scene) {
             cardStage.push(holdEventID.stage.toString());
         }
         
+        // console log for Event card
         if (!scene.alertEvent) {
             console.log(`Title of event card: ${chosenTitle} \n
                             Effect - \n
@@ -763,7 +770,7 @@ function useEffect(scene) {
         }
         //console.log(singleEffect);
         wholeEffect.push(singleEffect);
-        console.log(wholeEffect);
+        //console.log(wholeEffect);
     }
     return wholeEffect;
 }
@@ -830,8 +837,9 @@ function checkEffect(scene){
         let stage_counts = new Array();
         let stages = [];
         
+        // saving cards from specified stage(s) in Event into an array
         for (var y = 0; y < effect[4].length; y++) {
-            console.log(effect[4][y]);
+            //console.log(effect[4][y]);
             let stage = parseInt(effect[4][y]);
             stages.push(stage);
             if (stage === 1) {
@@ -847,12 +855,14 @@ function checkEffect(scene){
                 stage_counts = stage_counts.concat(previousStage_4);
             }
         }
-        console.log(stages);
+        //console.log(stages);
         let stage_depends = countCardOccurrences(stage_counts);
         let stage_zero = 0;
+        // remove flipped cards and blocked spaces from number of empty spaces (all three cardIDs equal to 0)
         if (stage_depends["0"]){
-            stage_zero = stage_depends["0"] - scene.numberFlipped;
+            stage_zero = stage_depends["0"] - scene.numberFlipped - scene.numberBlocked;
         }
+        // remove all empty spaces from array
         delete stage_depends["0"];
         let stage_id = Object.keys(stage_depends);
         let stage_occ = Object.values(stage_depends);
@@ -868,7 +878,7 @@ function checkEffect(scene){
         for (var x = 0; x < effect[2].length; x++) {
             var temp = effect[2][x];
             var index = stage_id.indexOf(temp);
-            console.log(temp, index);
+            //console.log(temp, index);
             if (temp == "0") {                          // card is not specified
                 totalCount += parseInt(stage_total);    // totalCount = number of total cards of stated stages
             } 
@@ -891,14 +901,13 @@ function checkEffect(scene){
         else {
             required = parseInt(effect[3]);     // can remove required number of cards 
         }
-        console.log(stage_total, required, parseInt(effect[3]));
-        console.log("Required number to remove: "+required);
+        //console.log(stage_total, required, parseInt(effect[3]));
+        //console.log("Required number to remove: "+required);
         
         // check action to change number of totalCount
         switch (effect[0]){
             // remove card
             case "n":
-            case ["n"]:
                 if (effect[2][0] == "0") {                      // no required cardID -> totalCount = number of cards
                     if (required == 0) {                        // no cards on board for stage
                         scene.ignored = true;                   // ignore effect
@@ -925,13 +934,12 @@ function checkEffect(scene){
                     totalCount = previous.length + parseInt(effect[3]);// card array increase by required amount
                 }
                 else {                                          // have required cardID
-                    if (stages.includes(scene.stage+1)) {
-                        console.log("Current stage count: "+totalCount, parseInt(effect[3]));
+                    if (stages.includes(scene.stage+1)) {       // stage is specified
                         totalCount += parseInt(effect[3]);      // number of card occurrence(s) increase by requirement
-                        console.log(totalCount, parseInt(effect[3]));
+                        //console.log(totalCount, parseInt(effect[3]));
                     }
                     else {
-                        if (stage_zero == 0) {
+                        if (stage_zero == 0 && index == "-1") { // no empty spaces for that stage and that card doesn't exist on board
                             totalCount = 0;
                         }
                     }
@@ -1004,7 +1012,7 @@ function checkEffect(scene){
                     }
                     else {                                      // have cards
                         totalCount -= 1;                        // number of cards reduce by 1
-                        console.log(totalCount);
+                        //console.log(totalCount);
                     }
                 }
             console.log("no action");
@@ -1073,9 +1081,10 @@ function areRulesMatched(scene) {
             
             // array that will be used depending on stage(s) shown on card
             let stage_counts = new Array();
-        
+            
+            // saving cards from specified stage(s) in Event into an array
             for (var y = 0; y < effect[4].length; y++) {
-                console.log(effect[4][y]);
+                //console.log(effect[4][y]);
                 let stage = parseInt(effect[4][y]);
                 if (stage === 1) {
                     stage_counts = stage_counts.concat(currentStage_1);
@@ -1092,6 +1101,7 @@ function areRulesMatched(scene) {
             }
         
             let stage_depends = countCardOccurrences(stage_counts);
+            // removing all empty spaces from array
             delete stage_depends["0"];
             let stage_id = Object.keys(stage_depends);
             let stage_occ = Object.values(stage_depends);
@@ -1103,19 +1113,19 @@ function areRulesMatched(scene) {
             // get total occurrences for all selected card(s)
             for (var x = 0; x < effect[2].length; x++) {
                 var temp = effect[2][i];
-                var index = currentArrayId.indexOf(temp);
+                var index = stage_id.indexOf(temp);
                 // card is not specified
                 if (temp == "0") {
-                    if (effect[0] == "p") {             // effect is to add cards without specified ids 
+                    if (effect[0] == "p") {              // effect is to add cards without specified ids 
                         totalCount += curArray.length;   // total count = length of current array 
                     }
-                    else if (effect[0] == "n") {        // effect is to remove cards
+                    else if (effect[0] == "n") {         // effect is to remove cards
                         totalCount += stage_total;       // total count = total number of cards on board currently
                     }
                     else if (effect[0] == "b" || effect[0] == "o") {    // effect is to block out spaces
                         totalCount += scene.numberBlocked;
                     }
-                    else if (effect[0] == "f") {        // effect is to flip cards
+                    else if (effect[0] == "f") {         // effect is to flip cards
                         totalCount += scene.numberFlipped;
                     }
                 } 
@@ -1126,12 +1136,12 @@ function areRulesMatched(scene) {
                         totalCount += 0;
                     }
                     else {
-                        totalCount += currentArrayOcc[index];
-                        console.log(currentArrayOcc[index]);
+                        totalCount += stage_occ[index];
+                        //console.log(currentArrayOcc[index]);
                     }
                 }
             }
-            console.log(totalCount);
+            //console.log(totalCount);
             // push totalCount and related cardIDs into current as 2D array
             var tempArray = new Array();
             tempArray.push(totalCount, effect[2]);
@@ -1270,8 +1280,16 @@ function playHandler(scene) {
         var x = temp[4];
         stage.push(x-1);
         
-        if (temp[0].includes("s")) {
-            alert(`You can get ${temp[5]} from the stack and save in inventory for later use`);
+        try {
+            if (temp[0].includes("s") && x > scene.stage) {
+                alert(`You can get ${temp[5]} from the stack and save in inventory for later use`);
+            }
+            else if (temp[0].includes("s") && x < scene.stage) {
+                alert(`If there is an empty space, you can draw the card from stack and place it down`);
+            }
+        }
+        catch (error) {
+            console.log("undefined");
         }
     }
 
@@ -1414,6 +1432,7 @@ function finishHandler(scene) {
 	if (scene.completeEffect || scene.forceFinish == 2) {
 		scene.eventBarPlay.setVisible(false);
 		scene.eventBarStore.setVisible(false);
+        scene.eventBarFlip.buttonText.setText("Flip Cards");
         scene.eventBarFlip.setVisible(false);
 		buttonToggle(scene.toolbarDiscard, 0, false);
         buttonToggle(scene.currentCardBox, 1, false);
@@ -1426,6 +1445,7 @@ function finishHandler(scene) {
         scene.ignored = false;
         scene.completeEffect = false;
         scene.alertEvent = false;
+        if (scene.isInventoryOpen) closeInventory(scene);
         if (scene.activityInventoryOpen) closeActInventory(scene);
         
         // disabling all the card placement boxes

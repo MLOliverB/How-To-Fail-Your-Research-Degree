@@ -65,7 +65,18 @@ class CardBox {
 		if (this.hasWorkLate) {
 			if (this.scene.isPlayerHoldingWorkLate) {
 				returnWorkLate(this.scene);
-			} else {
+			} 
+            else if (this.scene.isEventRound && !isPlayerHoldingCard) {
+                returnWorkLate(this.scene);
+                variables.set("currentCard", this.cardId);
+                this.cardId = 0;
+
+                this.cardText.setText("Place Card");
+                this.scene.currentCardText.setText(variables.get("currentCard"));
+                this.scene.currentCardImage.setVisible(true).setTexture(variables.get("currentCard"));
+                this.cardImage.setVisible(false);
+            }
+            else {
 				this.scene.isPlayerHoldingWorkLate = true;
 				this.scene.workLateImage.setVisible(true);
 			}
@@ -74,6 +85,7 @@ class CardBox {
 			workLateCardEnabler(this.scene);
 		}
         
+        // flip activity card to the back if flipState is activated and there is a card in the card box
         else if (this.scene.flipState && this.cardId != 0) {
             console.log("can flip card");
             if (!this.flip) {
@@ -91,6 +103,7 @@ class CardBox {
                 this.scene.numberFlipped -= 1;
             }
         }
+        // disable the card box and set the ID to 0 if the card in the card box is flipped and flipState is deactivated
         else if (!this.scene.flipState && this.flip && this.cardId != 0) {
             this.placementBox.disableInteractive();
             this.cardId = 0;
@@ -157,7 +170,7 @@ class CardBox {
             }
 		}
         
-        // during event stage, card will be flipped if card box has a card and flipState is set to true, and blocked if empty and allowed
+        // during event stage, card will be blocked if card box is empty and allowed by Event card
         else if (!isPlayerHoldingCard && this.scene.isEventRound) {
             let wholeEffect = useEffect(this.scene);
             let action = wholeEffect[0];
@@ -174,9 +187,10 @@ class CardBox {
                     this.scene.numberBlocked -= 1;
                 }
             }
-            else if (this.scene.blockedOut) {
-                this.placementBox.disableInteractive();
-            }
+        }
+        // disable card box if it is blocked and blockedOut is activated
+        else if (this.scene.blockedOut && this.testBlock && this.cardId == 0) {
+            this.placementBox.disableInteractive();
         }
 	}
 	
@@ -949,38 +963,42 @@ function squashFirstStage(scene) {
  */
 function removeUnusedCardBoxes(scene) {
     let variables = scene.teams[scene.currentTeam];
-	let cards = variables.get("cards")[scene.stage];
+	let cards = variables.get("cards");
     let unused = variables.get("unusedCards");
     if (unused==undefined) {
         unused = [];
     }
     //console.log(unused)
 	console.log(cards)
-	for (let i = 0; i < cards.length; i++) {
-		if (cards[i].cardId == 0) {
-            cards[i].setVisible(false, false);
-            unused.push(cards[i]);
-		}
-	}
+    for (let j = 0; j <= scene.stage; j++) {
+        for (let i = 0; i < cards[j].length; i++) {
+            if (cards[j][i].cardId == 0) {
+                cards[j][i].setVisible(false, false);
+                unused.push(cards[j][i]);
+            }
+        }
+    }
     variables.set("unusedCards", unused);
 }
 
 
 
 function addUnusedCardBoxes(scene) {
-    let cards = scene.teams[scene.currentTeam].get("cards")[scene.stage];
+    let cards = scene.teams[scene.currentTeam].get("cards");
     let unusedCards = scene.teams[scene.currentTeam].get("unusedCards");
 	console.log(unusedCards);
-	for (let i = 0; i < cards.length; i++) {
-        if (cards[i].cardId == 0) {
-            cards[i].setVisible(true, true);
-		}
-	}
+    for (let j = 0; j <= scene.stage; j++) {
+        for (let i = 0; i < cards[j].length; i++) {
+            if (cards[j][i].cardId == 0) {
+                cards[j][i].setVisible(true, true);
+            }
+        }
+    }
     for (let j = 0; j < unusedCards.length; j++) {
         unusedCards[j].setVisible(true, true);
     }
     console.log(cards);
-    //unusedCards = [];
+    unusedCards = [];
 }
 
 
@@ -1278,51 +1296,56 @@ function getIllegalPlacements(scene, team) {
     for (let stage = 0; stage < nodesGrid.length; stage++) {
         for (let ix = 0; ix < nodesGrid[stage].length; ix++) {
             let node = nodesGrid[stage][ix];
-			if (node != null) {
-				node.adjacencyList = [];
-				// Check if this node can connect to a left node and if this left node is connected
-				if (node.connectivity[0] && node.ix > 0) {
-					if (nodesGrid[node.stage][node.ix-1] != null) {
-						if (nodesGrid[node.stage][node.ix-1].connectivity[1]) {
-							node.adjacencyList.push(nodesGrid[node.stage][node.ix-1]);
-						} else {
-							node.illegal = true
-						}
-					}
-				}
-				// Check if this node can connect to a right node and if this right node is connected
-				if (node.connectivity[1] && node.ix < nodesGrid[node.stage].length-1) {
-					if (nodesGrid[node.stage][node.ix+1] != null) {
-						if (nodesGrid[node.stage][node.ix+1].connectivity[0]) {
-							node.adjacencyList.push(nodesGrid[node.stage][node.ix+1]);
-						} else {
-							node.illegal = true
-						}
-					}
-				}
-				// Check if this node can connect to a top node and if this top node is connected
-				if (node.connectivity[2] && node.stage < scene.stage) {
-					let topCardIx = node.ix + (cards[node.stage+1][0].distanceFromMiddle - cards[node.stage][0].distanceFromMiddle);
-					if (nodesGrid[node.stage+1][topCardIx] != null) {
-						if (nodesGrid[node.stage+1][topCardIx].connectivity[3]) {
-							node.adjacencyList.push(nodesGrid[node.stage+1][topCardIx]);
-						} else {
-							node.illegal = true
-						}
-					}
-				}
-				// Check if this node can connect to a bottom node and if this bottom node is connected
-				if (node.connectivity[3]) {
-					let bottomCardIx = node.ix + (cards[node.stage][0].distanceFromMiddle - cards[node.stage-1][0].distanceFromMiddle);
-					if (nodesGrid[node.stage-1][bottomCardIx] != null) {
-						if (nodesGrid[node.stage-1][bottomCardIx].connectivity[2]) {
-							node.adjacencyList.push(nodesGrid[node.stage-1][bottomCardIx]);
-						} else {
-							node.illegal = true
-						}
-					}
-				}
-			}
+            try {
+                if (node != null) {
+                    node.adjacencyList = [];
+                    // Check if this node can connect to a left node and if this left node is connected
+                    if (node.connectivity[0] && node.ix > 0) {
+                        if (nodesGrid[node.stage][node.ix-1] != null) {
+                            if (nodesGrid[node.stage][node.ix-1].connectivity[1]) {
+                                node.adjacencyList.push(nodesGrid[node.stage][node.ix-1]);
+                            } else {
+                                node.illegal = true
+                            }
+                        }
+                    }
+                    // Check if this node can connect to a right node and if this right node is connected
+                    if (node.connectivity[1] && node.ix < nodesGrid[node.stage].length-1) {
+                        if (nodesGrid[node.stage][node.ix+1] != null) {
+                            if (nodesGrid[node.stage][node.ix+1].connectivity[0]) {
+                                node.adjacencyList.push(nodesGrid[node.stage][node.ix+1]);
+                            } else {
+                                node.illegal = true
+                            }
+                        }
+                    }
+                    // Check if this node can connect to a top node and if this top node is connected
+                    if (node.connectivity[2] && node.stage < scene.stage) {
+                        let topCardIx = node.ix + (cards[node.stage+1][0].distanceFromMiddle - cards[node.stage][0].distanceFromMiddle);
+                        if (nodesGrid[node.stage+1][topCardIx] != null) {
+                            if (nodesGrid[node.stage+1][topCardIx].connectivity[3]) {
+                                node.adjacencyList.push(nodesGrid[node.stage+1][topCardIx]);
+                            } else {
+                                node.illegal = true
+                            }
+                        }
+                    }
+                    // Check if this node can connect to a bottom node and if this bottom node is connected
+                    if (node.connectivity[3]) {
+                        let bottomCardIx = node.ix + (cards[node.stage][0].distanceFromMiddle - cards[node.stage-1][0].distanceFromMiddle);
+                        if (nodesGrid[node.stage-1][bottomCardIx] != null) {
+                            if (nodesGrid[node.stage-1][bottomCardIx].connectivity[2]) {
+                                node.adjacencyList.push(nodesGrid[node.stage-1][bottomCardIx]);
+                            } else {
+                                node.illegal = true
+                            }
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                console.log(error);
+            }
         }
     }
 	nodesGrid = undefined; // The variable becomes obsolete at this point

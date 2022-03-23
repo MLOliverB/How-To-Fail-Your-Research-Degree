@@ -79,14 +79,14 @@ export default class playerView extends Phaser.Scene {
         this.previousCardArray = new Array();               // previous event card array before making changes
         this.blockedOut = false;
         this.numberBlocked = 0;                             // number of card box(es) blocked out
-        this.ignored = false;
+        this.ignored = false;                               // ignore effect if set to true
         this.flipState = false;                             // can flip card on board if set to true
         this.numberFlipped = 0;                             // number of activity card(s) flipped
         this.flipped = false;                               // flipped cards cannot be changed
         this.completeEffect = false;
 		this.isInventoryOpen = false;
         
-        this.forceFinish = 0;                   // force the event card effect to end once this number reaches 5 (if bugging happens)
+        this.forceFinish = 0;                       // force the event card effect to end once this number reaches 5 (if bugging happens)
         this.alertEvent = false;                    // prevent console logs to be spammed
         
         this.activityInventoryOpen = false;
