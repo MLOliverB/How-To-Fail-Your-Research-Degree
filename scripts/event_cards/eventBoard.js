@@ -622,12 +622,6 @@ function useEffect(scene) {
 
         var doubleEffect = chosenEffect.split(/&(?!\d)/);
         var splitEffect = new Array();
-        if (variables.get("currentEventCard") == "62" || variables.get("currentEventCard") == "63") {
-            var temp = "n0:2:2";
-            splitEffect = temp.split(/:/);
-            obtainEffect(splitEffect);
-        }
-        else {
             for (var i = 0; i < doubleEffect.length; i++) {
                 var x = doubleEffect[i].split(/:/);
                 splitEffect[i] = x;
@@ -639,7 +633,6 @@ function useEffect(scene) {
             }
         }
 
-    } 
     else {  // if requirements not fulfilled, go to else condition and use (if exists)
         fulfilled = false;
         /*
@@ -934,13 +927,29 @@ function checkEffect(scene){
                     totalCount = previous.length + parseInt(effect[3]);// card array increase by required amount
                 }
                 else {                                          // have required cardID
-                    if (stages.includes(scene.stage+1)) {       // stage is specified
+                    if (stages.includes(scene.stage+1)) {       // current stage 
                         totalCount += parseInt(effect[3]);      // number of card occurrence(s) increase by requirement
                         //console.log(totalCount, parseInt(effect[3]));
                     }
-                    else {
-                        if (stage_zero == 0 && index == "-1") { // no empty spaces for that stage and that card doesn't exist on board
+                    else {                                      // not for current stage
+                        if (stage_zero == 0) { // no empty spaces for that stage and that card doesn't exist on board
                             totalCount = 0;
+                        }
+                        else if (stage_zero != 0 && index == "-1") {
+                            if (stage_zero < parseInt(effect[3])) {
+                                totalCount = stage_zero;
+                            }
+                            else {
+                                totalCount = parseInt(effect[3]);
+                            }
+                        }
+                        else {
+                            if (stage_zero < parseInt(effect[3])) {
+                                totalCount += stage_zero;
+                            }
+                            else {
+                                totalCount += parseInt(effect[3]);
+                            }
                         }
                     }
                     
