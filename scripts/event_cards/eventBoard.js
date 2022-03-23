@@ -1280,17 +1280,17 @@ function playHandler(scene) {
         var x = temp[4];
         stage.push(x-1);
         
-        try {
-            if (temp[0].includes("s") && x > scene.stage) {
+        /*try {
+            if (temp[0].includes("s") && x-1 > scene.stage) {
                 alert(`You can get ${temp[5]} from the stack and save in inventory for later use`);
             }
-            else if (temp[0].includes("s") && x < scene.stage) {
+            else if (temp[0].includes("s") && x-1 < scene.stage) {
                 alert(`If there is an empty space, you can draw the card from stack and place it down`);
             }
         }
         catch (error) {
             console.log("undefined");
-        }
+        }*/
     }
 
     // allow activity cards to be played (overrides illegal moves)
