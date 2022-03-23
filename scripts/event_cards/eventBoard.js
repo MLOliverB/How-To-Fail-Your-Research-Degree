@@ -933,7 +933,7 @@ function checkEffect(scene){
                     }
                     else {                                      // not for current stage
                         if (stage_zero == 0) { // no empty spaces for that stage and that card doesn't exist on board
-                            totalCount = 0;
+                            scene.ignored = true;
                         }
                         else if (stage_zero != 0 && index == "-1") {
                             if (stage_zero < parseInt(effect[3])) {
