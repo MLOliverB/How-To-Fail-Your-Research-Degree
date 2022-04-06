@@ -9,7 +9,7 @@
 With many interactions still taking place online, students find themselves isolated without many opportunities to interact with their peers. The aim of this project is to develop a digital version of *How To Fail Your Research Degree* which allows students to play the game remotely with their peers with the goal of keeping as many positive aspects of the tabletop version while also adding the advantages that come with online games.
   
 
-***For more information visit our [wiki](https://stgit.dcs.gla.ac.uk/team-project-h/2021/cs01/cs01-main/-/wikis/home).***
+***For more information visit our [wiki](https://github.com/MLOliverB/How-To-Fail-Your-Research-Degree/wiki).***
 
   
 
